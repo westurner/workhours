@@ -3,3 +3,5 @@ syntax:glob
 *.egg-info
 *.swp
 *.pyo
+build/lib.linux*
+*.egg
