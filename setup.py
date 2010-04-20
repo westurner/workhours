@@ -11,7 +11,7 @@ setup(name='workhours',
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='Wes Turner',
-      author_email='wes.turner@gmail.com',
+      author_email='wes@wrd.nu',
       url='',
       license='New BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
@@ -19,8 +19,13 @@ setup(name='workhours',
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
+          'SQLAlchemy>=0.6beta1',
+          'pytz>=2010e',
       ],
-      entry_points="""
+      entry_points={
       # -*- Entry points: -*-
-      """,
-      )
+         'console_scripts': [
+	    'workhours = workhours:main',
+	 ]
+      }
+)
