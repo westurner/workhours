@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.1'
+version = '0.2'
 
 setup(name='workhours',
       version=version,
-      description="Reads work hours from firefox sqlite logs",
+      description="Aggregates events from firefox places.sqlite and trac timeline.html files",
       long_description="""\
 """,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -21,11 +21,12 @@ setup(name='workhours',
           # -*- Extra requirements: -*-
           'SQLAlchemy>=0.6beta1',
           'pytz>=2010e',
+          'BeautifulSoup==3.0.8.1'
       ],
       entry_points={
       # -*- Entry points: -*-
          'console_scripts': [
-	    'workhours = workhours:main',
+	    'workhours = workhours.main:main',
 	 ]
       }
 )
