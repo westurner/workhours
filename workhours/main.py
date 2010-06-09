@@ -37,7 +37,14 @@ def setup_mappers(engine):
     return meta
 
 # TODO: more elegant generalization
-def populate_events_table(database_filepath, ffplaces_filepaths, timeline_filepath, trac_usernames, output_filename, gaptime):
+def populate_events_table(database_filepath,
+    ffplaces_filepaths,
+    timeline_filepath,
+    trac_usernames,
+    sessionlog_filenames,
+    wtmp_globs,
+    authlog_globs,
+    output_filename, gaptime):
     engine = setup_engine(database_filepath)
     meta = setup_mappers(engine)
     meta.bind = engine
@@ -49,7 +56,7 @@ def populate_events_table(database_filepath, ffplaces_filepaths, timeline_filepa
     s = meta.Session()
 
     from workhours.firefox import parse_firefox_history
-    for ffpath in ffplaces_filepaths:
+    for ffpath in ffplaces_filepaths or []:
         for e in parse_firefox_history(ffpath):
             s.add(Event('firefox', *e))
         s.flush()
@@ -58,6 +65,21 @@ def populate_events_table(database_filepath, ffplaces_filepaths, timeline_filepa
     for e in parse_trac_timeline(open(timeline_filepath,'rb'), trac_usernames):
         s.add(Event('trac', *e))
     s.flush()
+
+    from workhours.sessionlog import parse_sessionlog
+    for sspath in sessionlog_filenames or []:
+        for e in parse_sessionlog(sspath, session_prefix=''):
+            s.add(Event('shell', *e))
+
+    from workhours.wtmp import parse_wtmp_glob
+    for wtmp_glob in wtmp_globs or []:
+        for e in parse_wtmp_glob(wtmp_glob):
+            s.add(Event('wtmp', *e))
+
+    from workhours.authlog import parse_authlog_glob
+    for authlog_glob in authlog_globs or []:
+        for e in parse_authlog_glob(authlog_glob):
+            s.add(Event('authlog', *e))
 
     s.commit()
 
@@ -115,7 +137,14 @@ def main():
         help='File to write output csv into')
     prs.add_option('-g','--gaptime',dest='gaptime',action='store',
 	default=15, help="Minute gap to detect between entries")
-
+    prs.add_option('-s','--sessionlog',dest='sessionlog',action='append',
+        help='.session_log-style shell log to parse')
+    prs.add_option('-w','--wtmp',dest='wtmp_globs',action='append',
+        help='Path glob for one or more wtmp files'
+            '(may be specified more than once')
+    prs.add_option('-a','--authlog',dest='authlog_globs',action='append',
+        help='Path glob for one or more auth.log files'
+             '(may be specified more than once)')
 
     (options, args) = prs.parse_args()
 
@@ -132,6 +161,9 @@ def main():
         options.ffdb,
         options.tractimeline,
         options.tracusernames,
+        options.sessionlog,
+        options.wtmp_globs,
+        options.authlog_globs,
         options.output_csv,
         int(options.gaptime)
     )
