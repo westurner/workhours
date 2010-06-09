@@ -79,6 +79,22 @@ def setup_mappers(engine):
     )
     return meta
 
+FF_MAPPED_CLASSES = ['Mapper|Place|moz_places', 'Mapper|Visit|moz_historyvisits']
+def clear_ff_mappers():
+    """
+    Remove any existing Firefox mappings
+    """
+    from sqlalchemy import orm
+    orm.mapperlib._COMPILE_MUTEX.acquire()
+    try:
+        for mapper in list(orm._mapper_registry):
+            if str(mapper) in FF_MAPPED_CLASSES:
+                mapper.dispose()
+    finally:
+        orm.mapperlib._COMPILE_MUTEX.release()
+
+
+
 def parse_firefox_history(places_filename):
     """
     Parse a firefox places.sqlite history file
@@ -89,6 +105,8 @@ def parse_firefox_history(places_filename):
     :returns: Generator of (datetime, url) tuples
     """
     engine = setup_engine(places_filename)
+
+    clear_ff_mappers()
     setup_mappers(engine)
     Session = sessionmaker(bind=engine)
     s = Session()
