@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '0.2'
+version = '0.3'
 
 setup(name='workhours',
       version=version,
@@ -21,12 +21,13 @@ setup(name='workhours',
           # -*- Extra requirements: -*-
           'SQLAlchemy>=0.6beta1',
           'pytz>=2010e',
-          'BeautifulSoup==3.0.8.1'
+          'BeautifulSoup==3.0.8.1',
+          'pyutmp'
       ],
       entry_points={
       # -*- Entry points: -*-
          'console_scripts': [
-	    'workhours = workhours.main:main',
-	 ]
+        'workhours = workhours.main:main',
+     ]
       }
 )
