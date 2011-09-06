@@ -95,31 +95,31 @@ def populate_events_table(eventsdb_uri,
 
     s = meta.Session()
 
-    from workhours.firefox import parse_firefox_history
+    from workhours.firefox.history import parse_firefox_history
     for ffpath in ff_hist_paths or []:
         for e in parse_firefox_history(ffpath):
             s.add(Event('firefox', *e))
         s.flush()
 
-    from workhours.tractimeline import parse_trac_timeline
+    from workhours.trac.timeline import parse_trac_timeline
     for path in trac_timeline_paths:
         for e in parse_trac_timeline(open(path,'rb',encoding='UTF-8'), usernames):
             s.add(Event('trac', *e))
         s.flush()
 
-    from workhours.sessionlog import parse_sessionlog
+    from workhours.syslog.sessionlog import parse_sessionlog
     for sspath in sessionlog_filenames or []:
         for e in parse_sessionlog(sspath, session_prefix=''):
             s.add(Event('shell', *e))
         s.flush()
 
-    from workhours.wtmp import parse_wtmp_glob
+    from workhours.syslog.wtmp import parse_wtmp_glob
     for wtmp_glob in wtmp_globs or []:
         for e in parse_wtmp_glob(wtmp_glob):
             s.add(Event('wtmp', *e))
         s.flush()
 
-    from workhours.authlog import parse_authlog_glob
+    from workhours.syslog.authlog import parse_authlog_glob
     for authlog_glob in authlog_globs or []:
         for e in parse_authlog_glob(authlog_glob):
             s.add(Event('authlog', *e))
