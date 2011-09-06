@@ -6,3 +6,5 @@ syntax:glob
 build/lib.linux*
 *.egg
 nbproject/*
+*.sqlite
+*.csv

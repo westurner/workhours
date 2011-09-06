@@ -1,6 +1,11 @@
+#!/usr/bin/env python
+
 from datetime import datetime
 from itertools import ifilter
 import logging
+"""
+Grep Shell history logs
+"""
 
 log = logging.getLogger('parse_sessionlog')
 

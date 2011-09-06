@@ -1,3 +1,7 @@
+#!/usr/bin/env python
+"""
+Grep WTMP logs
+"""
 import tempfile
 import subprocess
 import os
