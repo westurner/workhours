@@ -12,18 +12,18 @@ from workhours import setup_engine
 from codecs import open
 
 class Event(object):
-    def __init__(self, source, datetime, url, title=None, description=None):
+    def __init__(self, source, date, url, title=None, description=None):
         self.source = source
-        self.datetime = datetime
+        self.date = date
         self.url = url
         self.title = title
         self.description = description
 
     def _to_event_row(self):
-        return (self.datetime, self.source, self.url)
+        return (self.date, self.source, self.url)
 
     def __unicode__(self):
-        return ("Event( %s %s %s)" % (self.datetime, self.source, self.url))
+        return ("Event( %s %s %s)" % (self.date, self.source, self.url))
 
     def __str__(self):
         return unicode(self)
@@ -47,7 +47,7 @@ def setup_mappers(engine):
         events_tbl = Table('events', meta,
             Column(u'id', Integer(), primary_key=True, nullable=False),
                 Column(u'source', Unicode(length=255), index=True),
-                Column(u'datetime', DateTime(), index=True),
+                Column(u'date', DateTime(), index=True),
                 Column(u'url', UnicodeText()),
                     # TODO:
                     Column(u'title', UnicodeText()),
@@ -72,13 +72,14 @@ def dump_events_table(dburi):
     meta.Session = sessionmaker(bind=engine)
     s = meta.Session()
 
-    for e in s.query(Event).order_by(Event.datetime).all():
+    for e in s.query(Event).order_by(Event.date):
         print e
 
 
 # TODO: more elegant generalization
 def populate_events_table(eventsdb_uri,
                         ff_hist_paths,
+                        webkit_bookmark_paths,
                         trac_timeline_paths,
                         usernames,
                         sessionlog_filenames,
@@ -99,6 +100,13 @@ def populate_events_table(eventsdb_uri,
     for ffpath in ff_hist_paths or []:
         for e in parse_firefox_history(ffpath):
             s.add(Event('firefox', *e))
+        s.flush()
+
+    from workhours.webkit.bookmarks import parse_webkit_bookmarks
+    for wbkpath in webkit_bookmark_paths:
+        source = 'webkit-bm' # % wbkpath
+        for node in parse_webkit_bookmarks(wbkpath):
+            s.add( Event( source, node['date'], node['url']) )
         s.flush()
 
     from workhours.trac.timeline import parse_trac_timeline
@@ -150,9 +158,7 @@ def create_gap_csv(meta, output_filename, gaptime=15):
         cw.writerow(('datetime','source','visit_date'))
 
         ltime = None
-        for e in ( s.query(Event).
-                order_by(Event.datetime).
-                all() ):
+        for e in s.query(Event).order_by(Event.date):
             ctime, source, url = cur_row = e._to_event_row()
             if ltime and (ltime + datetime.timedelta(minutes=gaptime)) < ctime:
                 cw.writerow(('--------','-------','------'))
@@ -174,6 +180,12 @@ def main():
                     action='append',
                     default=[],
                     help='FF places.sqlite path(s) ',)
+
+    prs.add_option('-k','--webkit-bookm',
+                    dest='webkit_bookmarks',
+                    action='append',
+                    default=[],
+                    help='WebKit bookmark JSON path(s)')
 
     prs.add_option('-l', '--trac-timeline',
                     dest='trac_timelines',
@@ -250,6 +262,7 @@ def main():
         exit(unittest.main())
 
     if any( (opts.firefox_history,
+            opts.webkit_bookmarks,
             opts.trac_timelines,
             opts.sessionlog,
             opts.wtmp_globs,
@@ -258,6 +271,7 @@ def main():
         populate_events_table(
             opts.eventsdb,
             opts.firefox_history,
+            opts.webkit_bookmarks,
             opts.trac_timelines,
             opts.usernames,
             opts.sessionlog,
