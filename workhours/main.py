@@ -174,6 +174,7 @@ def main():
                     action='append',
                     default=[],
                     help='FF places.sqlite path(s) ',)
+
     prs.add_option('-l', '--trac-timeline',
                     dest='trac_timelines',
                     action='append',
@@ -248,18 +249,23 @@ def main():
         import unittest
         exit(unittest.main())
 
+    if any( (opts.firefox_history,
+            opts.trac_timelines,
+            opts.sessionlog,
+            opts.wtmp_globs,
+            opts.authlog_globs) ):
 
-    populate_events_table(
-        opts.eventsdb,
-        opts.firefox_history,
-        opts.trac_timelines,
-        opts.usernames,
-        opts.sessionlog,
-        opts.wtmp_globs,
-        opts.authlog_globs,
-        opts.output_csv,
-        int(opts.gaptime)
-    )
+        populate_events_table(
+            opts.eventsdb,
+            opts.firefox_history,
+            opts.trac_timelines,
+            opts.usernames,
+            opts.sessionlog,
+            opts.wtmp_globs,
+            opts.authlog_globs,
+            opts.output_csv,
+            int(opts.gaptime)
+        )
 
     if opts.dump_events_table:
         dump_events_table(opts.eventsdb)
