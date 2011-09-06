@@ -6,7 +6,8 @@ delhtml2json - Delicious HTML Export to JSON Converter
 import datetime
 import logging
 from BeautifulSoup import BeautifulSoup
-from pprint import pformat as _pf
+
+from codecs import open
 
 try:
     import simplejson
@@ -35,13 +36,15 @@ test_output_expected=[
     {"url":     u"http://web.mit.edu/newsoffice/2010/max-flow-speedup-0927.html",
         "title":   u"First improvement of fundamental algorithm in 10 years",
         "tags":    [u"graph", u"network", u"algorithms", u"sweet"],
-        "added":   1285972779,
+        #"date":   1285972779,
+        "date": datetime.datetime(2010, 10, 1, 17, 39, 39),
         "private": 0,
         "comment": None},
     {"url":     u"http://en.wikipedia.org/wiki/ANTLR",
         "title":   u"ANTLR - Wikipedia, the free encyclopedia",
         "tags":    [u"wikipedia", u"code"],
-        "added":   1276760483,
+        #"date":   1276760483,
+        "date":   datetime.datetime(2010, 6, 17, 2, 41, 23),
         "private": 0,
         "comment": "&quot;These actions are written in the programming "
                    "language that the recognizer is being generated in.&quot;",
@@ -96,15 +99,15 @@ def map_bookmark_node(link_node, **kwargs):
     try:
         r = {
             'url': l['href'],
-            'title': l.text,
-            'tags': l.has_key("tags") and [t for t in l['tags'].split(',')
+            'title': l.text and l.text.decode('utf-8','replace'),
+            'tags': l.has_key("tags") and [t for t in l['tags'].encode('utf-8','replace').split(',')
                                             if t
                                                 and not t.startswith("for:") ]
                                       or [],
-            'added': int(l['add_date']),
+            'date': datetime.datetime.fromtimestamp(int(l['add_date'])),
             'private': l['private'] == u'1',
         }
-    except Exception, e:
+    except Exception:
         log.error("EXCEPTION:")
         log.error(l)
         raise
@@ -128,6 +131,11 @@ def convert_bookmarks_html_to_json(sourcefile_path, output_path):
 
     log.info("Converted %s -> %s." % (sourcefile_path, output_path))
 
+
+def parse_delicious_bookmarks(path_):
+    with open(path_, 'rb', encoding='UTF-8') as f:
+        for node in extract_delicious_bookmarks(f.read()):
+            yield node
 
 def main():
     import optparse

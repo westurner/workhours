@@ -80,6 +80,7 @@ def dump_events_table(dburi):
 def populate_events_table(eventsdb_uri,
                         ff_hist_paths,
                         webkit_bookmark_paths,
+                        delicious_bookmark_paths,
                         trac_timeline_paths,
                         usernames,
                         sessionlog_filenames,
@@ -104,8 +105,15 @@ def populate_events_table(eventsdb_uri,
 
     from workhours.webkit.bookmarks import parse_webkit_bookmarks
     for wbkpath in webkit_bookmark_paths:
-        source = 'webkit-bm' # % wbkpath
+        source = 'webkit/bm' # % wbkpath
         for node in parse_webkit_bookmarks(wbkpath):
+            s.add( Event( source, node['date'], node['url']) )
+        s.flush()
+
+    from workhours.delicious.bookmarks import parse_delicious_bookmarks
+    for wbkpath in delicious_bookmark_paths:
+        source = 'delicious/bm' # % wbkpath
+        for node in parse_delicious_bookmarks(wbkpath):
             s.add( Event( source, node['date'], node['url']) )
         s.flush()
 
@@ -187,6 +195,12 @@ def main():
                     default=[],
                     help='WebKit bookmark JSON path(s)')
 
+    prs.add_option('--delicious-bookm',
+                    dest='delicious_bookmarks',
+                    action='append',
+                    default=[],
+                    help='Delicious bookmark JSON path(s)')
+
     prs.add_option('-l', '--trac-timeline',
                     dest='trac_timelines',
                     action='append',
@@ -263,6 +277,7 @@ def main():
 
     if any( (opts.firefox_history,
             opts.webkit_bookmarks,
+            opts.delicious_bookmarks,
             opts.trac_timelines,
             opts.sessionlog,
             opts.wtmp_globs,
@@ -272,6 +287,7 @@ def main():
             opts.eventsdb,
             opts.firefox_history,
             opts.webkit_bookmarks,
+            opts.delicious_bookmarks,
             opts.trac_timelines,
             opts.usernames,
             opts.sessionlog,
