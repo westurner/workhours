@@ -8,3 +8,5 @@ build/lib.linux*
 nbproject/*
 *.sqlite
 *.csv
+*.egg
+*.zip
