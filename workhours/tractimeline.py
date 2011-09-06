@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Grep Trac Timeline HTML
+"""
 import datetime
 from BeautifulSoup import BeautifulSoup as BS
 
