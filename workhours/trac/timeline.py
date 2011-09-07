@@ -2,6 +2,7 @@
 """
 Grep Trac Timeline HTML
 """
+import codecs
 import datetime
 from BeautifulSoup import BeautifulSoup as BS
 
@@ -32,18 +33,19 @@ def parse_trac_timeline(timeline_file, users):
 
     :returns: Generator of event tuples (datetime, url)
     """
-    events = []
 
-    b = BS(timeline_file)
-    days = filter(lambda x: (x.text in ['Today','Yesterday'] or ':' in x.text), b.findAll('h2'))
-    for day in days:
-        date = day.text.split(':')[0]
-        for event in day.findNext('dl').findAll('dt'):
-            authornode = event.findChild('span',{'class':'author'})
-            if authornode and authornode.text in users:
-                time = event.findChild('span',{'class':'time'}).text
-                link = event.findChild('a').get('href')
-                yield (parse_trac_date(date, time), link,)
+    with codecs.open(path,'rb',encoding='UTF-8') as timeline_file:
+
+        b = BS(timeline_file)
+        days = filter(lambda x: (x.text in ['Today','Yesterday'] or ':' in x.text), b.findAll('h2'))
+        for day in days:
+            date = day.text.split(':')[0]
+            for event in day.findNext('dl').findAll('dt'):
+                authornode = event.findChild('span',{'class':'author'})
+                if authornode and authornode.text in users:
+                    time = event.findChild('span',{'class':'time'}).text
+                    link = event.findChild('a').get('href')
+                    yield (parse_trac_date(date, time), link,)
 
 
 

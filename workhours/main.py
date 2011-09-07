@@ -3,30 +3,103 @@
 """
 event aggregation
 """
+import codecs
 import csv
 import datetime
+import urlparse
 from sqlalchemy import MetaData, DateTime, Table, Column, Integer, Unicode, UnicodeText
-from sqlalchemy.orm import sessionmaker, mapper #, relation, eagerload
+from sqlalchemy import UniqueConstraint, ForeignKey
+from sqlalchemy.orm import sessionmaker, mapper, relation #, eagerload
 from workhours import setup_engine
+from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 
-from codecs import open
 
-class Event(object):
-    def __init__(self, source, date, url, title=None, description=None):
+class _Base(object):
+    def getattrs(self, *attrs):
+        if attrs:
+            return (getattr(self, attr) for attr in attrs)
+        return (getattr(self,attr) for attr in self.columns)
+
+
+class TaskQueue(_Base):
+    def __init__(self, type, label=None, uri=None):
+        self.type = type
+        self.label = label
+        self.uri = uri
+
+
+class Task(_Base):
+    def __init__(self, queue_id, args, date=None, state=None, statemsg=None):
+        self.queue_id = queue_id
+        self.args = args
+        self.date = date or datetime.datetime.now()
+        self.state = state
+        self.statemsg = statemsg
+
+
+class Event(_Base):
+    def __init__(self, source=None,
+                        date=None,
+                        url=None,
+                        title=None,
+                        meta=None,
+                        place_id=None,
+                        task_id=None,
+                        *args,
+                        **kwargs):
         self.source = source
         self.date = date
         self.url = url
         self.title = title
-        self.description = description
+        self.meta = meta
+        self.place_id = place_id
+        self.task_id = task_id
 
     def _to_event_row(self):
         return (self.date, self.source, self.url)
 
+    def _to_txt_row(self):
+        return u"%s/%s/%s\t%s\t%s\t%s" % (
+                self.task.queue.type,
+                self.task.id,
+                self.task.date,
+                self.date,
+                self.url,
+                self.title)
+
     def __unicode__(self):
-        return ("Event( %s %s %s)" % (self.date, self.source, self.url))
+        return ("Event( %s %s %s )" % (self.date, self.source, self.url))
 
     def __str__(self):
         return unicode(self)
+
+class Place(_Base):
+    def __init__(self, url_, eventcount=0, meta=None):
+        self.url=url_
+        self.eventcount=eventcount
+        self.meta=meta
+
+        urlp = urlparse.urlparse(self.url)
+        for attr in ('scheme','port','netloc','path','query','fragment'):
+            setattr(self, attr, getattr(urlp, attr))
+        del urlp
+        # self.meta = # TODO
+
+
+    @classmethod
+    def get_or_create(cls, url, session=None, *args, **kwargs):
+        s = session or meta.Session()
+        obj = s.query(cls).filter(cls.url==url).first()
+        if obj:
+            obj.eventcount += 1
+            s.flush()
+        else:
+            try:
+                obj = cls(url, *args, **kwargs)
+                s.add(obj)
+            except Exception:
+                raise
+        return obj
 
 
 _MAPPED = False
@@ -44,17 +117,63 @@ def setup_mappers(engine):
     global _MAPPED # FIXME:
     if not _MAPPED:
         _MAPPED = True
-        events_tbl = Table('events', meta,
-            Column(u'id', Integer(), primary_key=True, nullable=False),
-                Column(u'source', Unicode(length=255), index=True),
-                Column(u'date', DateTime(), index=True),
-                Column(u'url', UnicodeText()),
-                    # TODO:
-                    Column(u'title', UnicodeText()),
-                    Column(u'description', UnicodeText()),
+        queues_tbl = Table('queues', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('type', Unicode(length=255), index=True),
+                Column('uri', UnicodeText()),
+                Column('label', UnicodeText(), unique=True),
+                Column('date', DateTime(), onupdate=datetime.datetime.now, index=True),
         )
+        mapper(TaskQueue, queues_tbl)
 
-        mapper(Event, events_tbl)
+        tasks_tbl = Table('tasks', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('queue_id', Integer(), ForeignKey(queues_tbl.c.id), index=True),
+                Column('args', MutationDict.as_mutable(JSONEncodedDict)),
+                Column('label', UnicodeText()),
+                Column('date', DateTime(), onupdate=datetime.datetime.now, index=True),
+        )
+        mapper(Task, tasks_tbl, properties={
+            'queue': relation(TaskQueue, backref='tasks')
+        })
+
+        places_tbl = Table('places', meta, 
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('url', UnicodeText(), index=True),
+
+                Column('scheme', Unicode()),
+                Column('netloc', UnicodeText(), index=True),
+                Column('port', Integer(), ),
+                Column('path', UnicodeText(), index=True),
+                Column('query', UnicodeText(), index=True),
+                Column('fragment', UnicodeText()),
+
+                Column('eventcount', Integer()),
+                Column('meta', MutationDict.as_mutable(JSONEncodedDict)),
+        )
+        mapper(Place, places_tbl)
+
+        # TODO: tags
+
+        events_tbl = Table('events', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('source', Unicode(), index=True),
+                Column('date', DateTime(), index=True),
+                Column('url', UnicodeText()),
+                Column('title', UnicodeText()),
+                Column('meta', UnicodeText()),
+
+                Column('place_id', Integer(), ForeignKey(places_tbl.c.id), nullable=True),
+                Column('task_id', Integer(), ForeignKey(tasks_tbl.c.id), nullable=False),
+
+                UniqueConstraint('date','url', name='uix_event_date_url'), # TODO
+                UniqueConstraint('date','url','task_id', name='uix_event_task_id'),
+        )
+        mapper(Event, events_tbl, properties={
+            'task': relation(Task, backref='events'),
+            'place': relation(Place, backref='events'),
+            #'queue': relation(TaskQueue, backref='events'),
+        })
 
     return meta
 
@@ -73,20 +192,31 @@ def dump_events_table(dburi):
     s = meta.Session()
 
     for e in s.query(Event).order_by(Event.date):
-        print e
+        print e._to_txt_row()
+
+
+from workhours.firefox.history import parse_firefox_history
+from workhours.webkit.bookmarks import parse_webkit_bookmarks
+from workhours.delicious.bookmarks import parse_delicious_bookmarks
+from workhours.trac.timeline import parse_trac_timeline
+from workhours.syslog.sessionlog import parse_sessionlog
+from workhours.syslog.wtmp import parse_wtmp_glob
+from workhours.syslog.authlog import parse_authlog_glob
+EVENT_COLUMNS=-1
+QUEUES={
+    "firefox.history": (parse_firefox_history, EVENT_COLUMNS, ),
+    "webkit.bookmarks": (parse_webkit_bookmarks, EVENT_COLUMNS, ),
+    "delicious.bookmarks": (parse_delicious_bookmarks, EVENT_COLUMNS, ),
+    "trac.timeline": (parse_trac_timeline, EVENT_COLUMNS, ),
+    "log.shell": (parse_sessionlog, EVENT_COLUMNS, ),
+    "log.wtmp": (parse_wtmp_glob, EVENT_COLUMNS, ),
+    "log.auth": (parse_authlog_glob, EVENT_COLUMNS, ),
+}
 
 
 # TODO: more elegant generalization
-def populate_events_table(eventsdb_uri,
-                        ff_hist_paths,
-                        webkit_bookmark_paths,
-                        delicious_bookmark_paths,
-                        trac_timeline_paths,
-                        usernames,
-                        sessionlog_filenames,
-                        wtmp_globs,
-                        authlog_globs,
-                        output_filename, gaptime):
+def populate_events_table(eventsdb_uri, task_queues, output_filename, gaptime):
+
     engine = setup_engine(eventsdb_uri)
     meta = setup_mappers(engine)
     meta.bind = engine
@@ -97,50 +227,38 @@ def populate_events_table(eventsdb_uri,
 
     s = meta.Session()
 
-    from workhours.firefox.history import parse_firefox_history
-    for ffpath in ff_hist_paths or []:
-        for e in parse_firefox_history(ffpath):
-            s.add(Event('firefox', *e))
+    for queue_k, tasks in task_queues.iteritems():
+        queue = TaskQueue( queue_k )
+        s.add(queue)
         s.flush()
 
-    from workhours.webkit.bookmarks import parse_webkit_bookmarks
-    for wbkpath in webkit_bookmark_paths:
-        source = 'webkit/bm' # % wbkpath
-        for node in parse_webkit_bookmarks(wbkpath):
-            s.add( Event( source, node['date'], node['url']) )
-        s.flush()
+        parsefunc_iter, attrs = QUEUES[queue_k]
 
-    from workhours.delicious.bookmarks import parse_delicious_bookmarks
-    for wbkpath in delicious_bookmark_paths:
-        source = 'delicious/bm' # % wbkpath
-        for node in parse_delicious_bookmarks(wbkpath):
-            s.add( Event( source, node['date'], node['url']) )
-        s.flush()
+        for argset in tasks:
+            task = Task( queue.id, args={'uri':argset} ) #!
+            s.add(task)
+            s.flush()
+            # parse source
+            for event_ in parsefunc_iter(**task.args ):
+                try:
+                    if isinstance(event_, dict):
+                        kwargs = event_
+                        kwargs['task_id'] = task.id
+                        event = Event(**kwargs)
+                    else:
+                        args = event_
+                        event = Event(*args , task_id=task.id)
 
-    from workhours.trac.timeline import parse_trac_timeline
-    for path in trac_timeline_paths:
-        for e in parse_trac_timeline(open(path,'rb',encoding='UTF-8'), usernames):
-            s.add(Event('trac', *e))
+                    place = Place.get_or_create(event_['url'], session=s)
+                    event.place_id = place.id
+                    s.add(event)
+                except Exception, e:
+                    task.status = 'err'
+                    task.statusmsg = str(e)
+                    s.flush()
+                    raise
+            s.flush()
         s.flush()
-
-    from workhours.syslog.sessionlog import parse_sessionlog
-    for sspath in sessionlog_filenames or []:
-        for e in parse_sessionlog(sspath, session_prefix=''):
-            s.add(Event('shell', *e))
-        s.flush()
-
-    from workhours.syslog.wtmp import parse_wtmp_glob
-    for wtmp_glob in wtmp_globs or []:
-        for e in parse_wtmp_glob(wtmp_glob):
-            s.add(Event('wtmp', *e))
-        s.flush()
-
-    from workhours.syslog.authlog import parse_authlog_glob
-    for authlog_glob in authlog_globs or []:
-        for e in parse_authlog_glob(authlog_glob):
-            s.add(Event('authlog', *e))
-        s.flush()
-
     s.commit()
 
     create_gap_csv(meta, output_filename, gaptime)
@@ -161,17 +279,20 @@ def create_gap_csv(meta, output_filename, gaptime=15):
     :returns: None
     """
     s = meta.Session()
-    with open(output_filename,'w+') as f:
+    with codecs.open(output_filename,'w+',encoding='utf-8') as f:
         cw = csv.writer(f)
-        cw.writerow(('datetime','source','visit_date'))
+        rows=('date','source','url','title')
+        cw.writerow(rows)
 
         ltime = None
-        for e in s.query(Event).order_by(Event.date):
-            ctime, source, url = cur_row = e._to_event_row()
-            if ltime and (ltime + datetime.timedelta(minutes=gaptime)) < ctime:
-                cw.writerow(('--------','-------','------'))
-                cw.writerow(cur_row)
-                ltime = ctime
+        gaprow = len(rows)*('--------',)
+        for e in (s.query(
+                    *(getattr(Event,attr) for attr in rows))
+                    .order_by(Event.date) ):
+            if ltime and (ltime + datetime.timedelta(minutes=gaptime)) < e.date:
+                cw.writerow(gaprow)
+            cw.writerow(e)
+            ltime = e.date
 
 
 def main():
@@ -216,16 +337,19 @@ def main():
     prs.add_option('-s','--sessionlog',
                     dest='sessionlog',
                     action='append',
+                    default=[],
                     help='.session_log-style paths')
 
     prs.add_option('-w','--wtmp',
                     dest='wtmp_globs',
                     action='append',
+                    default=[],
                     help='wtmp path glob(s)')
 
     prs.add_option('-a','--authlog',
                     dest='authlog_globs',
                     action='append',
+                    default=[],
                     help='auth.log path glob(s)')
 
     prs.add_option('-e', '--eventsdb',
@@ -275,24 +399,23 @@ def main():
         import unittest
         exit(unittest.main())
 
-    if any( (opts.firefox_history,
-            opts.webkit_bookmarks,
-            opts.delicious_bookmarks,
-            opts.trac_timelines,
-            opts.sessionlog,
-            opts.wtmp_globs,
-            opts.authlog_globs) ):
+    queues = {
+        'firefox.history': opts.firefox_history,
+        'webkit.bookmarks': opts.webkit_bookmarks,
+        'delicious.bookmarks': opts.delicious_bookmarks,
+        'trac.timeline': opts.trac_timelines,
+        'log.shell': opts.sessionlog,
+        'log.wtmp': opts.wtmp_globs,
+        'log.auth': opts.authlog_globs
+    }
 
+    if opts.verbose:
+        print queues
+
+    if any(queues.itervalues()):
         populate_events_table(
             opts.eventsdb,
-            opts.firefox_history,
-            opts.webkit_bookmarks,
-            opts.delicious_bookmarks,
-            opts.trac_timelines,
-            opts.usernames,
-            opts.sessionlog,
-            opts.wtmp_globs,
-            opts.authlog_globs,
+            queues,
             opts.output_csv,
             int(opts.gaptime)
         )
