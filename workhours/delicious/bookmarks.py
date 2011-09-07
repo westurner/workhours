@@ -1,13 +1,13 @@
 #!/usr/bin/env python
+# -*- coding: utf_8 -*-
 """
 delhtml2json - Delicious HTML Export to JSON Converter
 
 """
+import codecs
 import datetime
 import logging
 from BeautifulSoup import BeautifulSoup
-
-from codecs import open
 
 try:
     import simplejson
@@ -15,7 +15,9 @@ try:
 except ImportError, e:
     import json
 
-logging.basicConfig()
+#import sys
+#sys.stdout = codecs.getwriter('UTF-8')(sys.stdout)
+
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
@@ -37,14 +39,14 @@ test_output_expected=[
         "title":   u"First improvement of fundamental algorithm in 10 years",
         "tags":    [u"graph", u"network", u"algorithms", u"sweet"],
         #"date":   1285972779,
-        "date": datetime.datetime(2010, 10, 1, 17, 39, 39),
+        "date":    datetime.datetime(2010, 10, 1, 17, 39, 39),
         "private": 0,
         "comment": None},
     {"url":     u"http://en.wikipedia.org/wiki/ANTLR",
         "title":   u"ANTLR - Wikipedia, the free encyclopedia",
         "tags":    [u"wikipedia", u"code"],
         #"date":   1276760483,
-        "date":   datetime.datetime(2010, 6, 17, 2, 41, 23),
+        "date":    datetime.datetime(2010, 6, 17, 2, 41, 23),
         "private": 0,
         "comment": "&quot;These actions are written in the programming "
                    "language that the recognizer is being generated in.&quot;",
@@ -68,7 +70,7 @@ def extract_delicious_bookmarks(htmlstr):
     export_datestr = footer_comment.split(" uncompressed/chunked ")[1].strip()
     log.info("Exported date: %s" % export_datestr)
 
-    bs = BeautifulSoup(htmlstr)
+    bs = BeautifulSoup(htmlstr, fromEncoding='utf-8')
 
     link_tag_count = len(bs.findAll("a"))
     log.info("Found %r <a> tags" % link_tag_count)
@@ -95,12 +97,13 @@ def extract_delicious_bookmarks(htmlstr):
 OVERWRITABLE_ATTRS=['comment']
 def map_bookmark_node(link_node, **kwargs):
     l = link_node
+    #print sorted(dir(l)) #type(l.text), l.text
 
     try:
         r = {
             'url': l['href'],
-            'title': l.text and l.text.decode('utf-8','replace'),
-            'tags': l.has_key("tags") and [t for t in l['tags'].encode('utf-8','replace').split(',')
+            'title': l.encodeContents("UTF-8"),
+            'tags': l.has_key("tags") and [t for t in l['tags'].split(',')
                                             if t
                                                 and not t.startswith("for:") ]
                                       or [],
@@ -121,8 +124,8 @@ def map_bookmark_node(link_node, **kwargs):
 
 def convert_bookmarks_html_to_json(sourcefile_path, output_path):
     
-    htmlstr = open(sourcefile_path, "r+").read()
-    dest_file = open(output_path, "w")
+    htmlstr = codecs.open(sourcefile_path, "r+").read()
+    dest_file = codecs.open(output_path, "w")
 
     json.dump(
         [x for x in extract_delicious_bookmarks(htmlstr)],
@@ -132,16 +135,19 @@ def convert_bookmarks_html_to_json(sourcefile_path, output_path):
     log.info("Converted %s -> %s." % (sourcefile_path, output_path))
 
 
-def parse_delicious_bookmarks(path_):
-    with open(path_, 'rb', encoding='UTF-8') as f:
-        for node in extract_delicious_bookmarks(f.read()):
+def parse_delicious_bookmarks(uri=None):
+    with codecs.open(uri, 'rb', encoding='utf-8') as f:
+        for node in extract_delicious_bookmarks(
+                        f.read().encode('ascii','replace')):
             yield node
+
 
 def main():
     import optparse
+    logging.basicConfig()
 
     prs = optparse.OptionParser(
-        usage="%progname -c <bookmarks.html>")
+                    usage="%progname -c <bookmarks.html>")
     prs.add_option("-t","--tests",action="store_true",
                    help="Run tests")
 
