@@ -5,15 +5,13 @@ Grep WebKit bookmarks JSON
 """
 
 from codecs import open
+from workhours.webkit import longdate_to_datetime
 
 try:
     import simplejson
     json = simplejson
 except ImportError, e:
     import json
-
-import datetime
-longdate_to_dt = lambda t: datetime.datetime.utcfromtimestamp((t*1e-6)-11644473600)
 
 NODETYPE=u'folder'
 NODEKEY=u'children'
@@ -26,7 +24,7 @@ def wbkt_trav(nodes, depth=0, path=None):
                 #node.get('type'), # folder || url
                 'url':  node.get('url','').encode('utf-8','replace'),
                 'name': node.get('name','').encode('utf-8','replace'),
-                'date': longdate_to_dt(long(node.get('date_added')))
+                'date': longdate_to_datetime(long(node.get('date_added')))
         }
         if node.get('type') == NODETYPE:
             _p = path+[node.get('name')]
