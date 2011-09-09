@@ -7,6 +7,10 @@ from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import sessionmaker, mapper, relationship, eagerload
 from workhours import setup_engine
 from workhours.webkit import longdate_to_datetime
+from workhours.models.sqlite_utils import commit_uncommitted_transactions
+
+import logging
+log = logging.getLogger('webkit.history')
 
 from pytz import timezone
 cst = timezone('US/Central')
@@ -32,10 +36,10 @@ class Visit(object):
 
     @property
     def _visit_date(self):
-        return cst.localize(longdate_to_datetime(self.visit_time))
+        return longdate_to_datetime(self.visit_time)
 
     def __str__(self):
-        return '%s, %s, %s' % (self._visit_date.ctime(), self._url.url, self.title)
+        return '%s, %s, %s' % (cst.localize(self._visit_date).ctime(), self._url.url, self.title)
 
 
 def setup_mappers(engine):
@@ -81,7 +85,9 @@ def clear_mappers():
         orm.mapperlib._COMPILE_MUTEX.release()
 
 
-def _Session(path):
+def _Session(path, destructive_recover=False):
+    if path.startswith('sqlite') and destructive_recover:
+        commit_uncommitted_transactions(path)
     engine = setup_engine(path)
 
     clear_mappers()
@@ -91,7 +97,7 @@ def _Session(path):
     return Session()
 
 
-def parse_webkit_history(urls_filename):
+def parse_webkit_history(uri=None):
     """
     Parse a webkit urls.sqlite history file
 
@@ -100,7 +106,8 @@ def parse_webkit_history(urls_filename):
 
     :returns: Generator of (datetime, url) tuples
     """
-    s = _Session(urls_filename)
+    log.info("Parse: %s" % uri)
+    s = _Session(uri, True)
     for v in (s.query(Visit).
                 options(
                     eagerload(Visit._url))):

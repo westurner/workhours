@@ -6,6 +6,8 @@ Grep WebKit bookmarks JSON
 
 from codecs import open
 from workhours.webkit import longdate_to_datetime
+import logging
+log = logging.getLogger('webkit.bookmarks')
 
 try:
     import simplejson
@@ -38,8 +40,9 @@ def load_json_file(file_):
         #return json.loads(f.read()) #.decode('utf-8','replace')
         return json.load(f)
 
-def parse_webkit_bookmarks(file_):
-    bj = load_json_file(file_)
+def parse_webkit_bookmarks(uri=None):
+    log.info("Parsing: %s" % uri)
+    bj = load_json_file(uri)
     #print bj['checksum'], bj['version']
     for nodekey in ('bookmark_bar','other'):
         for node in wbkt_trav(bj['roots'][nodekey][NODEKEY], path=[nodekey]):

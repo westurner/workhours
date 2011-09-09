@@ -10,3 +10,4 @@ nbproject/*
 *.csv
 *.egg
 *.zip
+local.ini

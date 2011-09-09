@@ -5,6 +5,10 @@ from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import sessionmaker, mapper, relationship, eagerload
 from pytz import timezone
 from workhours import setup_engine
+from workhours.models.sqlite_utils import commit_uncommitted_transactions
+
+import logging
+log = logging.getLogger('firefox.history')
 
 cst = timezone('US/Central')
 
@@ -18,7 +22,7 @@ def _epoch_to_datetime(time):
 
     :returns: datetime.datetime
     """
-    return cst.localize(datetime.fromtimestamp(time/1000000.0))
+    return datetime.fromtimestamp(time/1000000.0)
 
 
 def _datetime_to_epoch(dt):
@@ -37,8 +41,8 @@ class Bookmark(object):
     """
     Firefox 'Bookmark' in the ``moz_places`` table
     """
-    def _to_event_row(self):
-        return (str(self._date_added), self.place is not None and self.place.url or None, self.title)
+    def to_event_row(self):
+        return (self._date_added, self.place is not None and self.place.url or None, self.title)
 
     @property
     def _date_added(self):
@@ -60,15 +64,23 @@ class Visit(object):
     """
     Firefox 'Visit' in the ``moz_historyvisits`` table
     """
-    def _to_event_row(self):
+    def to_event_row(self):
         return (self._visit_date, self.place.url, self.place.title)
 
     @property
     def _visit_date(self):
         return _epoch_to_datetime(self.visit_date)
 
+    @property
+    def title(self):
+        return self.place.title.encode('utf8','replace')
+
+    @property
+    def url(self):
+        return self.place.url
+
     def __str__(self):
-        return '%s, %s' % (self._visit_date.ctime(), self.place.url, self.title)
+        return '%s || %s || %s' % (self._visit_date.ctime(), self.place.url, self.place.title)
 
 
 def setup_mappers(engine):
@@ -122,6 +134,7 @@ def clear_ff_mappers():
 
 
 def _Session(path):
+    commit_uncommitted_transactions(path)
     engine = setup_engine(path)
 
     clear_ff_mappers()
@@ -130,8 +143,7 @@ def _Session(path):
     Session = sessionmaker(bind=engine)
     return Session()
 
-
-def parse_firefox_history(places_filename):
+def parse_firefox_history(uri=None):
     """
     Parse a firefox places.sqlite history file
 
@@ -140,14 +152,15 @@ def parse_firefox_history(places_filename):
 
     :returns: Generator of (datetime, url) tuples
     """
-    s = _Session(places_filename)
+    log.info("Parsing: %s" % uri)
+    s = _Session(uri)
     for v in (s.query(Visit).
                 options(
                     eagerload(Visit.place))):
-        yield v._to_event_row()
+        yield v
 
 
-def parse_firefox_bookmarks(places_filename):
+def parse_firefox_bookmarks(uri=None):
     """
     Parse a firefox places.sqlite history file
 
@@ -156,12 +169,12 @@ def parse_firefox_bookmarks(places_filename):
 
     :returns: Generator of (datetime, url, title) tuples
     """
-    s = _Session(places_filename)
+    s = _Session(uri)
 
     for v in (s.query(Bookmark).
                 options(
                     eagerload(Bookmark.place))):
-        yield v._to_event_row()
+        yield v
 
 if __name__=="__main__":
     import sys
