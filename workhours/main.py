@@ -7,12 +7,15 @@ import codecs
 import csv
 import datetime
 import urlparse
+from itertools import ifilter
 from sqlalchemy import MetaData, DateTime, Table, Column, Integer, Unicode, UnicodeText
 from sqlalchemy import UniqueConstraint, ForeignKey
 from sqlalchemy.orm import sessionmaker, mapper, relation #, eagerload
 from workhours import setup_engine
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 
+import logging
+log = logging.getLogger()
 
 class _Base(object):
     def getattrs(self, *attrs):
@@ -55,17 +58,37 @@ class Event(_Base):
         self.place_id = place_id
         self.task_id = task_id
 
+    @classmethod
+    def from_uhm(cls, source, event_, **kwargs):
+        _kwargs = {}
+        _kwargs['task_id'] = kwargs.get('task_id')
+        if hasattr(event_, 'to_event_row'):
+            event = cls(source, *event_.to_event_row(), **_kwargs)
+        elif isinstance(event_, dict):
+            _kwargs.update(event_)
+            event = cls(source, **_kwargs)
+        # punt
+        elif hasattr(event_, '__iter__'):
+            event = cls(source, *event_, **_kwargs)
+        else:
+            print type(event_)
+            print dir(event_)
+            print event_
+            raise Exception()
+
+        return event
+
     def _to_event_row(self):
         return (self.date, self.source, self.url)
 
     def _to_txt_row(self):
-        return u"%s/%s/%s\t%s\t%s\t%s" % (
+        return ("%s/%s/%s\t%s\t%s\t%s" % (
                 self.task.queue.type,
                 self.task.id,
                 self.task.date,
                 self.date,
                 self.url,
-                self.title)
+                self.title)).encode('utf8','replace')
 
     def __unicode__(self):
         return ("Event( %s %s %s )" % (self.date, self.source, self.url))
@@ -88,7 +111,7 @@ class Place(_Base):
 
     @classmethod
     def get_or_create(cls, url, session=None, *args, **kwargs):
-        s = session or meta.Session()
+        s = session
         obj = s.query(cls).filter(cls.url==url).first()
         if obj:
             obj.eventcount += 1
@@ -166,8 +189,9 @@ def setup_mappers(engine):
                 Column('place_id', Integer(), ForeignKey(places_tbl.c.id), nullable=True),
                 Column('task_id', Integer(), ForeignKey(tasks_tbl.c.id), nullable=False),
 
-                UniqueConstraint('date','url', name='uix_event_date_url'), # TODO
-                UniqueConstraint('date','url','task_id', name='uix_event_task_id'),
+                # UniqueConstraint('date','url','task_id', name='uix_event_date_url_taskid'), # TODO
+                # breaks w/ webkit history on date !?
+#                UniqueConstraint('source','date','url', 'task_id', name='uix_event_source_task_id'),
         )
         mapper(Event, events_tbl, properties={
             'task': relation(Task, backref='events'),
@@ -192,27 +216,78 @@ def dump_events_table(dburi):
     s = meta.Session()
 
     for e in s.query(Event).order_by(Event.date):
-        print e._to_txt_row()
+        try:
+            print e._to_txt_row()
+        except UnicodeEncodeError, error:
+            print type(error.object), error.encoding
+            print error.object.encode('utf8','replace')
+            raise
 
+from workhours.future import OrderedDict
 
-from workhours.firefox.history import parse_firefox_history
+from workhours.firefox.history import parse_firefox_history, parse_firefox_bookmarks
 from workhours.webkit.bookmarks import parse_webkit_bookmarks
+from workhours.webkit.history import parse_webkit_history
 from workhours.delicious.bookmarks import parse_delicious_bookmarks
 from workhours.trac.timeline import parse_trac_timeline
 from workhours.syslog.sessionlog import parse_sessionlog
 from workhours.syslog.wtmp import parse_wtmp_glob
 from workhours.syslog.authlog import parse_authlog_glob
-EVENT_COLUMNS=-1
-QUEUES={
-    "firefox.history": (parse_firefox_history, EVENT_COLUMNS, ),
-    "webkit.bookmarks": (parse_webkit_bookmarks, EVENT_COLUMNS, ),
-    "delicious.bookmarks": (parse_delicious_bookmarks, EVENT_COLUMNS, ),
-    "trac.timeline": (parse_trac_timeline, EVENT_COLUMNS, ),
-    "log.shell": (parse_sessionlog, EVENT_COLUMNS, ),
-    "log.wtmp": (parse_wtmp_glob, EVENT_COLUMNS, ),
-    "log.auth": (parse_authlog_glob, EVENT_COLUMNS, ),
-}
 
+DEFAULT_FILES = lambda x: ( x['uri'], )
+
+def sqlite_files(x):
+    return (x['uri'], '%s-journal' % x['uri'])
+
+QUEUES=OrderedDict( (
+    ( "firefox.bookmarks", (parse_firefox_bookmarks, sqlite_files, ) ),
+    ( "firefox.history", (parse_firefox_history, sqlite_files, ), ),
+    ( "webkit.bookmarks", (parse_webkit_bookmarks, DEFAULT_FILES, ), ),
+    ( 'webkit.history', (parse_webkit_history, sqlite_files, ), ),
+    ( "delicious.bookmarks", (parse_delicious_bookmarks, DEFAULT_FILES, ), ),
+    ( "trac.timelines", (parse_trac_timeline, DEFAULT_FILES, ), ),
+    ( "log.shell", (parse_sessionlog, DEFAULT_FILES, ), ),
+    ( "log.wtmp", (parse_wtmp_glob, DEFAULT_FILES, ), ),
+    ( "log.auth", (parse_authlog_glob, DEFAULT_FILES, ), ),
+) )
+
+
+import tempfile
+import shutil
+import os
+
+class TempDir(object):
+    def __init__(self, path=None, create=True, dir='.'):
+        if not path:
+            if create:
+                self.path = tempfile.mkdtemp(suffix='',prefix='tmp',dir=dir)
+            else:
+                self.path = os.path.join(dir, 'tasktmp')
+            return
+        else:
+            self.path = path
+            if create:
+                os.mkdir(self.path) 
+
+    def copy_here(self, filename, dest_path=None):
+        if dest_path:
+            dest = os.path.join(self.path, dest_path)
+        else:
+            dest = self.path
+
+        dest_path=os.path.join(dest, os.path.basename(filename))
+        shutil.copy2(filename, dest_path)
+        return dest_path
+
+    def mkdir(self, path):
+        mkpath = os.path.join(self.path, path)
+        os.mkdir(mkpath)
+        return TempDir(path=mkpath, create=False)
+
+    #def __del__(self):
+        # if managed:
+        #     shutil.rmtree(self.path)
+    #    pass
 
 # TODO: more elegant generalization
 def populate_events_table(eventsdb_uri, task_queues, output_filename, gaptime):
@@ -225,43 +300,54 @@ def populate_events_table(eventsdb_uri, task_queues, output_filename, gaptime):
     meta.create_all()
     meta.Session = sessionmaker(bind=engine)
 
-    s = meta.Session()
+    tmpdir = TempDir(dir='./')
 
+    s = meta.Session()
     for queue_k, tasks in task_queues.iteritems():
+        s.begin(subtransactions=True)
         queue = TaskQueue( queue_k )
         s.add(queue)
-        s.flush()
+        s.commit()
 
-        parsefunc_iter, attrs = QUEUES[queue_k]
+        parsefunc_iter, files = QUEUES[queue_k]
 
         for argset in tasks:
+            log.debug("Task: %s" % str(argset))
+            s.begin(subtransactions=True)
             task = Task( queue.id, args={'uri':argset} ) #!
             s.add(task)
             s.flush()
-            # parse source
-            for event_ in parsefunc_iter(**task.args ):
-                try:
-                    if isinstance(event_, dict):
-                        kwargs = event_
-                        kwargs['task_id'] = task.id
-                        event = Event(**kwargs)
-                    else:
-                        args = event_
-                        event = Event(*args , task_id=task.id)
+       
+            task_dirname = '%s_%s' % (task.id, queue_k)
+            task_dir = tmpdir.mkdir(task_dirname )
 
-                    place = Place.get_or_create(event_['url'], session=s)
-                    event.place_id = place.id
-                    s.add(event)
-                except Exception, e:
-                    task.status = 'err'
-                    task.statusmsg = str(e)
-                    s.flush()
-                    raise
-            s.flush()
-        s.flush()
+            # Run Tasks
+            try:
+                files_ = [task_dir.copy_here(f) for f in files(task.args)]
+                print files_
+                uri = files_[0] 
+                for event_ in parsefunc_iter(uri=uri):
+                    try:
+                        log.debug("%s.Parsing %s : %s" % (task.id, type(event_), event_))
+
+                        event = Event.from_uhm(queue_k, event_, task_id=task.id)
+                        if event.url:
+                            place = Place.get_or_create(event.url, session=s)
+                            event.place_id = place.id
+                        s.add(event)
+                    except Exception, e:
+                        task.status = 'err'
+                        task.statusmsg = str(e)
+                        s.flush()
+                        raise
+                s.commit()
+            except Exception, e:
+                log.error(e)
+                raise
+        s.commit()
     s.commit()
 
-    create_gap_csv(meta, output_filename, gaptime)
+    #create_gap_csv(meta, output_filename, gaptime)
 
 
 def create_gap_csv(meta, output_filename, gaptime=15):
@@ -291,7 +377,21 @@ def create_gap_csv(meta, output_filename, gaptime=15):
                     .order_by(Event.date) ):
             if ltime and (ltime + datetime.timedelta(minutes=gaptime)) < e.date:
                 cw.writerow(gaprow)
-            cw.writerow(e)
+
+            try:
+                cw.writerow(e)
+            except UnicodeDecodeError:
+                e = list(e)
+                e[2] = e[2].decode('utf8','replace') # ...
+                cw.writerow(e)
+            except UnicodeEncodeError, error:
+                print type(error.object), error.encoding
+                print error.object.encode('utf8','replace')
+                e = list(e)
+                e[2] = unicode(e[2]).encode('utf8','replace')
+                e[3] = unicode(e[3]).encode('utf8','replace')
+                print e
+                cw.writerow(e)
             ltime = e.date
 
 
@@ -299,55 +399,70 @@ def main():
     import sys
     import logging
     from optparse import OptionParser
-    
+    from pprint import pformat
+
     datestr = datetime.datetime.now().strftime('%y-%m-%d-%H%M')
 
     prs = OptionParser()
 
-    prs.add_option('-f', '--ff-hist',
+    prs.add_option('-c','--config',
+                    dest='config_file',
+                    action='store')
+
+    prs.add_option('--ffb','--firefox-bookmarks',
+                    dest='firefox_bookmarks',
+                    action='append',
+                    default=[],
+                    help='FF places.sqlite path(s) ',)
+    prs.add_option('--ffh','--firefox-history',
                     dest='firefox_history',
                     action='append',
                     default=[],
                     help='FF places.sqlite path(s) ',)
 
-    prs.add_option('-k','--webkit-bookm',
+
+    prs.add_option('--wkb','--webkit-bookmarks',
                     dest='webkit_bookmarks',
                     action='append',
                     default=[],
                     help='WebKit bookmark JSON path(s)')
+    prs.add_option('--wkh','--webkit-history',
+                    dest='webkit_history',
+                    action='append',
+                    default=[],
+                    help='WebKit History path(s)',)
 
-    prs.add_option('--delicious-bookm',
+    prs.add_option('--delb','--delicious-bookm',
                     dest='delicious_bookmarks',
                     action='append',
                     default=[],
                     help='Delicious bookmark JSON path(s)')
 
-    prs.add_option('-l', '--trac-timeline',
+    prs.add_option('--ttl', '--trac-timeline',
                     dest='trac_timelines',
                     action='append',
                     default=[],
                     help='Trac timeline html path(s)')
-    prs.add_option('-u', '--username',
+    prs.add_option('--ttu', '--trac-username',
                     dest='usernames',
                     action='append',
                     default=[],
                     help='Trac usernames to include',)
 
-   
-    prs.add_option('-s','--sessionlog',
-                    dest='sessionlog',
+    prs.add_option('-s','--shelllog',
+                    dest='log_shell',
                     action='append',
                     default=[],
-                    help='.session_log-style paths')
+                    help='.session_log-style path(s)')
 
     prs.add_option('-w','--wtmp',
-                    dest='wtmp_globs',
+                    dest='log_wtmp',
                     action='append',
                     default=[],
                     help='wtmp path glob(s)')
 
     prs.add_option('-a','--authlog',
-                    dest='authlog_globs',
+                    dest='log_auth',
                     action='append',
                     default=[],
                     help='auth.log path glob(s)')
@@ -378,7 +493,8 @@ def main():
 
     prs.add_option('-v', '--verbose',
                     dest='verbose',
-                    action='store_true',)
+                    action='count',
+                    default=0, )
     prs.add_option('-q', '--quiet',
                     dest='quiet',
                     action='store_true',)
@@ -394,28 +510,32 @@ def main():
         if opts.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
 
+            if opts.verbose > 1:
+                logging.getLogger('sqlalchemy').setLevel(logging.INFO)
+
     if opts.run_tests:
         sys.argv = [sys.argv[0]] + args
         import unittest
         exit(unittest.main())
 
-    queues = {
-        'firefox.history': opts.firefox_history,
-        'webkit.bookmarks': opts.webkit_bookmarks,
-        'delicious.bookmarks': opts.delicious_bookmarks,
-        'trac.timeline': opts.trac_timelines,
-        'log.shell': opts.sessionlog,
-        'log.wtmp': opts.wtmp_globs,
-        'log.auth': opts.authlog_globs
-    }
+    if opts.config_file:
+        from ConfigParser import ConfigParser
 
-    if opts.verbose:
-        print queues
+        c = ConfigParser()
+        c.read(opts.config_file)
 
-    if any(queues.itervalues()):
+        opt_queues = {}
+        for queue in sorted(set(QUEUES.keys()).intersection(set(c.sections()))): # !
+            opt_queues[queue] = ifilter(bool, list(v.strip() for k,v in c.items(queue)))
+    else:
+        opt_queues = dict( (q, getattr(opts, q.replace('.','_'))) for q in QUEUES )
+
+    log.debug("Queues:\n%s", pformat(opt_queues))
+
+    if any(x[0] for x in opt_queues.iteritems()):
         populate_events_table(
             opts.eventsdb,
-            queues,
+            opt_queues,
             opts.output_csv,
             int(opts.gaptime)
         )
