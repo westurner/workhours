@@ -4,10 +4,10 @@ WebKit History
 """
 
 from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import sessionmaker, mapper, relationship, eagerload
-from workhours import setup_engine
+from sqlalchemy.orm import mapper, relationship, eagerload
+
 from workhours.webkit import longdate_to_datetime
-from workhours.models.sqlite_utils import commit_uncommitted_transactions
+from workhours.models import open_db
 
 import logging
 log = logging.getLogger('webkit.history')
@@ -71,31 +71,12 @@ def setup_mappers(engine):
 
 
 MAPPED_CLASSES = ['Mapper|URL|urls', 'Mapper|Visit|visits']
-def clear_mappers():
-    """
-    Remove any existing WebKit mappings
-    """
-    from sqlalchemy import orm
-    orm.mapperlib._COMPILE_MUTEX.acquire()
-    try:
-        for mapper in list(orm._mapper_registry):
-            if str(mapper) in MAPPED_CLASSES:
-                mapper.dispose()
-    finally:
-        orm.mapperlib._COMPILE_MUTEX.release()
-
-
-def _Session(path, destructive_recover=False):
-    if path.startswith('sqlite') and destructive_recover:
-        commit_uncommitted_transactions(path)
-    engine = setup_engine(path)
-
-    clear_mappers()
-
-    setup_mappers(engine)
-    Session = sessionmaker(bind=engine)
-    return Session()
-
+def _Session(uri):
+    meta = open_db('sqlite:///%s' % uri,
+                    setup_mappers,
+                    destructive_recover=True,
+                    munge_mappers=MAPPED_CLASSES)
+    return meta.Session()
 
 def parse_webkit_history(uri=None):
     """
@@ -107,7 +88,7 @@ def parse_webkit_history(uri=None):
     :returns: Generator of (datetime, url) tuples
     """
     log.info("Parse: %s" % uri)
-    s = _Session(uri, True)
+    s = _Session(uri)
     for v in (s.query(Visit).
                 options(
                     eagerload(Visit._url))):

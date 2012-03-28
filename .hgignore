@@ -11,3 +11,6 @@ nbproject/*
 *.egg
 *.zip
 local.ini
+whtmp*
+local/
+*.log

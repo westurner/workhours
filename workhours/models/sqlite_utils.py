@@ -1,10 +1,10 @@
 from sqlite3 import dbapi2 as sqlite
 
-
 __ALL__=['commit_uncommitted_transactions']
 
-def commit_uncommitted_transactions(db_filename):
-    connection = sqlite.connect(db_filename)
+def commit_uncommitted_transactions(dburi):
+    connection = sqlite.connect(dburi)
     connection.commit()
     connection.close()
+
 
