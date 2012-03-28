@@ -67,3 +67,16 @@ class JSONEncodedDict(TypeDecorator):
         if value is not None:
             value = json.loads(value)
         return value
+
+def clear_mappers(mapped_classes):
+    """
+    Remove any existing WebKit mappings
+    """
+    from sqlalchemy import orm
+    orm.mapperlib._COMPILE_MUTEX.acquire()
+    try:
+        for mapper in list(orm._mapper_registry):
+            if str(mapper) in mapped_classes:
+                mapper.dispose()
+    finally:
+        orm.mapperlib._COMPILE_MUTEX.release()

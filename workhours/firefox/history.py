@@ -2,10 +2,9 @@
 
 from datetime import datetime
 from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import sessionmaker, mapper, relationship, eagerload
+from sqlalchemy.orm import  mapper, relationship, eagerload
 from pytz import timezone
-from workhours import setup_engine
-from workhours.models.sqlite_utils import commit_uncommitted_transactions
+from workhours.models import open_db
 
 import logging
 log = logging.getLogger('firefox.history')
@@ -48,6 +47,9 @@ class Bookmark(object):
     def _date_added(self):
         return _epoch_to_datetime(self.dateAdded)
 
+    def __str__(self):
+        return u'||'.join(unicode(x).encode('utf-8') for x in self.to_event_row())
+
 
 class Place(object):
     """
@@ -59,6 +61,7 @@ class Place(object):
 
     def __unicode__(self):
         return str(self.__dict__)
+
 
 class Visit(object):
     """
@@ -118,30 +121,16 @@ def setup_mappers(engine):
     )
     return meta
 
-FF_MAPPED_CLASSES = ['Mapper|Place|moz_places', 'Mapper|Visit|moz_historyvisits','Mapper|Bookmark|moz_bookmarks']
-def clear_ff_mappers():
-    """
-    Remove any existing Firefox mappings
-    """
-    from sqlalchemy import orm
-    orm.mapperlib._COMPILE_MUTEX.acquire()
-    try:
-        for mapper in list(orm._mapper_registry):
-            if str(mapper) in FF_MAPPED_CLASSES:
-                mapper.dispose()
-    finally:
-        orm.mapperlib._COMPILE_MUTEX.release()
+MAPPED_CLASSES = ['Mapper|Place|moz_places',
+                     'Mapper|Visit|moz_historyvisits',
+                     'Mapper|Bookmark|moz_bookmarks']
+def _Session(uri):
+    meta = open_db('sqlite:///%s' % uri,
+                    setup_mappers,
+                    destructive_recover=True,
+                    munge_mappers=MAPPED_CLASSES)
+    return meta.Session()
 
-
-def _Session(path):
-    commit_uncommitted_transactions(path)
-    engine = setup_engine(path)
-
-    clear_ff_mappers()
-
-    setup_mappers(engine)
-    Session = sessionmaker(bind=engine)
-    return Session()
 
 def parse_firefox_history(uri=None):
     """
@@ -152,7 +141,7 @@ def parse_firefox_history(uri=None):
 
     :returns: Generator of (datetime, url) tuples
     """
-    log.info("Parsing: %s" % uri)
+    log.info("Parse: %s" % uri)
     s = _Session(uri)
     for v in (s.query(Visit).
                 options(
@@ -169,12 +158,14 @@ def parse_firefox_bookmarks(uri=None):
 
     :returns: Generator of (datetime, url, title) tuples
     """
+    log.info("Parse: %s" % uri)
     s = _Session(uri)
 
     for v in (s.query(Bookmark).
                 options(
                     eagerload(Bookmark.place))):
         yield v
+
 
 if __name__=="__main__":
     import sys
