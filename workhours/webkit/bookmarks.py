@@ -78,11 +78,8 @@ if __name__ == "__main__":
 
     prs.add_option('-b', '--read-bookmarks',
                     dest='read_bookmarks_file',
-                    default=
-                        os.path.join(
-                            os.environ.get('HOME'),
-                            '.config/google-chrome/Default/Bookmarks'
-                        )
+                    default=os.path.expanduser(
+                            '~/.config/google-chrome/Default/Bookmarks')
                   )
     prs.add_option('-f', '--flatten-bookmarks',
                     dest='flatten_bookmarks',
