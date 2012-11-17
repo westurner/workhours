@@ -4,112 +4,10 @@
 event aggregation
 """
 
-import datetime
 import logging
-
-from itertools import ifilter
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 log = logging.getLogger('workhours')
 
-from workhours.models import Event, Place, Task, TaskQueue, setup_mappers
-from workhours.future import OrderedDict
-
-from workhours.firefox.history import parse_firefox_history
-from workhours.firefox.history import parse_firefox_bookmarks
-from workhours.webkit.bookmarks import parse_webkit_bookmarks
-from workhours.webkit.history import parse_webkit_history
-from workhours.delicious.bookmarks import parse_delicious_bookmarks
-from workhours.trac.timeline import parse_trac_timeline
-from workhours.syslog.sessionlog import parse_sessionlog
-from workhours.syslog.wtmp import parse_wtmp_glob
-from workhours.syslog.authlog import parse_authlog_glob
-
-DEFAULT_FILES = lambda x: ( x['uri'], )
-SQLITE_FILES =  lambda x: ( x['uri'],
-                            '%s-journal' % x['uri'])
-
-QUEUES=OrderedDict( (
-    ( "firefox.bookmarks", (parse_firefox_bookmarks, SQLITE_FILES, ) ),
-    ( "firefox.history", (parse_firefox_history, SQLITE_FILES, ), ),
-    ( "webkit.bookmarks", (parse_webkit_bookmarks, DEFAULT_FILES, ), ),
-    ( 'webkit.history', (parse_webkit_history, SQLITE_FILES, ), ),
-    ( "delicious.bookmarks", (parse_delicious_bookmarks, DEFAULT_FILES, ), ),
-    ( "trac.timelines", (parse_trac_timeline, DEFAULT_FILES, ), ),
-    ( "log.shell", (parse_sessionlog, DEFAULT_FILES, ), ),
-    ( "log.wtmp", (parse_wtmp_glob, DEFAULT_FILES, ), ),
-    ( "log.auth", (parse_authlog_glob, DEFAULT_FILES, ), ),
-) )
-
-
-
-
 from workhours.models.files import TempDir
-
-# TODO: more elegant generalization
-def populate_events_table(eventsdb_uri, task_queues, fs):
-
-    engine = create_engine(eventsdb_uri)
-    meta = setup_mappers(engine)
-    meta.bind = engine
-
-    # Create tables
-    meta.create_all()
-    meta.Session = sessionmaker(bind=engine)
-
-    s = meta.Session()
-    for queue_k, tasks in task_queues.iteritems():
-        s.begin(subtransactions=True)
-        queue = TaskQueue( queue_k )
-        s.add(queue)
-        s.commit()
-
-        parsefunc_iter, files = QUEUES[queue_k]
-
-        for argset in tasks:
-            log.debug("Task: %s" % str(argset))
-            s.begin(subtransactions=True)
-            task = Task( queue.id, args={'uri':argset} ) #!
-            s.add(task)
-            s.flush() # get task.id
-
-            _log = logging.getLogger('%s.%s' % (queue_k, task.id))
-
-            task_dirname = '%s_%s' % (task.id, queue_k)
-            task_dir = fs.mkdir(task_dirname)
-
-            # Run Tasks
-            try:
-                files_ = [task_dir.copy_here(f) for f in files(task.args)]
-                uri = files_[0]
-                for event_ in parsefunc_iter(uri=uri):
-                    try:
-                        _log.debug("%s : %s" % (type(event_), event_))
-                        event = Event.from_uhm(queue_k, event_, task_id=task.id)
-                        if event.url:
-                            place = Place.get_or_create(event.url, session=s)
-                            event.place_id = place.id
-                        s.add(event)
-                        # TODO:
-                        # s.flush() # get event.id
-                        # sunburnt.index(event + **addl_attrs)
-                        # pyes.insert( **event.to_dict() )
-                    except Exception, e:
-                        task.status = 'err'
-                        task.statusmsg = str(e)
-                        s.flush()
-                        raise
-                s.commit()
-            except Exception, e:
-                log.error(e)
-                raise
-        s.commit()
-    s.commit()
-
-    #create_gap_csv(meta, output_filename, gaptime)
-
-
 
 
 def main():
@@ -133,6 +31,7 @@ def main():
     prs.add_option('--fs', '--task-storage',
                     dest='fs_uri',
                     action='store',
+                    default='local',
                     help='Path for task file storage')
     prs.add_option('-e', '--eventsdb',
                     dest='eventsdb_uri',
@@ -204,13 +103,16 @@ def main():
                     #default='workhours-%s.csv' % datestr,
                     help='File to write output csv into')
 
-    prs.add_option('-g','--gaptime',
+    prs.add_option('-g','--gap-report',
+                    dest='gap_report',
+                    action='store_true',
+                    default=False,
+                    help='Generate a report with gaps between events')
+    prs.add_option('-G','--gaptime',
                     dest='gaptime',
                     action='store',
                     default=15,
                     help="Minute gap to detect between entries")
-
-
 
     prs.add_option('-d','--dump',
                     dest='dump_events_table',
@@ -248,6 +150,9 @@ def main():
 
     eventsdb_uri = opts.eventsdb_uri
     filestore_path = opts.fs_uri
+
+    from workhours.tasks import QUEUES
+
     if opts.config_file:
         from ConfigParser import ConfigParser
 
@@ -278,7 +183,9 @@ def main():
     log.debug("Filestore: %r", filestore_path)
     log.debug("Queues:\n%s", pformat(opt_queues))
     if opts.parse and any(x[0] for x in opt_queues.iteritems()):
-        populate_events_table(
+        from workhours import tasks
+        work workhours.models.sql import initiqlize_sql
+        tasks.populate_events_table(
             eventsdb_uri,
             opt_queues,
             fs=filestore,
@@ -286,13 +193,15 @@ def main():
 
     if opts.dump_events_table:
         from workhours.reports.events import dump_events_table
+        from workhours.models import Session
         dump_events_table(opts.eventsdb_uri)
 
-    if opts.gaptime:
+    if opts.gap_report:
         from workhours.reports.gaps import create_gap_csv
         reportsdir = filestore.mkdir('reports')
-        csv_path = reportsdir.add_file('gaps.csv')
-        create_gap_csv(csv_path,  opts.gaptime)
+        csv_path = reportsdir.add_path('gaps.csv', None)
+        from workhours import models
+        create_gap_csv(models.Event, csv_path,  opts.gaptime)
 
 if __name__=="__main__":
     main()
