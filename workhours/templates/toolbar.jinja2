@@ -1,0 +1,14 @@
+<div id="toolbar">
+    {% if viewer_username %}
+    <span class="toolbar">
+        <a href="{{ request.route_url('idea_add') }}">Post an idea</a>.
+        Logged in as: <b>{{ viewer_username }}</b>.
+        <a href="{{ request.route_url('logout') }}">Logout</a>.</span>
+    {% else %}
+    <span>
+        <b><a href="{{ request.route_url('register')
+                }}">Register</a></b> | 
+        <b><a href="{{ request.route_url('login') }}">Log in</a></b>
+    </span>
+    {% endif %}
+</div>

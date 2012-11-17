@@ -1,0 +1,15 @@
+{% extends "base.jinja2" %}
+{% block content %}
+    <div id="form">
+    {{ form }}
+    </div>
+    <h2>Captured</h2>
+    <div id="captured">
+        {{ captured }}
+    </div>
+    <script type="text/javascript">
+      jQuery(function() {
+         deform.load();
+         });
+    </script>
+{% endblock content %}
