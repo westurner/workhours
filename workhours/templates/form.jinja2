@@ -1,0 +1,32 @@
+{#    {{ form.begin(request.route_url('idea_add'), id='idea_add_form') }} #}
+    {{ form.begin( form_route_url , id=form_id ) }}
+        <fieldset>
+            {{ form.csrf_token() }}
+            {#
+            {% for (fldk,flds) in form.form.schema.fields.iteritems() %}
+            {{ form.errorlist(fldk) }}
+            {{ form.label(fldk, fldk.capitalize() }}
+            {{ form.text(formkey, )
+            {% endfor %}
+            
+            {#
+            {{ form.errorlist('title') }}
+            {{ form.label('title', 'Title:') }}
+            {{ form.text('title', size="60") }}
+            <br />
+            {{ form.errorlist('tags') }}
+            {{ form.label('tags', 'Tags:') }}
+            {{ form.text('tags', size="60") }}
+            <br />
+            {{ form.errorlist('text') }}
+            {{ form.label('text', 'Text:') }}
+            {{ form.textarea('text', rows="10", cols="60") }}
+            <br />
+            {% if target %}
+            <input type="hidden" name="target" value="{{ target.idea_id }}" />
+            {% endif %}
+
+            {{ form.submit('form.submitted', 'Shoot', class_='submit') }}
+            #}
+        </fieldset>
+    {{ form.end() }}
