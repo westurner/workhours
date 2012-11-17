@@ -2,14 +2,14 @@ import datetime
 from workhours.models import Event, Session
 
 
-def dump_events_table(dburi):
+def dump_events_table(dburi, session=None):
     """
     Print Events Table to stdout
 
     :param dburi: SQLAlchemy database URI
     :type dburi: str
     """
-    s = Session(dburi)
+    s = session or Session(dburi)
     for e in s.query(Event).order_by(Event.date):
         try:
             print e._to_txt_row()
@@ -83,7 +83,7 @@ def daily_bins(start, end):
         d2 = d1 + offset
         yield (start, d1, d2)
         d1 = d2
-    return 
+    return
 
 
 def hourly_bins(start, end):
