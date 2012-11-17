@@ -1,8 +1,9 @@
 
+from workhours.models import _Base
 from workhours.reports import add_gap_tuples, write_csv
 
 
-def create_gap_csv(cls, 
+def create_gap_csv(cls,
                   output_filename,
                   gaptime=15,
                   attrs=('date','source','url','title'),
