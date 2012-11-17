@@ -16,3 +16,5 @@ local.ini
 whtmp*
 local/
 *.log
+syntax: glob
+workhours/workhours.db
