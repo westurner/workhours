@@ -47,10 +47,12 @@ class TempDir(object):
                 )
 
     def mkdir(self, path):
+
         with self.get_log() as f:
             f.writelines(path)
         mkpath = os.path.join(self.path, path)
-        os.mkdir(mkpath)
+        if not os.path.exists(mkpath):
+            os.mkdir(mkpath)
         return TempDir(path=mkpath, create=False)
 
     def add_path(self, path, source):
