@@ -28,7 +28,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 def open_db(dburi,
-            setup_mappers,
+            setup_mappers=setup_mappers,
             destructive_recover=False,
             munge_mappers=[]):
     """
@@ -46,7 +46,7 @@ def open_db(dburi,
             raise
 
     if munge_mappers:
-        clear_mappers(munge_mappers) 
+        clear_mappers(munge_mappers)
 
     meta = setup_mappers(engine)
     meta.engine = engine
@@ -55,8 +55,7 @@ def open_db(dburi,
 
 
 def Session(uri):
-    meta = open_db('sqlite:///%s' % uri,
-                    setup_mappers,
+    meta = open_db(uri,
                     destructive_recover=False)
     return meta.Session()
 
@@ -95,6 +94,51 @@ class Task(_Base):
 
 
 class Event(_Base):
+    _pyes_schema = {
+        'source': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': u'string',
+            'term_vector':'with_positions_offsets'},
+        'date': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': u'date',
+        },
+        'url': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
+        'title': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
+        'meta': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
+        'place_id': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
+        'task_id': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
+
+    }
     def __init__(self, source=None,
                         date=None,
                         url=None,
@@ -119,7 +163,7 @@ class Event(_Base):
         _kwargs['task_id'] = kwargs.get('task_id')
 
         if isinstance(obj, dict):
-            _kwargs.update(obj) 
+            _kwargs.update(obj)
             _obj = cls(source, **_kwargs)
         elif hasattr(obj, 'to_event_row'):
             _obj = cls(source, *obj.to_event_row(), **_kwargs)
@@ -154,6 +198,21 @@ class Event(_Base):
         return unicode(self).encode('utf-8')
 
 class Place(_Base):
+    _pyes_schema = {
+        'url': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': u'string',
+            'term_vector':'with_positions_offsets'},
+        'eventcount': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'integer',
+        },
+    }
+
     def __init__(self, url_, eventcount=0, meta=None):
         self.url=url_
         self.eventcount=eventcount
@@ -221,7 +280,7 @@ def setup_mappers(engine):
             'queue': relation(TaskQueue, backref='tasks')
         })
 
-        places_tbl = Table('places', meta, 
+        places_tbl = Table('places', meta,
             Column('id', Integer(), primary_key=True, nullable=False),
                 Column('url', UnicodeText(), index=True),
 
@@ -266,4 +325,30 @@ def setup_mappers(engine):
         })
 
     return meta
+
+####
+
+from workhours.models.sql import Base
+from workhours.models.sql import DBSession
+from workhours.models.sql import initialize_sql
+from workhours.security.models import User
+
+from pyramid.security import Everyone
+from pyramid.security import Authenticated
+from pyramid.security import Allow
+
+#__ALL__ = ("Base", "DBSession", "initialize_sql",
+            #"User",
+            #"Everyone", "Authenticated", "Allow",
+            #"RootFactory",
+            #)
+
+class RootFactory(object):
+    __acl__ = [
+        (Allow, Everyone, 'view'),
+        (Allow, Authenticated, 'post')
+    ]
+    def __init__(self, request):
+        pass
+
 
