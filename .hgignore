@@ -3,6 +3,8 @@ syntax:glob
 *.egg-info
 *.swp
 *.pyo
+*.swo
+.coverage
 build/lib.linux*
 *.egg
 nbproject/*
