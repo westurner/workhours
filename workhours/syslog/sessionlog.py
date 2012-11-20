@@ -20,14 +20,24 @@ def parse_sessionlog_line(line, session_prefix=''):
 
     :returns: (datetime, eventstr)
     """
-    session, rest = map(str.strip, line.split(': ',1))
-    date, cmd = map(str.strip, rest.split(':::'))
-    dt = datetime.strptime(date, "%m/%d/%y %H:%M")
-    cmdstr = u'%s:%s: ::: %s' % (session_prefix, session, cmd)
-    return (dt, cmdstr)
+    terms = [w.strip() for w in line.split(':', 1)]
+    session, rest = terms[0], len(terms) > 1 and terms[1] or '' # TODO
+    #session, rest = map(str.strip, line.split(': ',1))
+    date = cmd = cmdstr = dt = None
+    if rest:
+        rest_terms = [w.strip() for w in rest.split(':::',1)]
+        date, cmd = rest_terms[0], len(rest_terms) > 1 and u''.join(rest_terms[1:])
+        try:
+            dt = datetime.strptime(date, "%m/%d/%y %H:%M.%S")
+        except ValueError, e:
+            #log.exception(e)
+            dt = None
+            pass
+        cmdstr = u'%s ::: %s' % (session, cmd)
+    return (dt, cmdstr, session)
 
 
-def parse_sessionlog(log_filename, session_prefix=''):
+def parse_sessionlog(uri=None, session_prefix='', **kwargs):
     """
     Parse a .session_log file that looks something like::
 
@@ -48,12 +58,13 @@ def parse_sessionlog(log_filename, session_prefix=''):
 
     """
 
-    with open(log_filename,'r+') as f:
-        for line in ifilter(lambda x: bool(x.rstrip()), f):            
+    with open(uri,'r+') as f:
+        for line in ifilter(lambda x: bool(x.rstrip()), f):
             try:
                 yield parse_sessionlog_line(line, session_prefix)
             except Exception, e:
                 # log and drop unparsable (with this parser) lines
+                logging.exception(e)
                 logging.error("Failed to parse: %r (%s)" % (line, e))
                 continue
 
