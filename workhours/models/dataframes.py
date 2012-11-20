@@ -10,15 +10,25 @@ def to_dataframes(dburi, *args, **kwargs):
     """
     serialize data to dataframes
     """
-    import pandas
+    from pandas import DataFrame
 
     from workhours import models
     s = models.Session(dburi)
 
-    query = (Event.date, Event.title, Event.url)
+    query = kwargs.get('query')
+    if query is None:
+        query = (Event.date, Event.title, Event.url)
+
+    column_names = kwargs.get('column_names')
+    if column_names is None:
+        column_names = [q.__name for q in query] # TODO
 
     result_iter =  s.query(*query)
-    df = DataFrame
+    df = DataFrame.from_records(
+            query,
+            columns=column_names,
+            coerce_float=True)
+    return df
 
 
 import unittest
@@ -61,5 +71,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-from workhours.models import
 
