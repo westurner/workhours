@@ -1,8 +1,14 @@
+from __future__ import print_function
+
 import datetime
 from workhours.models import Event, Session
 
 
-def dump_events_table(dburi, session=None):
+import logging
+log = logging.getLogger('workhours.reports.events')
+import sys
+
+def dump_events_table(dburi, session=None, _output=sys.stdout):
     """
     Print Events Table to stdout
 
@@ -12,10 +18,13 @@ def dump_events_table(dburi, session=None):
     s = session or Session(dburi)
     for e in s.query(Event).order_by(Event.date):
         try:
-            print e._to_txt_row()
-        except UnicodeEncodeError, error:
-            print type(error.object), error.encoding
-            print error.object.encode('utf8','replace')
+            print( e._to_txt_row() , file=_output)
+        except UnicodeEncodeError, e:
+            print( "%s%s" % (type(e.object), e.encoding),
+                    file=_output )
+            print( e.object.encode('utf8','replace'),
+                    file=_output )
+            log.exception(e)
             raise
 
 YEARLY=1
@@ -37,14 +46,22 @@ def histogram(cls,
     hour
     """
     s = Session(dburi)
-    count, mindate, maxdate = ( s.query(
+    count, mindate, maxdate = (
+        s.query(
             func.count('*'),
             func.min('date'),
             func.max('date'),
-            ).first() )
+        )
+        .first()
+    )
 
     dateattr = date_attrname
-    query = (s.query( func.count('*').label('row_count') ).order_by(dateattr))
+    query = (
+        s.query(
+            func.count('*').label('row_count')
+        )
+        .order_by(dateattr)
+    )
 
     if date_range:
         start , end = date_range
@@ -54,6 +71,12 @@ def histogram(cls,
 
     if resolution == YEARLY:
         bin_generator = yearly_bins(mindate.year, maxdate.year)
+    elif resolution == DAILY:
+        bin_generator = daily_bins(mindate, maxdate)
+    elif resolution == HOURLY:
+        bin_generator = hourly_bins(mindate, maxdate)
+    elif resolution == MINUTELY:
+        bin_generator == minutely_bins(mindate, maxdate, minutes = 15)
 
     for label, start, end in bin_generator:
         yield (label,
@@ -72,9 +95,14 @@ def yearly_bins(start, end):
 
 
 def weekly_bins(start, end):
-    pass
-    # TODO: pandas DateRange?
-
+    # TODO: start on a
+    offset = datetime.timedelta(days=7)
+    d1 = datetime.daterange(start.year, start.month, start.day)
+    for week in xrange(start.year, end.year+1):
+         d2 = d1 + offset
+         yield (start, d1, d2)
+         d1 = d2
+    return
 
 def daily_bins(start, end):
     offset = datetime.timedelta(days=1,microseconds=-1)
@@ -85,7 +113,6 @@ def daily_bins(start, end):
         d1 = d2
     return
 
-
 def hourly_bins(start, end):
     offset = datetime.timedelta(hours=1,microseconds=-1)
     for diff in xrange((end-start).hours):
@@ -94,7 +121,7 @@ def hourly_bins(start, end):
         yield (start, d1, d2)
 
 
-def minutely_bins(start, end, minutes=15):
+def minutely_bins(start, end, minutes):
     offset = datetime.timedelta(minutes=minutes)
     for diff in xrange( ((end-start).days*60) / minutes):
         d1 = datetime.datetime(start.year, start.month, start.day, start.hour, start.minute)
