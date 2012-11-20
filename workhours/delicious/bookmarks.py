@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf_8 -*-
+from __future__ import print_function
 """
 delhtml2json - Delicious HTML Export to JSON Converter
 
@@ -94,7 +95,7 @@ def extract_delicious_bookmarks(htmlstr):
     assert link_tag_count == link_count
 
 
-OVERWRITABLE_ATTRS=['comment']
+OVERWRITABLE_ATTRS={'comment':True}
 def map_bookmark_node(link_node, **kwargs):
     l = link_node
     #print sorted(dir(l)) #type(l.text), l.text
@@ -110,9 +111,10 @@ def map_bookmark_node(link_node, **kwargs):
             'date': datetime.datetime.fromtimestamp(int(l['add_date'])),
             'private': l['private'] == u'1',
         }
-    except Exception:
+    except Exception, e:
         log.error("EXCEPTION:")
-        log.error(l)
+        log.error("parsing line" % l)
+        log.exception(e)
         raise
 
     for kw in OVERWRITABLE_ATTRS:
@@ -123,7 +125,7 @@ def map_bookmark_node(link_node, **kwargs):
 
 
 def convert_bookmarks_html_to_json(sourcefile_path, output_path):
-    
+
     htmlstr = codecs.open(sourcefile_path, "r+").read()
     dest_file = codecs.open(output_path, "w")
 
@@ -147,7 +149,7 @@ def main():
     logging.basicConfig()
 
     prs = optparse.OptionParser(
-                    usage="%progname -c <bookmarks.html>")
+                    usage="%prog -c <bookmarks.html>")
     prs.add_option("-t","--tests",action="store_true",
                    help="Run tests")
 
@@ -169,9 +171,9 @@ def main():
     if opts.convert:
         convert_bookmarks_html_to_json(opts.convert, opts.output)
         exit()
+    else:
+        print(prs.print_help())
 
-    print prs.print_help()
-    
 
 if __name__=="__main__":
     main()
