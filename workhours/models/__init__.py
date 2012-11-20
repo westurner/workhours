@@ -12,6 +12,7 @@ from sqlalchemy.orm import mapper, relation, object_session
 #from sqlalchemy.orm import sessionmaker, eagerload
 #from sqlalchemy.ext.associationproxy import association_proxy
 
+from workhours.models.sql import initialize_sql
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict, clear_mappers
 
 __ALL__=['TaskQueue',
@@ -21,14 +22,14 @@ __ALL__=['TaskQueue',
          'setup_mappers']
 
 import logging
-log = logging.getLogger('models')
+log = logging.getLogger('workhours.models')
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 
 def open_db(dburi,
-            setup_mappers=setup_mappers,
+            setup_mappers,
             destructive_recover=False,
             munge_mappers=[]):
     """
@@ -37,6 +38,7 @@ def open_db(dburi,
 
     try:
         engine = create_engine(dburi)
+        initialize_sql(engine)
     except Exception:
         if dburi.startswith('sqlite') and destructive_recover:
             from workhours.models.sqlite_utils import commit_uncommitted_transactions
@@ -56,6 +58,7 @@ def open_db(dburi,
 
 def Session(uri):
     meta = open_db(uri,
+                    setup_mappers,
                     destructive_recover=False)
     return meta.Session()
 
@@ -87,7 +90,9 @@ class TaskQueue(_Base):
 class Task(_Base):
     def __init__(self, queue_id, args, date=None, state=None, statemsg=None):
         self.queue_id = queue_id
-        self.args = args
+        self.args = MutationDict()
+        log.debug(args)
+        self.args.update(args)
         self.date = date or datetime.datetime.now()
         self.state = state
         self.statemsg = statemsg
@@ -162,18 +167,23 @@ class Event(_Base):
         _kwargs = {}
         _kwargs['task_id'] = kwargs.get('task_id')
 
-        if isinstance(obj, dict):
-            _kwargs.update(obj)
-            _obj = cls(source, **_kwargs)
-        elif hasattr(obj, 'to_event_row'):
-            _obj = cls(source, *obj.to_event_row(), **_kwargs)
-        # punt
-        elif hasattr(obj, '__iter__'):
-            _obj = cls(source, *obj, **_kwargs)
-        else:
-            print type(obj)
-            print dir(obj)
-            print obj
+        try:
+            if isinstance(obj, dict):
+                _kwargs.update(obj)
+                _obj = cls(source, **_kwargs)
+            elif hasattr(obj, 'to_event_row'):
+                _obj = cls(source, *obj.to_event_row(), **_kwargs)
+            # punt
+            elif hasattr(obj, '__iter__'):
+                _obj = cls(source, *obj, **_kwargs)
+            else:
+                raise Exception("uh")
+        except Exception, e:
+            log.error({'obj': obj,
+                        'type': type(obj),
+                        'dir': dir(obj)
+                        })
+            log.exception(e)
             raise Exception()
 
         return _obj
@@ -182,9 +192,10 @@ class Event(_Base):
         return (self.date, self.source, self.url)
 
     def _to_txt_row(self):
+        return u"%s\t%s\t%s" % (self.date, self.url, self.title and self.title or '')
         return ("%s/%s/%s\t%s\t%s\t%s" % (
                 self.task_id,
-                self.task.queue.type,
+                'other', #self.task.queue.type,
                 self.task.date,
                 self.date,
                 self.url.encode('utf8', 'replace'),
@@ -192,10 +203,12 @@ class Event(_Base):
                 ))
 
     def __unicode__(self):
-        return (u"Event( %s %s %s )" % (str(self.date), self.source, self.url))
+        return (u"%s" % (str(self.date), self.source, self.url))
 
     def __str__(self):
         return unicode(self).encode('utf-8')
+
+
 
 class Place(_Base):
     _pyes_schema = {
@@ -217,13 +230,14 @@ class Place(_Base):
         self.url=url_
         self.eventcount=eventcount
         self.meta=meta
+        self.parse_from(self.url)
 
-        urlp = urlparse.urlparse(self.url)
+    def parse_from(self, url):
+        urlp = urlparse.urlparse(url)
         for attr in ('scheme','port','netloc','path','query','fragment'):
             setattr(self, attr, getattr(urlp, attr))
         del urlp
         # self.meta = # TODO
-
 
     @classmethod
     def get_or_create(cls, url, session=None, *args, **kwargs):
