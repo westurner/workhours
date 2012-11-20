@@ -25,11 +25,13 @@ from workhours.trac.timeline import parse_trac_timeline
 from workhours.syslog.sessionlog import parse_sessionlog
 from workhours.syslog.wtmp import parse_wtmp_glob
 from workhours.syslog.authlog import parse_authlog_glob
+from workhours.syslog.find import parse_find_printf
 
 DEFAULT_FILES = lambda x: ( x['uri'], )
 SQLITE_FILES =  lambda x: ( x['uri'],
                             '%s-journal' % x['uri'])
 
+# TODO: registry
 QUEUES=OrderedDict( (
     ( "firefox.bookmarks", (parse_firefox_bookmarks, SQLITE_FILES, ) ),
     ( "firefox.history", (parse_firefox_history, SQLITE_FILES, ), ),
@@ -38,27 +40,34 @@ QUEUES=OrderedDict( (
     ( "delicious.bookmarks", (parse_delicious_bookmarks, DEFAULT_FILES, ), ),
     ( "trac.timelines", (parse_trac_timeline, DEFAULT_FILES, ), ),
     ( "log.shell", (parse_sessionlog, DEFAULT_FILES, ), ),
+    ( "find", (parse_find_printf, DEFAULT_FILES, ), ),
     ( "log.wtmp", (parse_wtmp_glob, DEFAULT_FILES, ), ),
     ( "log.auth", (parse_authlog_glob, DEFAULT_FILES, ), ),
 ) )
 
 
+import workhours.models as models
+from workhours.models.sqla_utils import MutationDict
+import json
 
-def setup_database(eventsdb_uri):
-    engine = create_engine(eventsdb_uri)
-    meta = setup_mappers(engine)
-    meta.bind = engine
-
-    # Create tables
-    meta.create_all()
-    meta.Session = sessionmaker(bind=engine)
-    return (engine, meta)
+import os
+def check_queue_set(task_queues):
+    errflag = False
+    for queue_k, tasks in task_queues.iteritems():
+        for argset in tasks:
+            if not os.path.exists(argset) and os.path.isfile(argset):
+                errflag = True
+                print("Queued source not found: %r %r"
+                        % (queue_k, argset))
+    return not errflag
 
 # TODO: more elegant generalization
 def populate_events_table(eventsdb_uri, task_queues, fs):
-    #(engine, meta) = setup_database(eventsdb_uri)
-    #s = meta.Session()
-    s = open_db(eventsdb_uri)
+    if not check_queue_set(task_queues):
+        raise Exception()
+
+    meta = open_db(eventsdb_uri, models.setup_mappers)
+    s = meta.Session()
     for queue_k, tasks in task_queues.iteritems():
         s.begin(subtransactions=True)
         queue = TaskQueue( queue_k )
@@ -69,8 +78,11 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
 
         for argset in tasks:
             log.debug("Task: %s" % str(argset))
+            # TODO
             s.begin(subtransactions=True)
-            task = Task( queue.id, args={'uri':argset} ) #!
+            task = Task( queue.id,
+                        {'uri': argset, 'type': queue_k} )
+            # TODO
             s.add(task)
             s.flush() # get task.id
 
@@ -85,7 +97,7 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
                 uri = files_[0]
                 for event_ in parsefunc_iter(uri=uri):
                     try:
-                        _log.debug("%s : %s" % (type(event_), event_))
+                        #_log.debug("%s : %s" % (type(event_), event_))
                         event = Event.from_uhm(queue_k, event_, task_id=task.id)
                         if event.url:
                             place = Place.get_or_create(event.url, session=s)
