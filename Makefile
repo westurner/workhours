@@ -4,7 +4,9 @@ test: clean nosetests local
 
 clean:
 	rm -rf tasks/
-	rm -fv *.sqlite *.sqlite-journal *.csv
+	rm -fv *.sqlite
+	rm -fv *.sqlite-journal
+	rm -fv *.csv
 	rm -rf whtmp*
 	rm -rf dist/
 	rm -rf build/
@@ -16,9 +18,9 @@ build:
 local:
 	time workhours -c ./local.ini -p -v 2>&1 | tee local.log
 
-nosetests: 
+nosetests:
 	python setup.py nosetests
 
 help:
-	@echo "Usage: clean|build"
+	echo "Usage: clean|build"
 
