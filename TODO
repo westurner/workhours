@@ -1,13 +1,1 @@
-- IDataSource Interface
-- Tag Support
-- stdout norm (__{str,unicode}__)
 
-Parsers:
-- Standard bookmarks.html file
-- HTTP common log
-
-task tests
-
-to dataframe
-
-elasticsearch configuration
