@@ -21,7 +21,7 @@ class EventsRESTfulView(RESTfulView):
     #def render_to_response(self, member):
     #    raise Exception(member)
 
-    _entity_name = 'number'
+    _entity_name = 'event'
     _renderers = OrderedDict((
         ('html', (('text/html',), 'utf-8',)),
         ('json', (('application/json',), 'utf-8')),
@@ -72,7 +72,7 @@ class EventsRESTfulView(RESTfulView):
     def render_html(self, value):
         renderer=self._renderers['html']
         return dict(
-            body=render('numbers/templates/number.jinja2', value,
+            body=render('events/templates/_event.jinja2', value,
                         self.request),
             charset=renderer[1],
             content_type=renderer[0][0]
