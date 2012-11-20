@@ -5,7 +5,7 @@ workhours event aggregation CLI
 """
 
 import logging
-log = logging.getLogger() #'workhours')
+log = logging.getLogger('workhours.cli') #'workhours')
 
 
 import unittest
