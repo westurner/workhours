@@ -99,7 +99,7 @@ def _register_common_templates(config):
             context='pyramid.exceptions.Forbidden')
 
     config.testing_add_renderer('templates/login.jinja2')
-    #config.testing_add_renderer('templates/toolbar.jinja2')
+    config.testing_add_renderer('templates/toolbar.jinja2')
     #config.testing_add_renderer('templates/cloud.jinja2')
     #config.testing_add_renderer('templates/latest.jinja2')
     #config.testing_add_renderer('templates/sparql_query.jinja2')
