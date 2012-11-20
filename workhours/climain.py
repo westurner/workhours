@@ -182,12 +182,19 @@ def main(*args):
             else:
                 opts.fs_uri = _config.get('main','fs.uri')
 
-        # events database uri
-        if _config.has_option('main','eventsdb.uri'):
+        # events database url
+        if _config.has_option('main','eventsdb.url'):
             if opts.eventsdb_uri:
-                logging.warn("config eventsdb.uri overridden by cmdline")
+                logging.warn("config eventsdb.url overridden by cmdline")
             else:
-               opts.eventsdb_uri = _config.get('main','eventsdb.uri')
+               opts.eventsdb_uri = _config.get('main','eventsdb.url')
+
+        # elasticsearch url
+        if _config.has_option('mas','esdb.uri'):
+            if opts.esdb_uri:
+                logging.warn("config esdb.uri overridden by cmdline")
+            else:
+                opts.esdb_uri = _config.get('main', 'esdb.uri')
 
         # read supported config file sections
         for queue_name in (
@@ -220,7 +227,9 @@ def main(*args):
             print(queue_name)
         exit(0)
 
-    opts.filestore = TempDir(path=opts.fs_uri, create=True)
+    opts.filestore = TempDir(
+                        path=os.path.expanduser(opts.fs_uri),
+                        create=True)
 
     def debug_conf(opts):
         log.debug("eventsdb: %r", opts.eventsdb_uri)
