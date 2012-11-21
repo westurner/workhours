@@ -37,10 +37,7 @@ def open_db(dburi,
     """
     try:
         engine = create_engine(dburi)
-        logging.error(engine)
         meta = initialize_sql(engine)
-
-        logging.error(dburi)
     except Exception:
         if dburi.startswith('sqlite') and destructive_recover:
             from workhours.models.sqlite_utils import commit_uncommitted_transactions
@@ -52,9 +49,9 @@ def open_db(dburi,
     if munge_mappers:
         clear_mappers(munge_mappers)
 
-    #meta = setup_mappers(engine)
-    #meta.engine = engine
-    #meta.Session = sessionmaker(bind=engine)
+    meta = setup_mappers(engine)
+    meta.engine = engine
+    meta.Session = sessionmaker(bind=engine)
     return meta
 
 
