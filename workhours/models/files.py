@@ -15,7 +15,7 @@ class TempDir(object):
             else:
                 self.path = os.path.join(dir, 'whtmp')
         else:
-            self.path = path
+            self.path = os.path.expanduser(path)
             if create:
                 if not os.path.exists(self.path):
                     os.mkdir(self.path, 0700)
@@ -64,4 +64,7 @@ class TempDir(object):
         # if managed:
         #     shutil.rmtree(self.path)
     #    pass
+
+def initialize_fs(*args, **kwargs):
+    return TempDir(*args, create=True, **kwargs)
 
