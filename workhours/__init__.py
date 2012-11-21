@@ -5,12 +5,19 @@ from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.renderers import JSONP
 
 from sqlalchemy import engine_from_config
-from .models.sql import initialize_sql
+from workhours.models.sql import initialize_sql
+from workhours.models.es import initialize_esdb
+from workhours.models.files import initialize_fs
 #from .models.rdf import initialize_rdflib
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+
+    import logging
+    log = logging.getLogger('workhours.main')
+
+    log.debug(settings)
     engine = engine_from_config(settings, 'db_main.')
     initialize_sql(engine)
 
@@ -18,6 +25,14 @@ def main(global_config, **settings):
     #initialize_sql(data_engine)
 
     #initialize_rdflib(virtuoso_connstr=settings['rdflib.virtuoso_connstr'])
+
+    fs_url = settings.get('fs.url')
+    if fs_uri:
+        initialize_fs(fs_url)
+
+    esdb_url = settings.get('esdb.url')
+    if esdb_url:
+        initialize_esdb(esdb_url)
 
     session_factory = UnencryptedCookieSessionFactoryConfig('secret')
 
@@ -67,8 +82,8 @@ def _register_routes(config):
     config.include('pyramid_restler')
     config.enable_POST_tunneling()
 
-    from .events.views import EventsContextFactory
-    from .events.views import EventsRESTfulView
+    from workhours.events.views import EventsContextFactory
+    from workhours.events.views import EventsRESTfulView
     config.add_restful_routes('event', EventsContextFactory,
                                     view=EventsRESTfulView)
 
@@ -104,12 +119,4 @@ def _register_common_templates(config):
     #config.testing_add_renderer('templates/latest.jinja2')
     #config.testing_add_renderer('templates/sparql_query.jinja2')
 
-
-
-
-import logging
-log = logging.getLogger()
-
-class Namespace(object):
-    pass
 
