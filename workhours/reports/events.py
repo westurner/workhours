@@ -18,11 +18,12 @@ def dump_events_table(dburi, session=None, _output=sys.stdout):
     s = session or Session(dburi)
     for e in s.query(Event).order_by(Event.date):
         try:
-            print( e._to_txt_row() , file=_output)
+            yield e._to_txt_row()
+            #print( e._to_txt_row() , file=_output)
         except UnicodeEncodeError, e:
-            print( "%s%s" % (type(e.object), e.encoding),
+            log.error( "%s%s" % (type(e.object), e.encoding),
                     file=_output )
-            print( e.object.encode('utf8','replace'),
+            log.error( e.object.encode('utf8','replace'),
                     file=_output )
             log.exception(e)
             raise
