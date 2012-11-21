@@ -12,7 +12,7 @@ from itertools import ifilter
 
 log = logging.getLogger('workhours.tasks')
 
-from workhours.models import open_db
+import workhours.models
 from workhours.models import Event, Place, Task, TaskQueue, setup_mappers
 from workhours.future import OrderedDict
 
@@ -66,7 +66,7 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
     if not check_queue_set(task_queues):
         raise Exception()
 
-    meta = open_db(eventsdb_uri, models.setup_mappers)
+    meta = models.open_db(eventsdb_uri, models.setup_mappers)
     s = meta.Session()
     for queue_k, tasks in task_queues.iteritems():
         s.begin(subtransactions=True)
@@ -115,11 +115,9 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
                 s.commit()
             except Exception, e:
                 log.error(e)
+                log.exception(e)
+                #s.rollback() # TODO
                 raise
+                #pass # TOOD
         s.commit()
     s.commit()
-
-    #create_gap_csv(meta, output_filename, gaptime)
-
-
-
