@@ -24,7 +24,7 @@ class TestWorkhoursCLI(unittest.TestCase):
         )
 
         for argset in ARG_TESTS:
-            log.debug("test_main: %r" % (argset))
+            log.debug("test_main: %r", argset)
             try:
                 main(*argset)
             except Exception, e:
@@ -47,17 +47,18 @@ def CommandlineOptionParser(*args,**kwargs):
 
     prs.add_option('-c','--config',
                     dest='config_file',
-                    action='store')
+                    action='store',
+                    help='Queue and storage .ini configuration file')
 
-    prs.add_option('--db', '--eventsdb',
+    prs.add_option('--db', '--sqldb-url',
                     dest='sqldb_url',
                     action='store',
                     help='Filepath for the aggregate events database')
-    prs.add_option('--fs', '--task-storage',
+    prs.add_option('--fs', '--fs-url',
                     dest='fs_url',
                     action='store',
                     help='Path where task and reports files will be stored')
-    prs.add_option('--es', '--elasticsearch-url',
+    prs.add_option('--es', '--esdb-url',
                     dest='esdb_url',
                     action='store',
                     help='Elasticsearch index URL')
@@ -165,14 +166,12 @@ def main(*args):
     if opts.output is '-':
         opts._output = sys.stdout
     else:
-        opts._output = opts._output or codecs.open(opts.output, 'w', encoding='utf8')
-    _output = opts._output
+        opts._output = (opts._output
+                        or codecs.open(opts.output, 'w', encoding='utf8'))
 
     from workhours.tasks import QUEUES
-    from workhours.models.files import TempDir
 
-
-
+    opts._queues = getattr(opts,'_queues', OrderedDict())
 
     def read_config_file(config_file, opts=None, log=logging):
         """read a workhours .ini config file
@@ -184,10 +183,10 @@ def main(*args):
 
         # filesystem storage uri
         if _config.has_option('main','fs.url'):
-            if opts.fs.url:
+            if opts.fs_url:
                 log.warn("config fs.url overridden by cmdline")
             else:
-                opts.fs.url = _config.get('main','fs.url')
+                opts.fs_url = _config.get('main','fs.url')
 
         # events database url
         if _config.has_option('main','db_main.url'):
@@ -204,19 +203,27 @@ def main(*args):
             else:
                 opts.esdb_url = _config.get('main', 'esdb.url')
 
-        # read TaskQueues from config file sections with names listed in
-        # QUEUES
-        opts._queues = opts._queues or OrderedDict()
-        for queue_name in (
-            sorted( set(QUEUES.keys()) & set(_config.sections()))):
-            config_items = filter(bool,
-                    (os.path.expanduser(v.strip())
-                        for k,v in c.items(queue_name)))
+        for queue_name, key, path in read_queues_from_config(_config):
+            #logging.debug( (queue_name, key, path) )
             if queue_name not in opts._queues:
                 opts._queues[queue_name] = []
-            opts._queues[queue_name].extend( config_items )
+            opts._queues[queue_name].append( path)
 
         return _config, opts
+
+    def read_queues_from_config(_config, queues=QUEUES):
+        # read TaskQueues from config file sections with names listed in
+        # QUEUES
+        opts._queues = getattr(opts,'_queues', OrderedDict())
+        for queue_name in (
+            sorted( set(queues.keys()) & set(_config.sections()))):
+
+            for k,v in _config.items(queue_name):
+                entry = v.strip()
+                values = [str.strip(x) for x in entry.split('\n')]
+                for value in values:
+                    yield (queue_name, k, os.path.expanduser(value)) # TODO
+
 
     # Read datastore and task queue configuration from config file
     # into opts
@@ -225,7 +232,7 @@ def main(*args):
     #       .fs_url = str
     #       ._queues[queue_name] = list
     _config = None
-    if opts.config_file:
+    if opts.config_file is not None:
         _config, opts = read_config_file(opts.config_file, opts)
 
     if opts.src_queues:
@@ -243,15 +250,15 @@ def main(*args):
         exit(0)
 
     from workhours.models.files import initialize_fs
-    opts.filestore = initialize_fs(
-                        path=os.path.expanduser(opts.fs_url),
-                        create=True
-                        )
+    opts._filestore = initialize_fs(
+                            path=os.path.expanduser(opts.fs_url),
+                            )
 
     def debug_conf(opts):
-        log.debug("eventsdb: %r", opts.sqldb_url)
-        log.debug("fs.url: %r", opts.fs.url)
-        log.debug("queues:\n%s", json.dumps(opts._queues, indent=2))
+        log.debug("sql.url: %r", opts.sqldb_url)
+        log.debug("fs.url: %r", opts.fs_url)
+        log.debug("es.url: %r", opts.esdb_url)
+        #log.debug("queues:\n%s", json.dumps(opts._queues, indent=2))
 
     debug_conf(opts)
 
@@ -260,14 +267,14 @@ def main(*args):
         for result in tasks.populate_events_table(
                             opts.sqldb_url,
                             opts._queues,
-                            fs=filestore):
+                            fs=opts._filestore):
             print(result, opts._output)
 
     def _do_events_report(opts):
         from workhours.reports.events import dump_events_table
         csv_path = reportsdir.add_path('events.csv', None)
         for line in dump_events_table(opts.sqldb_url):
-            print(line, _output)
+            print(line, opts._output)
 
     from workhours.reports.gaps import create_gap_csv
     from workhours import models
@@ -286,7 +293,7 @@ def main(*args):
         exit(0)
 
     if opts.reports:
-        reportsdir = opts.filestore.mkdir('reports')
+        reportsdir = opts._filestore.mkdir('reports')
     for report in opts.reports:
         reportfunc = REPORTS.get(report)
         if reportfunc is None:
