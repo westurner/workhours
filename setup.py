@@ -41,7 +41,8 @@ setup(name='workhours',
         'SQLAlchemy>=0.6beta1',
         'pytz>=2010e',
         'BeautifulSoup',
-        'pyutmp'
+        'pyutmp',
+        'pyes'
         ],
     entry_points={
         # -*- Entry points: -*-

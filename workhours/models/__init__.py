@@ -99,6 +99,7 @@ class Task(_Base):
 
 
 class Event(_Base):
+    _pyes_version = 0
     _pyes_schema = {
         'source': {
             'boost': 1.0,
@@ -211,6 +212,7 @@ class Event(_Base):
 
 
 class Place(_Base):
+    _pyes_version = 0
     _pyes_schema = {
         'url': {
             'boost': 1.0,
