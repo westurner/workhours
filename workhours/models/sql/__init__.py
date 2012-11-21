@@ -1,3 +1,4 @@
+import sqlalchemy.exc
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,11 +8,14 @@ from zope.sqlalchemy import ZopeTransactionExtension
 DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
+import logging
+log = logging.getLogger('workhours.models.sql')
 
-engine = None
-meta = None
+#engine = None
+#meta = None
 
 def initialize_sql(_engine):
+    log.debug(_engine)
     # uhm
     #global engine
     engine = _engine
@@ -19,7 +23,13 @@ def initialize_sql(_engine):
 
     # setup both declarative base...
     Base.metadata.bind = engine
-    Base.metadata.create_all(engine)
+
+    #try:
+    #    Base.metadata.create_all(engine)
+    #except sqlalchemy.exc.OperationalError, e:
+    #    log.error(engine)
+    #    log.exception(e)
+    #    raise
 
     # and explicit mappings
     #global meta
@@ -30,7 +40,7 @@ def initialize_sql(_engine):
     # Create tables
     meta.create_all()
     meta.Session = DBSession
-    #sessionmaker(bind=engine)
+    sessionmaker(bind=engine)
 
     return meta
 
