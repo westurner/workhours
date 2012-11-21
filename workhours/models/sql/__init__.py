@@ -13,7 +13,7 @@ meta = None
 
 def initialize_sql(_engine):
     # uhm
-    global engine
+    #global engine
     engine = _engine
     DBSession.configure(bind=engine)
 
@@ -22,7 +22,7 @@ def initialize_sql(_engine):
     Base.metadata.create_all(engine)
 
     # and explicit mappings
-    global meta
+    #global meta
     from workhours.models import setup_mappers
     meta = setup_mappers(engine)
     meta.bind = engine
@@ -32,10 +32,12 @@ def initialize_sql(_engine):
     meta.Session = DBSession
     #sessionmaker(bind=engine)
 
+    return meta
 
-def _initialize_sql_test(self=None):
+
+def _initialize_sql_test(url='sqlite:///:memory:', self=None):
     from sqlalchemy import create_engine
-    engine = create_engine('sqlite://')
+    engine = create_engine(url)
     session = DBSession()
     session.configure(bind=engine)
     Base.metadata.bind = engine
