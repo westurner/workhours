@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #encoding: utf-8
+from __future__ import print_function
 """
 workhours event aggregation CLI
 """
@@ -24,7 +25,7 @@ class TestWorkhoursCLI(unittest.TestCase):
         )
 
         for argset in ARG_TESTS:
-            log.debug("test_main: %r", argset)
+            log.debug("test_main: %r" % argset)
             try:
                 main(*argset)
             except Exception, e:
@@ -170,59 +171,47 @@ def main(*args):
                         or codecs.open(opts.output, 'w', encoding='utf8'))
 
     from workhours.tasks import QUEUES
+    from workhours.config import read_queues_from_config
 
     opts._queues = getattr(opts,'_queues', OrderedDict())
 
-    def read_config_file(config_file, opts=None, log=logging):
+    def get_value(_config, attr, configpath, opts):
+        # if the file is in the config file
+        if _config.has_option(*configpath):
+            optsval = getattr(opts, attr, None)
+            if optsval:
+                log.warn("config %r overridden by cmdline" % attr)
+            else:
+                optsval = _config.get(*configpath)
+        return optsval
+
+
+    def read_config_file(config_file, opts=None, log=logging, **kwargs):
         """read a workhours .ini config file
 
+        write settings into an optparse.Values object,
+        log.warn when commandline and configfile settings
 
         """
         _config = ConfigParser()
         _config.read(config_file)
 
-        # filesystem storage uri
-        if _config.has_option('main','fs.url'):
-            if opts.fs_url:
-                log.warn("config fs.url overridden by cmdline")
-            else:
-                opts.fs_url = _config.get('main','fs.url')
+        opts.fs_url = get_value(_config,
+                        'fs_url',   ('main','fs.url'), opts)
+        opts.sqldb_url = get_value(_config,
+                        'sqldb_url', ('main', 'db_main.url'), opts)
+        opts.esdb_url = get_value(_config,
+                        'esdb_url', ('main','esdb.url'), opts)
 
-        # events database url
-        if _config.has_option('main','db_main.url'):
-            if opts.sqldb_url:
-                log.warn("config db_main.url overridden by cmdline")
-            else:
-                opts.sqldb_url = _config.get('main','db_main.url')
-            # TODO: sqlalchemy.engine_from_config(_config) ?
 
-        # elasticsearch url
-        if _config.has_option('main','esdb.url'):
-            if opts.esdb_url:
-                log.warn("config esdb.url overridden by cmdline")
-            else:
-                opts.esdb_url = _config.get('main', 'esdb.url')
-
-        for queue_name, key, path in read_queues_from_config(_config):
+        # append queues from config to opts
+        for source in read_queues_from_config(_config):
             #logging.debug( (queue_name, key, path) )
-            if queue_name not in opts._queues:
-                opts._queues[queue_name] = []
-            opts._queues[queue_name].append( path)
+            if source.type not in opts._queues:
+                opts._queues[source.type] = []
+            opts._queues[source.type].append( source )
 
         return _config, opts
-
-    def read_queues_from_config(_config, queues=QUEUES):
-        # read TaskQueues from config file sections with names listed in
-        # QUEUES
-        opts._queues = getattr(opts,'_queues', OrderedDict())
-        for queue_name in (
-            sorted( set(queues.keys()) & set(_config.sections()))):
-
-            for k,v in _config.items(queue_name):
-                entry = v.strip()
-                values = [str.strip(x) for x in entry.split('\n')]
-                for value in values:
-                    yield (queue_name, k, os.path.expanduser(value)) # TODO
 
 
     # Read datastore and task queue configuration from config file
@@ -235,6 +224,7 @@ def main(*args):
     if opts.config_file is not None:
         _config, opts = read_config_file(opts.config_file, opts)
 
+    from workhours.config import Source
     if opts.src_queues:
         for (_type, _path) in opts.src_queues:
             if _type not in QUEUES:
@@ -242,7 +232,8 @@ def main(*args):
                     "queue type %r not supported: %r" % (_type, _path))
             if _type not in opts._queues:
                 opts._queues[_type] = []
-            opts._queues[_type].append(os.path.expanduser(_path))
+            opts._queues[_type].append(
+                Source(_type,None,os.path.expanduser(_path)))
 
     if opts.list_source_types:
         for queue_name in QUEUES:
@@ -250,9 +241,10 @@ def main(*args):
         exit(0)
 
     from workhours.models.files import initialize_fs
-    opts._filestore = initialize_fs(
-                            path=os.path.expanduser(opts.fs_url),
-                            )
+    if opts.fs_url is None:
+        logging.error("Must specify a fs url")
+        exit(0)
+    opts._filestore = initialize_fs( os.path.expanduser(opts.fs_url) )
 
     def debug_conf(opts):
         log.debug("sql.url: %r", opts.sqldb_url)
@@ -268,18 +260,18 @@ def main(*args):
                             opts.sqldb_url,
                             opts._queues,
                             fs=opts._filestore):
-            print(result, opts._output)
+            print(result, file=opts._output)
 
     def _do_events_report(opts):
         from workhours.reports.events import dump_events_table
-        csv_path = reportsdir.add_path('events.csv', None)
+        csv_path = opts._filestore.add_path('events.csv', None)
         for line in dump_events_table(opts.sqldb_url):
-            print(line, opts._output)
+            print(line, file=opts._output)
 
     from workhours.reports.gaps import create_gap_csv
     from workhours import models
     def _do_gap_report(opts):
-        csv_path = reportsdir.add_path('gaps.csv', None)
+        opts.csv_path = reportsdir.add_path('gaps.csv', None)
         create_gap_csv(models.Event, opts.csv_path, opts.gaptime)
 
     REPORTS = {
@@ -299,6 +291,7 @@ def main(*args):
         if reportfunc is None:
             raise Exception("report type %r unsupported" % report)
         result = reportfunc(opts)
+        print(result, file=opts._output)
 
 if __name__=="__main__":
     main()
