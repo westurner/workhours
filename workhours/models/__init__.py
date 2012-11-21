@@ -80,11 +80,12 @@ class _Base(object):
 
 
 class TaskQueue(_Base):
-    def __init__(self, type, label=None, uri=None):
+    def __init__(self, type, label=None, uri=None, host=None, user=None):
         self.type = type
         self.label = label
         self.uri = uri
-
+        self.host = host
+        self.user = user
 
 class Task(_Base):
     def __init__(self, queue_id, args, date=None, state=None, statemsg=None):
@@ -279,6 +280,9 @@ def setup_mappers(engine):
                 Column('label', UnicodeText(), unique=True),
                 Column('date', DateTime(), index=True,
                     onupdate=datetime.datetime.now),
+
+                Column('host', UnicodeText()), # default=$(hostname)
+                Column('user', UnicodeText())  # default=$(whoami)
         )
         mapper(TaskQueue, queues_tbl)
 
@@ -320,6 +324,9 @@ def setup_mappers(engine):
                 Column('url', UnicodeText()),
                 Column('title', UnicodeText()),
                 Column('meta', UnicodeText()),
+
+                Column('host', UnicodeText()),
+                Column('user', UnicodeText()),
 
                 Column('place_id', Integer(),
                     ForeignKey(places_tbl.c.id), nullable=True),
