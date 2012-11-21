@@ -50,25 +50,29 @@ def CommandlineOptionParser(*args,**kwargs):
                     action='store')
 
     prs.add_option('--db', '--eventsdb',
-                    dest='eventsdb_uri',
+                    dest='sqldb_url',
                     action='store',
                     help='Filepath for the aggregate events database')
-
     prs.add_option('--fs', '--task-storage',
-                    dest='fs_uri',
+                    dest='fs_url',
                     action='store',
                     help='Path where task and reports files will be stored')
+    prs.add_option('--es', '--elasticsearch-url',
+                    dest='esdb_url',
+                    action='store',
+                    help='Elasticsearch index URL')
+
 
     prs.add_option('-l', '--list-source-types',
                     dest='list_source_types',
                     action='store_true')
-
     prs.add_option('-s', '--src',
                     nargs=2,
                     dest='src_queues',
                     action='append',
-                    help="Type and filename tuples "
-                         "(ex. 'shell.log ./.usrlog')")
+                    help="Task(queue_name, filename)"
+                         "tuples to append to queues"
+                         '(ex. "shell.log ./.usrlog")')
     prs.add_option('-P','--parse',
                     dest='parse',
                     action='store_true',
@@ -161,42 +165,48 @@ def main(*args):
     if opts.output is '-':
         opts._output = sys.stdout
     else:
-        opts._output = codecs.open(opts.output, 'w', encoding='utf8')
+        opts._output = opts._output or codecs.open(opts.output, 'w', encoding='utf8')
     _output = opts._output
 
     from workhours.tasks import QUEUES
     from workhours.models.files import TempDir
 
-    opts._queues = OrderedDict()
 
-    _config = None
-    if opts.config_file:
 
-        c = _config = ConfigParser()
-        c.read(opts.config_file)
+
+    def read_config_file(config_file, opts=None, log=logging):
+        """read a workhours .ini config file
+
+
+        """
+        _config = ConfigParser()
+        _config.read(config_file)
 
         # filesystem storage uri
-        if _config.has_option('main','fs.uri'):
-            if opts.fs_uri:
-                logging.warn("config fs.uri overridden by cmdline")
+        if _config.has_option('main','fs.url'):
+            if opts.fs.url:
+                log.warn("config fs.url overridden by cmdline")
             else:
-                opts.fs_uri = _config.get('main','fs.uri')
+                opts.fs.url = _config.get('main','fs.url')
 
         # events database url
-        if _config.has_option('main','eventsdb.url'):
-            if opts.eventsdb_uri:
-                logging.warn("config eventsdb.url overridden by cmdline")
+        if _config.has_option('main','db_main.url'):
+            if opts.sqldb_url:
+                log.warn("config db_main.url overridden by cmdline")
             else:
-               opts.eventsdb_uri = _config.get('main','eventsdb.url')
+                opts.sqldb_url = _config.get('main','db_main.url')
+            # TODO: sqlalchemy.engine_from_config(_config) ?
 
         # elasticsearch url
-        if _config.has_option('mas','esdb.uri'):
-            if opts.esdb_uri:
-                logging.warn("config esdb.uri overridden by cmdline")
+        if _config.has_option('main','esdb.url'):
+            if opts.esdb_url:
+                log.warn("config esdb.url overridden by cmdline")
             else:
-                opts.esdb_uri = _config.get('main', 'esdb.uri')
+                opts.esdb_url = _config.get('main', 'esdb.url')
 
-        # read supported config file sections
+        # read TaskQueues from config file sections with names listed in
+        # QUEUES
+        opts._queues = opts._queues or OrderedDict()
         for queue_name in (
             sorted( set(QUEUES.keys()) & set(_config.sections()))):
             config_items = filter(bool,
@@ -206,6 +216,17 @@ def main(*args):
                 opts._queues[queue_name] = []
             opts._queues[queue_name].extend( config_items )
 
+        return _config, opts
+
+    # Read datastore and task queue configuration from config file
+    # into opts
+    #       .sqldb_url = str    #   from db_main.url
+    #       .esdb_url = str
+    #       .fs_url = str
+    #       ._queues[queue_name] = list
+    _config = None
+    if opts.config_file:
+        _config, opts = read_config_file(opts.config_file, opts)
 
     if opts.src_queues:
         for (_type, _path) in opts.src_queues:
@@ -216,24 +237,20 @@ def main(*args):
                 opts._queues[_type] = []
             opts._queues[_type].append(os.path.expanduser(_path))
 
-    #else:
-    #    opts._queues = OrderedDict(
-    #        (queue_name, getattr(opts, queue_name.replace('.','_')))
-    #            for queue_name in QUEUES )
-
-
     if opts.list_source_types:
         for queue_name in QUEUES:
             print(queue_name)
         exit(0)
 
-    opts.filestore = TempDir(
-                        path=os.path.expanduser(opts.fs_uri),
-                        create=True)
+    from workhours.models.files import initialize_fs
+    opts.filestore = initialize_fs(
+                        path=os.path.expanduser(opts.fs_url),
+                        create=True
+                        )
 
     def debug_conf(opts):
-        log.debug("eventsdb: %r", opts.eventsdb_uri)
-        log.debug("fs.uri: %r", opts.fs_uri)
+        log.debug("eventsdb: %r", opts.sqldb_url)
+        log.debug("fs.url: %r", opts.fs.url)
         log.debug("queues:\n%s", json.dumps(opts._queues, indent=2))
 
     debug_conf(opts)
@@ -241,7 +258,7 @@ def main(*args):
     if opts.parse and any(x[0] for x in opts._queues.iteritems()):
         from workhours import tasks
         for result in tasks.populate_events_table(
-                            opts.eventsdb_uri,
+                            opts.sqldb_url,
                             opts._queues,
                             fs=filestore):
             print(result, opts._output)
@@ -249,7 +266,7 @@ def main(*args):
     def _do_events_report(opts):
         from workhours.reports.events import dump_events_table
         csv_path = reportsdir.add_path('events.csv', None)
-        for line in dump_events_table(opts.eventsdb_uri):
+        for line in dump_events_table(opts.sqldb_url):
             print(line, _output)
 
     from workhours.reports.gaps import create_gap_csv

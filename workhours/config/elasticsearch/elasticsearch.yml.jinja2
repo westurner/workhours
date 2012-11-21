@@ -111,8 +111,8 @@
 # Note, that for development on a local machine, with small indices, it usually
 # makes sense to "disable" the distributed features:
 #
-# index.number_of_shards: 1
-# index.number_of_replicas: 0
+index.number_of_shards: {{ number_of_shards }}
+index.number_of_replicas: {{ number_of_replicas }}
 
 # These settings directly affect the performance of index and search operations
 # in your cluster. Assuming you have enough machines to hold shards and
@@ -192,7 +192,9 @@ path.plugins: {{ plugindir }}
 
 # Set the bind address specifically (IPv4 or IPv6):
 #
-# network.bind_host: 192.168.0.1
+{% if bind_host %}
+network.bind_host: {{ bind_host }}
+{% endif -%}
 
 # Set the address other nodes will use to communicate with this node. If not
 # set, it is automatically derived. It must point to an actual IP address.
@@ -206,6 +208,9 @@ path.plugins: {{ plugindir }}
 # Set a custom port for the node to node communication (9300 by default):
 #
 # transport.tcp.port: 9300
+{% if transport_tcp_port %}
+transport.tcp.port: {{ transport_tcp_port }}
+{% endif %}
 
 # Enable compression for all communication between nodes (disabled by default):
 #
@@ -213,7 +218,9 @@ path.plugins: {{ plugindir }}
 
 # Set a custom port to listen for HTTP traffic:
 #
-http.port: {{ http_port or 9200 }}
+{% if http_port %}
+http.port: {{ http_port }}
+{% endif %}
 
 # Set a custom allowed content length:
 #
@@ -221,7 +228,11 @@ http.port: {{ http_port or 9200 }}
 
 # Disable HTTP completely:
 #
-http.enabled: {{ disable_http or "true" }}
+{% if disable_http %}
+http.enabled: false
+{% else %}
+http.enabled: true
+{% endif %}
 
 
 ################################### Gateway ###################################
@@ -311,6 +322,10 @@ http.enabled: {{ disable_http or "true" }}
 # 1. Disable multicast discovery (enabled by default):
 #
 # discovery.zen.ping.multicast.enabled: false
+{% if mutlicast_enabled %}
+dicovery.zen.ping.multicast.enabled: {{ multicast_enabled }}
+{% endif %}
+
 #
 # 2. Configure an initial list of master nodes in the cluster
 #    to perform discovery when new nodes (master or data) are started:
