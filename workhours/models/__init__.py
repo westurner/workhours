@@ -178,14 +178,14 @@ class Event(_Base):
             elif hasattr(obj, '__iter__'):
                 _obj = cls(source, *obj, **_kwargs)
             else:
-                raise Exception("uh")
+                raise
         except Exception, e:
             log.error({'obj': obj,
                         'type': type(obj),
                         'dir': dir(obj)
                         })
             log.exception(e)
-            raise Exception()
+            raise
 
         return _obj
 
