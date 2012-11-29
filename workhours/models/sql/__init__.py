@@ -14,43 +14,63 @@ log = logging.getLogger('workhours.models.sql')
 #engine = None
 #meta = None
 
-def initialize_sql(_engine):
-    log.debug(_engine)
+def initialize_sql(engine):
+    log.debug("initialize_sql: %r" % engine)
     # uhm
     #global engine
-    engine = _engine
-    DBSession.configure(bind=engine)
+    try:
 
-    # setup both declarative base...
-    Base.metadata.bind = engine
+        # and explicit mappings
+        #global meta
+        from workhours.models import setup_mappers
+        meta = setup_mappers(engine)
+        meta.bind = engine
 
-    #try:
-    #    Base.metadata.create_all(engine)
-    #except sqlalchemy.exc.OperationalError, e:
-    #    log.error(engine)
-    #    log.exception(e)
-    #    raise
+        DBSession.configure(bind=engine)
 
-    # and explicit mappings
-    #global meta
-    from workhours.models import setup_mappers
-    meta = setup_mappers(engine)
-    meta.bind = engine
+        Base.metadata.bind = engine
+        meta.Session = DBSession
+        sessionmaker(bind=engine)
 
+        # Create tables
+        return initialize_sql_db(meta)
+    except Exception, e:
+        log.error(engine)
+        log.error(DBSession)
+        log.exception(e)
+        raise
+    #except sqlalchemy.exc.OperationalError:
+
+def initialize_sql_db(meta):
+    log.info("initialize_sql_db(%r)" % meta)
+    engine = meta.bind
     # Create tables
-    meta.create_all()
-    meta.Session = DBSession
-    sessionmaker(bind=engine)
+    try:
+        log.debug("meta.create_all()")
+        meta.create_all()
+    except Exception, e:
+        log.error(engine)
+        log.exception(e)
+        raise
+
+    try:
+        log.debug("Base.metadata.create_all(%r)" % engine)
+        Base.metadata.create_all(engine)
+    except Exception, e:
+        #sqlalchemy.exc.OperationalError, e:
+        log.error(engine)
+        log.exception(e)
+        raise
 
     return meta
 
-
-def _initialize_sql_test(url='sqlite:///:memory:', self=None):
+def _initialize_sql_test(url='sqlite:///test.db', self=None):
     from sqlalchemy import create_engine
     engine = create_engine(url)
-    session = DBSession()
-    session.configure(bind=engine)
-    Base.metadata.bind = engine
-    Base.metadata.create_all(engine)
-    return session
+    meta = initialize_sql(engine)
+    #session = DBSession()
+    #session.configure(bind=engine)
+    #Base.metadata.bind = engine
+    #Base.metadata.create_all(engine)
+    return meta
 
