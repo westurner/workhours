@@ -1,5 +1,10 @@
 <ul>
-    <li><a href="{{ request.route_url('main')  }}">Home</a></li>
+    <li><a href="{{ request.route_url('main')  }}">/</a></li>
+    <li><a href="{{ request.route_url('get_api/events_collection') }}">api/events</a></li>
+    <li><a href="{{ request.route_url('get_api/places_collection') }}">api/places</a></li>
+    <li><a href="{{ request.route_url('get_reports/domains_collection') }}">reports/domains</a></li>
+    <li><a href="{{ request.route_url('get_reports/projects_collection') }}">reports/projects</a></li>
+    <li><a href="{{ request.route_url('get_reports/wikipedia_collection') }}">reports/wikipedia</a></li>
     {#<li><a href="{{ request.route_url('ideas_main') }}">Ideas</a></li>
     <li><a href="{{ request.route_url('sparql_query')  }}">SPARQL</a></li>
     <li><a href="{{ request.route_url('deniz') }}">Browse</a></li>
