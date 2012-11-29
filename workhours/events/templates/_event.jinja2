@@ -1,0 +1,28 @@
+{% if wrap %}
+{% extends "base.jinja2" %}
+{% endif %}
+
+{% block content %}
+<table class="modeltable" id="{{ table_id }}">
+<thead>
+<tr>{% for field in fields %}<th>{{ field }}</th>{% endfor %}</tr>
+</thead>
+<tbody>
+{% for obj in value %}
+<tr>
+    {% for field in fields %}
+    <td>
+    {% if 'url' in field and obj[field].startswith('http') %}
+    <a href="{{ obj[field] }}">{{ obj[field] }}</a>
+    {% else %}
+    <span>{{ obj[field] }}</span>
+    {% endif %}
+    </td>
+    {% endfor %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+
+{% endblock content %}

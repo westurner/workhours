@@ -1,0 +1,23 @@
+{% extends "models/templates/_table.jinja2" %}
+{% block datatable_columns %}[
+                { "mDataProp": "id",
+                    "sWidth": "30px", "aTargets": [0],
+                    "fnRender": function (obj) {
+                       return "<a href=\"/api/events/" + obj.aData.id + "\">" + obj.aData.id + "</a>"; /* TODO: escape */
+ 
+                }},
+                { "mDataProp": "date",
+                    "sWidth": "100px", "aTargets": [1]   },
+                { "mDataProp": "type",
+                    "sWidth": "40px", "aTargets": [2]    },
+                { "mDataProp": "url",
+                    "sWidth": "200px", "aTargets": [3],
+                    "fnRender": function (obj) {
+                        return ("<b>"+obj.aData.title+"</b><br/><a href=\"" + obj.aData.url + "\">" + obj.aData.url + "</a>"); /* TODO: escape */
+                    }
+                },
+                { "mDataProp": "title", "bVisible": false, 
+                    "sWidth": "200px", "aTargets": [4]
+                }
+                ]{% endblock datatable_columns %}
+
