@@ -27,9 +27,9 @@ from workhours.syslog.wtmp import parse_wtmp_glob
 from workhours.syslog.authlog import parse_authlog_glob
 from workhours.syslog.find import parse_find_printf
 
-DEFAULT_FILES = lambda x: ( x['uri'], )
-SQLITE_FILES =  lambda x: ( x['uri'],
-                            '%s-journal' % x['uri'])
+DEFAULT_FILES = lambda x: ( x['url'], )
+SQLITE_FILES =  lambda x: ( x['url'],
+                            '%s-journal' % x['url'])
 
 # TODO: registry
 QUEUES=OrderedDict( (
@@ -55,10 +55,10 @@ def check_queue_set(task_queues):
     errflag = False
     for queue_k, tasks in task_queues.iteritems():
         for argset in tasks:
-            if not os.path.exists(argset) and os.path.isfile(argset):
+            if not os.path.exists(argset.url) and os.path.isfile(argset.url):
                 errflag = True
                 print("Queued source not found: %r %r"
-                        % (queue_k, argset))
+                        % (queue_k, argset.url))
     return not errflag
 
 # TODO: more elegant generalization
@@ -80,9 +80,7 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
             log.debug("Task: %s" % str(argset))
             # TODO
             s.begin(subtransactions=True)
-            task = Task( queue.id,
-                        {'uri': argset, 'type': queue_k} )
-            # TODO
+            task = Task( queue.id, argset._asdict())
             s.add(task)
             s.flush() # get task.id
 
@@ -96,6 +94,7 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
                 files_ = [task_dir.copy_here(f) for f in files(task.args)]
                 uri = files_[0]
                 for event_ in parsefunc_iter(uri=uri):
+                    log.debug(event_)
                     try:
                         #_log.debug("%s : %s" % (type(event_), event_))
                         event = Event.from_uhm(queue_k, event_, task_id=task.id)
@@ -103,15 +102,19 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
                             place = Place.get_or_create(event.url, session=s)
                             event.place_id = place.id
                         s.add(event)
+
                         # TODO:
-                        # s.flush() # get event.id
+                        s.flush() # get event.id
                         # sunburnt.index(event + **addl_attrs)
                         # pyes.insert( **event.to_dict() )
+                        yield event
+
                     except Exception, e:
                         task.status = 'err'
                         task.statusmsg = str(e)
                         s.flush()
                         raise
+
                 s.commit()
             except Exception, e:
                 log.error(e)
