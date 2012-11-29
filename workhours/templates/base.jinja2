@@ -68,11 +68,12 @@
                     </div>
                 </div>
                 <div id="sidebar" class="column span-5 last">
-                    {% block sidebar %}
-                    {% endblock sidebar %}
-                    {% include "security/templates/_login.jinja2" %}
+                    {%- block sidebar -%}
+                    {# % include "security/templates/_login.jinja2" % #}
                     {#{% include "shootout/templates/_cloud.jinja2" %}
                     {% include "shootout/templates/_latest.jinja2" %}#}
+
+                    {%- endblock sidebar -%}
                 </div>
             {% endblock contentframe %}
             </div>
