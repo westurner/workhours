@@ -551,3 +551,7 @@ div.message {
 .modeltable {
     line-height: 1;
 }
+
+table#events td.title {
+    min-width: 200px;
+}
