@@ -36,7 +36,7 @@ import logging
 import optparse
 from pprint import pformat
 from collections import OrderedDict
-import json
+import workhours.models.json as json
 from ConfigParser import ConfigParser
 
 def CommandlineOptionParser(*args,**kwargs):

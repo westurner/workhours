@@ -1,4 +1,4 @@
-from ..models import json
+import workhours.models.json as json
 from collections import Iterable
 from pyramid.decorator import reify
 from pyramid_restler.interfaces import IContext

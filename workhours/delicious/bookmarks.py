@@ -10,11 +10,7 @@ import datetime
 import logging
 from BeautifulSoup import BeautifulSoup
 
-try:
-    import simplejson
-    json = simplejson
-except ImportError, e:
-    import json
+import workhours.models.json as json
 
 #import sys
 #sys.stdout = codecs.getwriter('UTF-8')(sys.stdout)

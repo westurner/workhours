@@ -9,11 +9,7 @@ from workhours.webkit import longdate_to_datetime
 import logging
 log = logging.getLogger('webkit.bookmarks')
 
-try:
-    import simplejson
-    json = simplejson
-except ImportError, e:
-    import json
+import workhours.models.json as json
 
 NODETYPE=u'folder'
 NODEKEY=u'children'

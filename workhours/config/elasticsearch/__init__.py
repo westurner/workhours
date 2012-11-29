@@ -76,7 +76,7 @@ if __name__=="__main__":
         context = get_local_context()
 
         if debug:
-            import json
+            import workhours.models.json as json
             print( json.dumps(context, indent=2), file=sys.stdout )
 
         print( render(TEMPLATE_NAME, context) , file=_output)
