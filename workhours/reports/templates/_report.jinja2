@@ -1,0 +1,8 @@
+{% if wrap %}
+{% extends "base.jinja2" %}
+{% endif %}
+{% block extracss %}{% endblock extracss %}
+{% block extrajs %}{% endblock extrajs %}
+{% block content %}
+<pre>{{ report.data|jsonify_indent }}</pre>
+{% endblock %}
