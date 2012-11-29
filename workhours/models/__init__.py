@@ -268,6 +268,19 @@ class Place(_Base):
         return obj
 
 
+class ReportType(_Base):
+    def __init__(self, label, data={}):
+        self.label = label
+        self.data = data
+
+
+class Report(_Base):
+    def __init__(self, report_type_id, title, data):
+        self.report_type_id = report_type_id
+        self.title = title
+        self.data = data
+
+
 _MAPPED = False
 def setup_mappers(engine):
     """
@@ -354,6 +367,25 @@ def setup_mappers(engine):
             'task': relation(Task, backref='events'),
             'place': relation(Place, backref='events'),
             #'queue': relation(TaskQueue, backref='events'),
+        })
+
+        report_types_tbl = Table('report_types', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('label', Unicode(), index=True),
+                Column('data', MutationDict.as_mutable(JSONEncodedDict))
+        )
+
+        mapper(ReportType, report_types_tbl)
+
+        reports_tbl = Table('reports', meta,
+            Column('id', Integer(), primary_key=True, nullable=False),
+                Column('report_type_id', Integer(),
+                    ForeignKey(report_types_tbl.c.id), nullable=False),
+                Column('title', Unicode(), nullable=True),
+                Column('data', MutationDict.as_mutable(JSONEncodedDict)))
+
+        mapper(Report, reports_tbl, properties={
+            'report_type': relation(ReportType, backref='reports'),
         })
 
     return meta

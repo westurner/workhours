@@ -1,0 +1,8 @@
+{% extends "base.jinja2" %}
+{% block content %}
+<ul id="report_types">
+{% for report_type in report_types %}
+<li>{{ report_type }}</li>
+{% endfor %}
+</ul>
+{% endblock content %}
