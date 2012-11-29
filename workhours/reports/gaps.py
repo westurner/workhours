@@ -1,6 +1,21 @@
 
 from workhours.models import _Base
-from workhours.reports import add_gap_tuples, write_csv
+from workhours.reports import write_csv
+
+def add_gap_tuples(iterable,
+                    attrs,
+                    gaptime=15,
+                    date_attr=lambda x: x[0],
+                    ):
+    ltime = None
+    gaprow = len(attrs)*('--------',)
+    timedelta = datetime.timedelta(minutes=gaptime)
+    for item in iterable:
+        date=date_attr(item)
+        if ltime and (ltime + timedelta) < date:
+            yield gaprow
+        ltime = date
+        yield item
 
 
 def create_gap_csv(cls,

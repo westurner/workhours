@@ -3,22 +3,6 @@ import datetime
 import codecs
 
 
-def add_gap_tuples(iterable,
-                    attrs,
-                    gaptime=15,
-                    date_attr=lambda x: x[0],
-                    ):
-    ltime = None
-    gaprow = len(attrs)*('--------',)
-    timedelta = datetime.timedelta(minutes=gaptime)
-    for item in iterable:
-        date=date_attr(item)
-        if ltime and (ltime + timedelta) < date:
-            yield gaprow
-        ltime = date
-        yield item
-
-
 def _write_csv(output, iterable, attrs, unicode_mangle=False):
     cw = csv.writer(output)
     cw.writerow(attrs)
