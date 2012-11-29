@@ -1,6 +1,6 @@
 
-test: clean nosetests local
 
+test: clean nosetests local
 
 clean:
 	rm -rf tasks/
@@ -20,6 +20,10 @@ local:
 
 nosetests:
 	python setup.py nosetests
+
+tags:
+	cd ${VIRTUAL_ENV}
+	grind --follow '*.py' | ctags -L -
 
 help:
 	echo "Usage: clean|build"
