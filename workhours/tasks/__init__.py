@@ -48,7 +48,7 @@ QUEUES=OrderedDict( (
 
 import workhours.models as models
 from workhours.models.sqla_utils import MutationDict
-import json
+import workhours.models.json as json
 
 import os
 def check_queue_set(task_queues):

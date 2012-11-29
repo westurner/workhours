@@ -4,10 +4,9 @@ test_es_url = 'http://localhost:9200'
 import logging
 log = logging.getLogger('workhours.models.es.tests.TestESSession')
 
-import json
+import workhours.models.json as json
+
 dumps = lambda obj: json.dumps(obj, indent=2)
-
-
 
 import unittest
 import workhours.models.es
