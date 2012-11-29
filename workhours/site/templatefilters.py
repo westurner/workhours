@@ -14,5 +14,5 @@ def jsonify(eval_ctx, value):
     if value:
         result = json.dumps(value)
         if eval_ctx.autoescape:
-            result = Markup(value)
+            result = Markup(result)
     return result
