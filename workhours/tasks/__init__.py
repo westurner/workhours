@@ -98,7 +98,7 @@ def populate_events_table(eventsdb_uri, task_queues, fs):
                     try:
                         #_log.debug("%s : %s" % (type(event_), event_))
                         event = Event.from_uhm(queue_k, event_, task_id=task.id)
-                        if event.url:
+                        if event.url and '://' in event.url[:10]:
                             place = Place.get_or_create(event.url, session=s)
                             event.place_id = place.id
                         s.add(event)
