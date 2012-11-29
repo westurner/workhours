@@ -7,6 +7,7 @@ from pyramid.events import subscriber
 from pyramid.events import NewRequest
 
 from sqlalchemy import engine_from_config
+import workhours.models
 from workhours.models.sql import initialize_sql
 from workhours.models.es import initialize_esdb
 from workhours.models.files import initialize_fs
@@ -94,14 +95,17 @@ def _register_routes(config):
     config.add_static_view('static', 'workhours:static')
     config.include('deform_jinja2')
 
+    ## Security Routes
     config.add_route('register', '/register')
     config.add_route('login', '/login')
     config.add_route('logout', '/logout')
     config.add_route('user', '/user')
+
+    ## Site Routes
     config.add_route('about', '/about')
     config.add_route('main', '/')
 
-
+    ## API Routes
     config.include('pyramid_restler')
     config.enable_POST_tunneling()
 
@@ -109,6 +113,11 @@ def _register_routes(config):
     from workhours.events.views import EventsRESTfulView
     config.add_restful_routes('api/events', EventsContextFactory,
                                     view=EventsRESTfulView)
+
+    from workhours.places.models import PlacesContextFactory
+    from workhours.places.views import PlacesRESTfulView
+    config.add_restful_routes('api/places', PlacesContextFactory,
+                                    view=PlacesRESTfulView)
 
     #from workhours.forms import pyramid_csrf_demo
     config.add_route('pyramid_csrf_demo', '/formdemo')
@@ -118,7 +127,7 @@ def _register_routes(config):
     config.include('pyramid_debugtoolbar')
 
 
-from .site.templatefilters import skipautoescape, jsonify
+from .site.templatefilters import skipautoescape, jsonify, jsonify_indent
 
 def _register_common_templates(config):
     config.add_renderer('jsonp', JSONP(param_name='callback'))
@@ -127,6 +136,7 @@ def _register_common_templates(config):
     env = config.get_jinja2_environment()
     env.filters['skipautoescape'] = skipautoescape
     env.filters['jsonify'] = jsonify
+    env.filters['jsonify_indent'] = jsonify_indent
 
     config.add_view('workhours.site.views.errors.http404',
             renderer='workhours:templates/http404.jinja2',
