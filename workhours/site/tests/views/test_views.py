@@ -8,7 +8,8 @@ from workhours import _register_routes, _register_common_templates
 
 class ViewTests(unittest.TestCase):
     def setUp(self):
-        self.session = _initialize_sql_test()
+        self.meta = _initialize_sql_test()
+        self.session = self.meta.Session
         self.config = testing.setUp()
 
     def tearDown(self):

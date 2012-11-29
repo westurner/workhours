@@ -7,7 +7,8 @@ from workhours.models.sql import _initialize_sql_test
 
 class SecurityViewTests(unittest.TestCase):
     def setUp(self):
-        self.session = _initialize_sql_test()
+        self.meta = _initialize_sql_test()
+        self.session = self.meta.Session
         self.config = testing.setUp()
 
     def tearDown(self):
