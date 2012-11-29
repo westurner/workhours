@@ -3,6 +3,8 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 from pyramid.renderers import JSONP
+from pyramid.events import subscriber
+from pyramid.events import NewRequest
 
 from sqlalchemy import engine_from_config
 from workhours.models.sql import initialize_sql
@@ -50,13 +52,25 @@ def main(global_config, **settings):
     return config.make_wsgi_app()
 
 
+#@subscriber(NewRequest)
+#def db_session_subscriber(event):
+#   event.request.db_session = workhours.models.DBSession
+
+
+from pyramid.request import Request as _Request
+class Request(_Request):
+    db_session = workhours.models.DBSession
+    es_session = initialize_esdb
+
+
 def configure_app(settings, authn_policy, authz_policy, session_factory):
     config = Configurator(
         settings=settings,
         root_factory='workhours.models.RootFactory',
         authentication_policy=authn_policy,
         authorization_policy=authz_policy,
-        session_factory=session_factory
+        session_factory=session_factory,
+        request_factory=Request
     )
     config.add_translation_dirs('locale/')
 
