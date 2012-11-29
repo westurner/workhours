@@ -545,3 +545,9 @@ div.message {
     border-left: 4px solid #D0D0D0;
     padding-left: 4px;
 }
+
+/* tables */
+
+.modeltable {
+    line-height: 1;
+}
