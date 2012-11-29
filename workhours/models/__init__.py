@@ -210,7 +210,10 @@ class Event(_Base):
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-
+    @property
+    def type(self):
+        # FIXME TODO
+        return self.task.queue.type
 
 class Place(_Base):
     _pyes_version = 0
