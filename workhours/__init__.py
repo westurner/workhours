@@ -63,6 +63,12 @@ class Request(_Request):
     es_session = initialize_esdb
 
 
+def string_response_adapter(s):
+    response = Response(s)
+    response.content_type = 'text/html'
+    return response
+
+
 def configure_app(settings, authn_policy, authz_policy, session_factory):
     config = Configurator(
         settings=settings,
@@ -73,6 +79,8 @@ def configure_app(settings, authn_policy, authz_policy, session_factory):
         request_factory=Request
     )
     config.add_translation_dirs('locale/')
+
+    config.add_response_adapter(string_response_adapter, basestring)
 
     _register_common_templates(config)
     config.add_subscriber('workhours.security.csrf.csrf_validation',
