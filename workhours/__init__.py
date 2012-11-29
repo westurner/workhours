@@ -48,7 +48,6 @@ def main(global_config, **settings):
             authz_policy,
             session_factory)
 
-    config.scan()
     return config.make_wsgi_app()
 
 
@@ -85,6 +84,8 @@ def configure_app(settings, authn_policy, authz_policy, session_factory):
     _register_common_templates(config)
     config.add_subscriber('workhours.security.csrf.csrf_validation',
                           'pyramid.events.NewRequest')
+
+    config.scan()
     _register_routes(config)
     return config
 
