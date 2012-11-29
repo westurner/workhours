@@ -159,7 +159,7 @@ a:link, a:visited {color: #5979b7;}
 #menu ul
 {
 	list-style: none;
-	text-align: right;
+	/* text-align: right; */
 	padding: 10px 0px 10px 0px;
 	margin: 0;
 }
