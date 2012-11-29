@@ -16,3 +16,12 @@ def jsonify(eval_ctx, value):
         if eval_ctx.autoescape:
             result = Markup(result)
     return result
+
+@evalcontextfilter
+def jsonify_indent(eval_ctx, value):
+    result = None
+    if value:
+        result = json.dumps(value, indent=2)
+        if eval_ctx.autoescape:
+            result = Markup(result)
+    return result
