@@ -1,0 +1,632 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+Base	./workhours/models/sql/__init__.py	/^Base = declarative_base()$/;"	v
+BookMarksFormatter	./workhours/firefox/merge-bookmarks.py	/^class BookMarksFormatter:$/;"	c
+BookMarksMerge	./workhours/firefox/merge-bookmarks.py	/^class BookMarksMerge:$/;"	c
+BookMarksParser	./workhours/firefox/merge-bookmarks.py	/^class BookMarksParser(sgmllib.SGMLParser):$/;"	c
+Bookmark	./workhours/firefox/history.py	/^class Bookmark(object):$/;"	c
+CSRFSchema	./workhours/forms/__init__.py	/^class CSRFSchema(colander.Schema):$/;"	c
+CommandlineOptionParser	./workhours/climain.py	/^def CommandlineOptionParser(*args,**kwargs):$/;"	f
+DAILY	./workhours/reports/date_queries.py	/^DAILY=3$/;"	v
+DAILY	./workhours/reports/events.py	/^DAILY=3$/;"	v
+DATETIME_CONST	./workhours/webkit/__init__.py	/^DATETIME_CONST=2**8 * 3**3 * 5**2 * 79 * 853$/;"	v
+DBSession	./workhours/models/sql/__init__.py	/^DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))$/;"	v
+DEFAULT_CONTEXT	./workhours/config/elasticsearch/__init__.py	/^DEFAULT_CONTEXT = {$/;"	v
+DEFAULT_FILES	./workhours/tasks/__init__.py	/^DEFAULT_FILES = lambda x: ( x['url'], )$/;"	v
+DEFAULT_STORE_SETTINGS	./workhours/static/deniz/test/util.py	/^    DEFAULT_STORE_SETTINGS = {'reader': "rdflib",$/;"	v	class:TestEndpoint
+DataSource	./workhours/interfaces.py	/^class DataSource(object):$/;"	c
+DefaultJSONEncoder	./workhours/models/json/__init__.py	/^class DefaultJSONEncoder(json.JSONEncoder):$/;"	c
+ESSession	./workhours/models/es/__init__.py	/^class ESSession(pyes.es.ES):$/;"	c
+Event	./workhours/models/__init__.py	/^class Event(_Base):$/;"	c
+EventsContextFactory	./workhours/events/models.py	/^class EventsContextFactory(SQLAlchemyORMContext):$/;"	c
+EventsContextTests	./workhours/events/tests/test_models.py	/^class EventsContextTests(unittest.TestCase):$/;"	c
+EventsRESTfulView	./workhours/events/views.py	/^class EventsRESTfulView(RESTfulView):$/;"	c
+FindEvent	./workhours/syslog/find.py	/^class FindEvent(_FindEvent):$/;"	c
+HOURLY	./workhours/reports/date_queries.py	/^HOURLY=4$/;"	v
+HOURLY	./workhours/reports/events.py	/^HOURLY=4$/;"	v
+IDataSource	./workhours/interfaces.py	/^class IDataSource(Interface):$/;"	c
+INDEXES	./workhours/models/es/__init__.py	/^INDEXES = []$/;"	v
+Item	./workhours/mergeseq.py	/^Item = namedtuple('Item', ('date','url'))$/;"	v
+JSONEncodedDict	./workhours/models/sqla_utils.py	/^class JSONEncodedDict(TypeDecorator):$/;"	c
+LoginSchema	./workhours/security/views.py	/^class LoginSchema(formencode.Schema):$/;"	c
+MAPPED_CLASSES	./workhours/firefox/history.py	/^MAPPED_CLASSES = ['Mapper|Place|moz_places',$/;"	v
+MAPPED_CLASSES	./workhours/webkit/history.py	/^MAPPED_CLASSES = ['Mapper|URL|urls', 'Mapper|Visit|visits']$/;"	v
+MAPPINGS	./workhours/models/es/__init__.py	/^MAPPINGS = OrderedDict()$/;"	v
+MINUTELY	./workhours/reports/date_queries.py	/^MINUTELY=5$/;"	v
+MINUTELY	./workhours/reports/events.py	/^MINUTELY=5$/;"	v
+MONTHLY	./workhours/reports/date_queries.py	/^MONTHLY=2$/;"	v
+MONTHLY	./workhours/reports/events.py	/^MONTHLY=2$/;"	v
+MutationDict	./workhours/models/sqla_utils.py	/^class MutationDict(Mutable, dict):$/;"	c
+MySchema	./workhours/forms/__init__.py	/^    class MySchema(CSRFSchema):$/;"	c	function:pyramid_csrf_demo
+NODEKEY	./workhours/webkit/bookmarks.py	/^NODEKEY=u'children'$/;"	v
+NODETYPE	./workhours/webkit/bookmarks.py	/^NODETYPE=u'folder'$/;"	v
+OUTPUT_FILETYPES	./workhours/reports/writers.py	/^    OUTPUT_FILETYPES = {$/;"	v	class:ResultWriter
+OVERWRITABLE_ATTRS	./workhours/delicious/bookmarks.py	/^OVERWRITABLE_ATTRS={'comment':True}$/;"	v
+OptLongUsage	./workhours/firefox/merge-bookmarks.py	/^OptLongUsage = ['help']$/;"	v
+OptUsage	./workhours/firefox/merge-bookmarks.py	/^OptUsage = "?"$/;"	v
+OrderedDict	./workhours/future.py	/^class OrderedDict(dict):$/;"	c
+PasswordItem	./workhours/forms/colanderpw.py	/^class PasswordItem(colander.TupleSchema):$/;"	c
+PasswordSchema	./workhours/forms/colanderpw.py	/^class PasswordSchema(colander.Schema):$/;"	c
+Place	./workhours/firefox/history.py	/^class Place(object):$/;"	c
+Place	./workhours/models/__init__.py	/^class Place(_Base):$/;"	c
+PlacesContextFactory	./workhours/places/models.py	/^class PlacesContextFactory(SQLAlchemyORMContext):$/;"	c
+PlacesRESTfulView	./workhours/places/views.py	/^class PlacesRESTfulView(RESTfulView):$/;"	c
+PlainContext	./workhours/models/context.py	/^class PlainContext(object):$/;"	c
+PyTest	./setup.py	/^class PyTest(TestCommand):$/;"	c
+QUEUES	./workhours/tasks/__init__.py	/^QUEUES=OrderedDict( ($/;"	v
+RESERVED_WORDS	./workhours/reports/places.py	/^RESERVED_WORDS = dict( (x,1) for x in ($/;"	v
+RegistrationSchema	./workhours/security/views.py	/^class RegistrationSchema(formencode.Schema):$/;"	c
+Request	./workhours/__init__.py	/^class Request(_Request):$/;"	c
+ResultWriter	./workhours/reports/writers.py	/^class ResultWriter(object):$/;"	c
+ResultWriter_csv	./workhours/reports/writers.py	/^class ResultWriter_csv(ResultWriter):$/;"	c
+ResultWriter_html	./workhours/reports/writers.py	/^class ResultWriter_html(ResultWriter):$/;"	c
+ResultWriter_json	./workhours/reports/writers.py	/^class ResultWriter_json(ResultWriter):$/;"	c
+ResultWriter_txt	./workhours/reports/writers.py	/^class ResultWriter_txt(ResultWriter):$/;"	c
+RootFactory	./workhours/models/__init__.py	/^class RootFactory(object):$/;"	c
+SALT	./workhours/security/models.py	/^SALT = "88"$/;"	v
+SQLITE_FILES	./workhours/tasks/__init__.py	/^SQLITE_FILES =  lambda x: ( x['url'],$/;"	v
+SearchForm	./workhours/models/html/datatables.py	/^class SearchForm(colander.MappingSchema):$/;"	c
+SecurityViewTests	./workhours/security/tests/views/test_views.py	/^class SecurityViewTests(unittest.TestCase):$/;"	c
+Session	./workhours/models/__init__.py	/^def Session(uri):$/;"	f
+Source	./workhours/config/__init__.py	/^Source = namedtuple('Source', ('type','key','url'))$/;"	v
+TEMPLATE_NAME	./workhours/config/elasticsearch/__init__.py	/^TEMPLATE_NAME = "elasticsearch.yml.jinja2"$/;"	v
+TEMPLATE_PATH	./workhours/config/elasticsearch/__init__.py	/^TEMPLATE_PATH = os.path.abspath(os.path.dirname(__file__))$/;"	v
+Task	./workhours/models/__init__.py	/^class Task(_Base):$/;"	c
+TaskQueue	./workhours/models/__init__.py	/^class TaskQueue(_Base):$/;"	c
+TempDir	./workhours/models/files.py	/^class TempDir(object):$/;"	c
+TestColanderPassword	./workhours/forms/colanderpw.py	/^class TestColanderPassword(unittest.TestCase):$/;"	c
+TestESSession	./workhours/models/es/test_es.py	/^class TestESSession(unittest.TestCase):$/;"	c
+TestEndpoint	./workhours/static/deniz/test/util.py	/^class TestEndpoint(Thread):$/;"	c
+TestIt	./workhours/delicious/bookmarks.py	/^class TestIt(unittest.TestCase):$/;"	c
+TestWorkhoursCLI	./workhours/climain.py	/^class TestWorkhoursCLI(unittest.TestCase):$/;"	c
+Test_datatables	./workhours/events/tests/test_views.py	/^class Test_datatables(unittest.TestCase):$/;"	c
+Test_datatables	./workhours/models/html/tests/test_views.py	/^class Test_datatables(unittest.TestCase):$/;"	c
+Test_parse_find_printf	./workhours/syslog/find.py	/^class Test_parse_find_printf(unittest.TestCase):$/;"	c
+Test_sequence_import	./workhours/mergeseq.py	/^class Test_sequence_import(unittest.TestCase):$/;"	c
+Test_to_dataframes	./workhours/models/dataframes.py	/^class Test_to_dataframes(unittest.TestCase):$/;"	c
+URL	./workhours/webkit/history.py	/^class URL(object):$/;"	c
+USAGE	./workhours/firefox/merge-bookmarks.py	/^USAGE = "Usage: %s bookmarks.html ... >merged-bookmarks.html\\n"$/;"	v
+User	./workhours/security/models.py	/^class User(Base):$/;"	c
+ViewTests	./workhours/site/tests/views/test_views.py	/^class ViewTests(unittest.TestCase):$/;"	c
+Visit	./workhours/firefox/history.py	/^class Visit(object):$/;"	c
+Visit	./workhours/webkit/history.py	/^class Visit(object):$/;"	c
+YEARLY	./workhours/reports/date_queries.py	/^YEARLY=1$/;"	v
+YEARLY	./workhours/reports/events.py	/^YEARLY=1$/;"	v
+_	./workhours/site/views/__init__.py	/^_ = TranslationStringFactory('workhours')$/;"	v
+_Base	./workhours/models/__init__.py	/^class _Base(object):$/;"	c
+_FindEvent	./workhours/syslog/find.py	/^_FindEvent = namedtuple('FindEvent', ('date', 'size', 'user', 'type', 'url'))$/;"	v
+_MAPPED	./workhours/models/__init__.py	/^_MAPPED = False$/;"	v
+_Session	./workhours/firefox/history.py	/^def _Session(uri):$/;"	f
+_Session	./workhours/webkit/history.py	/^def _Session(uri):$/;"	f
+__ALL__	./workhours/models/__init__.py	/^__ALL__=['TaskQueue',$/;"	v
+__ALL__	./workhours/models/sqlite_utils.py	/^__ALL__=['commit_uncommitted_transactions']$/;"	v
+__ALL__	./workhours/webkit/__init__.py	/^__ALL__=($/;"	v
+__acl__	./workhours/models/__init__.py	/^    __acl__ = [$/;"	v	class:RootFactory
+__del__	./workhours/interfaces.py	/^    def __del__(self):$/;"	m	class:IDataSource	file:
+__delitem__	./workhours/future.py	/^    def __delitem__(self, key, dict_delitem=dict.__delitem__):$/;"	m	class:OrderedDict	file:
+__delitem__	./workhours/models/sqla_utils.py	/^    def __delitem__(self, key):$/;"	m	class:MutationDict	file:
+__eq__	./workhours/future.py	/^    def __eq__(self, other):$/;"	m	class:OrderedDict	file:
+__init__	./workhours/firefox/merge-bookmarks.py	/^	def __init__(self):$/;"	m	class:BookMarksFormatter
+__init__	./workhours/firefox/merge-bookmarks.py	/^	def __init__(self):$/;"	m	class:BookMarksMerge
+__init__	./workhours/firefox/merge-bookmarks.py	/^	def __init__(self, formatter):$/;"	m	class:BookMarksParser
+__init__	./workhours/future.py	/^    def __init__(self, *args, **kwds):$/;"	m	class:OrderedDict
+__init__	./workhours/interfaces.py	/^    def __init__(self, name, *args, **kwargs):$/;"	m	class:DataSource
+__init__	./workhours/models/__init__.py	/^    def __init__(self, queue_id, args, date=None, state=None, statemsg=None):$/;"	m	class:Task
+__init__	./workhours/models/__init__.py	/^    def __init__(self, request):$/;"	m	class:RootFactory
+__init__	./workhours/models/__init__.py	/^    def __init__(self, source=None,$/;"	m	class:Event
+__init__	./workhours/models/__init__.py	/^    def __init__(self, type, label=None, uri=None, host=None, user=None):$/;"	m	class:TaskQueue
+__init__	./workhours/models/__init__.py	/^    def __init__(self, url_, eventcount=0, meta=None):$/;"	m	class:Place
+__init__	./workhours/models/context.py	/^    def __init__(self, request,$/;"	m	class:PlainContext
+__init__	./workhours/models/files.py	/^    def __init__(self,$/;"	m	class:TempDir
+__init__	./workhours/reports/writers.py	/^    def __init__(self, _output, *args, **kwargs):$/;"	m	class:ResultWriter
+__init__	./workhours/security/models.py	/^    def __init__(self, username, passphrase, name, email):$/;"	m	class:User
+__init__	./workhours/static/deniz/test/util.py	/^    def __init__(self, host='localhost', port=9980, *args, **kwargs):$/;"	m	class:TestEndpoint
+__iter__	./workhours/future.py	/^    def __iter__(self):$/;"	m	class:OrderedDict	file:
+__marker	./workhours/future.py	/^    __marker = object()$/;"	v	class:OrderedDict
+__ne__	./workhours/future.py	/^    def __ne__(self, other):$/;"	m	class:OrderedDict	file:
+__reduce__	./workhours/future.py	/^    def __reduce__(self):$/;"	m	class:OrderedDict	file:
+__repr__	./workhours/firefox/history.py	/^    def __repr__(self):$/;"	m	class:Place	file:
+__repr__	./workhours/future.py	/^    def __repr__(self, _repr_running={}):$/;"	m	class:OrderedDict	file:
+__repr__	./workhours/webkit/history.py	/^    def __repr__(self):$/;"	m	class:URL	file:
+__reversed__	./workhours/future.py	/^    def __reversed__(self):$/;"	m	class:OrderedDict	file:
+__setitem__	./workhours/future.py	/^    def __setitem__(self, key, value, dict_setitem=dict.__setitem__):$/;"	m	class:OrderedDict	file:
+__setitem__	./workhours/models/sqla_utils.py	/^    def __setitem__(self, key, value):$/;"	m	class:MutationDict	file:
+__str__	./workhours/firefox/history.py	/^    def __str__(self):$/;"	m	class:Bookmark	file:
+__str__	./workhours/firefox/history.py	/^    def __str__(self):$/;"	m	class:Visit	file:
+__str__	./workhours/models/__init__.py	/^    def __str__(self):$/;"	m	class:Event	file:
+__str__	./workhours/models/__init__.py	/^    def __str__(self):$/;"	m	class:_Base	file:
+__str__	./workhours/syslog/find.py	/^    def __str__(iterable):$/;"	m	class:FindEvent	file:
+__str__	./workhours/webkit/history.py	/^    def __str__(self):$/;"	m	class:Visit	file:
+__tablename__	./workhours/security/models.py	/^    __tablename__ = 'users'$/;"	v	class:User
+__unicode__	./workhours/firefox/history.py	/^    def __unicode__(self):$/;"	m	class:Place	file:
+__unicode__	./workhours/models/__init__.py	/^    def __unicode__(self):$/;"	m	class:Event	file:
+__unicode__	./workhours/webkit/history.py	/^    def __unicode__(self):$/;"	m	class:URL	file:
+__update	./workhours/future.py	/^    __update = update  # let subclasses override update without breaking __init__$/;"	v	class:OrderedDict
+_addUser	./workhours/security/tests/views/test_views.py	/^    def _addUser(self, username=u'username'):$/;"	m	class:SecurityViewTests
+_csrf	./workhours/forms/__init__.py	/^    _csrf = colander.SchemaNode($/;"	v	class:CSRFSchema
+_date_added	./workhours/firefox/history.py	/^    def _date_added(self):$/;"	m	class:Bookmark
+_datetime_to_epoch	./workhours/firefox/history.py	/^def _datetime_to_epoch(dt):$/;"	f
+_do_events_report	./workhours/climain.py	/^    def _do_events_report(opts):$/;"	f	function:main
+_do_gap_report	./workhours/climain.py	/^    def _do_gap_report(opts):$/;"	f	function:main
+_entity_name	./workhours/events/views.py	/^    _entity_name = 'event'$/;"	v	class:EventsRESTfulView
+_entity_name	./workhours/places/views.py	/^    _entity_name = 'place'$/;"	v	class:PlacesRESTfulView
+_epoch_to_datetime	./workhours/firefox/history.py	/^def _epoch_to_datetime(time):$/;"	f
+_get_endpoint	./workhours/static/deniz/test/terrain.py	/^def _get_endpoint():$/;"	f
+_get_indexes_from_models	./workhours/models/es/__init__.py	/^def _get_indexes_from_models(models=workhours.models):$/;"	f
+_get_param	./workhours/models/html/datatables.py	/^def _get_param(request, param, _type=str):$/;"	f
+_get_passphrase	./workhours/security/models.py	/^    def _get_passphrase(self):$/;"	m	class:User
+_get_test_request	./workhours/events/tests/test_views.py	/^    def _get_test_request(self, *args, **kwargs):$/;"	m	class:Test_datatables
+_get_test_request	./workhours/models/html/tests/test_views.py	/^    def _get_test_request(self, *args, **kwargs):$/;"	m	class:Test_datatables
+_html_row	./workhours/reports/writers.py	/^    def _html_row(self, obj):$/;"	m	class:ResultWriter_html
+_initialize_sql_test	./workhours/models/sql/__init__.py	/^def _initialize_sql_test(url='sqlite:\/\/\/:memory:', self=None):$/;"	f
+_itemgetter	./workhours/reports/writers.py	/^    def _itemgetter(row):$/;"	f	function:itemgetter_default
+_output	./workhours/config/elasticsearch/__init__.py	/^            _output = open(_output_filename, 'w')$/;"	v
+_output	./workhours/config/elasticsearch/__init__.py	/^    _output = sys.stdout$/;"	v
+_output_filename	./workhours/config/elasticsearch/__init__.py	/^        _output_filename = sys.argv[1].strip()$/;"	v
+_parse_find_printf	./workhours/syslog/find.py	/^def _parse_find_printf(printf_iter, output, log=log):$/;"	f
+_passphrase	./workhours/security/models.py	/^    _passphrase = Column('passphrase', Unicode(60))$/;"	v	class:User
+_pyes_schema	./workhours/models/__init__.py	/^    _pyes_schema = {$/;"	v	class:Event
+_pyes_schema	./workhours/models/__init__.py	/^    _pyes_schema = {$/;"	v	class:Place
+_pyes_version	./workhours/models/__init__.py	/^    _pyes_version = 0$/;"	v	class:Event
+_pyes_version	./workhours/models/__init__.py	/^    _pyes_version = 0$/;"	v	class:Place
+_register_common_templates	./workhours/__init__.py	/^def _register_common_templates(config):$/;"	f
+_register_routes	./workhours/__init__.py	/^def _register_routes(config):$/;"	f
+_renderers	./workhours/events/views.py	/^    _renderers = OrderedDict(($/;"	v	class:EventsRESTfulView
+_renderers	./workhours/places/views.py	/^    _renderers = OrderedDict(($/;"	v	class:PlacesRESTfulView
+_set_endpoint	./workhours/static/deniz/test/terrain.py	/^def _set_endpoint(value):$/;"	f
+_set_passphrase	./workhours/security/models.py	/^    def _set_passphrase(self, passphrase):$/;"	m	class:User
+_stop_test_endpoint	./workhours/static/deniz/test/terrain.py	/^def _stop_test_endpoint():$/;"	f
+_to_event_row	./workhours/models/__init__.py	/^    def _to_event_row(self):$/;"	m	class:Event
+_to_event_row	./workhours/webkit/history.py	/^    def _to_event_row(self):$/;"	m	class:Visit
+_to_txt_row	./workhours/models/__init__.py	/^    def _to_txt_row(self):$/;"	m	class:Event
+_visit_date	./workhours/firefox/history.py	/^    def _visit_date(self):$/;"	m	class:Visit
+_visit_date	./workhours/webkit/history.py	/^    def _visit_date(self):$/;"	m	class:Visit
+_write_csv	./workhours/reports/__init__.py	/^def _write_csv(output, iterable, attrs, unicode_mangle=False):$/;"	f
+_write_html	./workhours/reports/__init__.py	/^def _write_html(output, iterable, attrs, unicode_mangle=False):$/;"	f
+about_view	./workhours/site/views/about.py	/^def about_view(request):$/;"	f
+add_gap_tuples	./workhours/reports/gaps.py	/^def add_gap_tuples(iterable,$/;"	f
+add_path	./workhours/models/files.py	/^    def add_path(self, path, source):$/;"	m	class:TempDir
+addfile	./workhours/firefox/merge-bookmarks.py	/^	def addfile(self, file):$/;"	m	class:BookMarksMerge
+allow_extra_fields	./workhours/security/views.py	/^    allow_extra_fields = True$/;"	v	class:LoginSchema
+allow_extra_fields	./workhours/security/views.py	/^    allow_extra_fields = True$/;"	v	class:RegistrationSchema
+attrs2str	./workhours/firefox/merge-bookmarks.py	/^def attrs2str(attrs, upper=string.upper):$/;"	f
+author	./setup.py	/^    author='Wes Turner',$/;"	v
+author_email	./setup.py	/^    author_email='wes@wrd.nu',$/;"	v
+build_query	./workhours/models/html/datatables.py	/^def build_query(request, model=models.Event):$/;"	f
+chained_validators	./workhours/security/views.py	/^    chained_validators = [$/;"	v	class:RegistrationSchema
+check_passphrase	./workhours/security/models.py	/^    def check_passphrase(cls, username, passphrase):$/;"	m	class:User
+check_queue_set	./workhours/tasks/__init__.py	/^def check_queue_set(task_queues):$/;"	f
+classifiers	./setup.py	/^    classifiers=[], # Get strings from http:\/\/pypi.python.org\/pypi?%3Aaction=list_classifiers$/;"	v
+clear	./workhours/future.py	/^    def clear(self):$/;"	m	class:OrderedDict
+clear_data	./workhours/static/deniz/test/terrain.py	/^def clear_data(scenario):$/;"	f
+clear_data	./workhours/static/deniz/test/util.py	/^    def clear_data(self):$/;"	m	class:TestEndpoint
+clear_mappers	./workhours/models/sqla_utils.py	/^def clear_mappers(mapped_classes):$/;"	f
+close_browser	./workhours/static/deniz/test/terrain.py	/^def close_browser(total):$/;"	f
+close_browser	./workhours/static/deniz/test/validate-steps.py	/^def close_browser(total):$/;"	f
+cmdclass	./setup.py	/^    cmdclass = {'test': PyTest},$/;"	v
+coerce	./workhours/models/sqla_utils.py	/^    def coerce(cls, key, value):$/;"	m	class:MutationDict
+commit_uncommitted_transactions	./workhours/models/sqlite_utils.py	/^def commit_uncommitted_transactions(dburi):$/;"	f
+configure_app	./workhours/__init__.py	/^def configure_app(settings, authn_policy, authz_policy, session_factory):$/;"	f
+confirm_passphrase	./workhours/security/views.py	/^    confirm_passphrase = validate_passphrase()$/;"	v	class:RegistrationSchema
+confirm_password	./workhours/forms/colanderpw.py	/^    confirm_password = colander.SchemaNode(colander.String())$/;"	v	class:PasswordItem
+context	./workhours/config/elasticsearch/__init__.py	/^        context = get_local_context()$/;"	v
+context	./workhours/events/views.py	/^    context = EventsContextFactory$/;"	v	class:EventsRESTfulView
+convert_bookmarks_html_to_json	./workhours/delicious/bookmarks.py	/^def convert_bookmarks_html_to_json(sourcefile_path, output_path):$/;"	f
+copy	./workhours/future.py	/^    def copy(self):$/;"	m	class:OrderedDict
+copy_here	./workhours/models/files.py	/^    def copy_here(self, filename, dest_path=None):$/;"	m	class:TempDir
+count	./workhours/events/models.py	/^    def count(self):$/;"	m	class:EventsContextFactory
+count	./workhours/places/models.py	/^    def count(self):$/;"	m	class:PlacesContextFactory
+create_gap_csv	./workhours/reports/gaps.py	/^def create_gap_csv(cls,$/;"	f
+create_member	./workhours/models/context.py	/^    def create_member(self, data):$/;"	m	class:PlainContext
+create_test_data	./workhours/mergeseq.py	/^def create_test_data():$/;"	f
+crypt	./workhours/security/models.py	/^crypt = cryptacular.bcrypt.BCRYPTPasswordManager()$/;"	v
+csrf_validation	./workhours/security/csrf.py	/^def csrf_validation(event):$/;"	f
+cst	./workhours/firefox/history.py	/^cst = timezone('US\/Central')$/;"	v
+cst	./workhours/webkit/history.py	/^cst = timezone('US\/Central')$/;"	v
+daily_bins	./workhours/reports/date_queries.py	/^def daily_bins(start, end):$/;"	f
+daily_bins	./workhours/reports/events.py	/^def daily_bins(start, end):$/;"	f
+datatables_view	./workhours/models/html/datatables.py	/^def datatables_view(request):$/;"	f
+datetime_types	./workhours/models/json/__init__.py	/^datetime_types = (datetime.time, datetime.date, datetime.datetime)$/;"	v
+db_session	./workhours/__init__.py	/^    db_session = workhours.models.DBSession$/;"	v	class:Request
+debug	./workhours/config/elasticsearch/__init__.py	/^    debug = False$/;"	v
+debug_conf	./workhours/climain.py	/^    def debug_conf(opts):$/;"	f	function:main
+default	./workhours/forms/__init__.py	/^        default = deferred_csrf_default,$/;"	v	class:CSRFSchema
+default	./workhours/models/json/__init__.py	/^    def default(self, obj):$/;"	m	class:DefaultJSONEncoder
+default_fields	./workhours/events/models.py	/^    default_fields = ('id','date','type','url','title')$/;"	v	class:EventsContextFactory
+default_fields	./workhours/models/context.py	/^    def default_fields(cls):$/;"	m	class:PlainContext
+default_fields	./workhours/places/models.py	/^    default_fields = ('id','url','netloc','eventcount')$/;"	v	class:PlacesContextFactory
+deferred_csrf_default	./workhours/forms/__init__.py	/^def deferred_csrf_default(node, kw):$/;"	f
+deferred_csrf_validator	./workhours/forms/__init__.py	/^def deferred_csrf_validator(node, kw):$/;"	f
+defualt_render	./workhours/events/views.py	/^    defualt_render = 100$/;"	v	class:EventsRESTfulView
+delete_member	./workhours/models/context.py	/^    def delete_member(self, key):$/;"	m	class:PlainContext
+description	./setup.py	/^    description="Aggregates events from various sources",$/;"	v
+description	./workhours/forms/__init__.py	/^            description='Enter some text'$/;"	v	class:pyramid_csrf_demo.MySchema
+determine_renderer	./workhours/events/views.py	/^    def determine_renderer(self):$/;"	m	class:EventsRESTfulView
+determine_renderer	./workhours/places/views.py	/^    def determine_renderer(self):$/;"	m	class:PlacesRESTfulView
+do_dt	./workhours/firefox/merge-bookmarks.py	/^	def do_dt(self, attrs):$/;"	m	class:BookMarksParser
+do_p	./workhours/firefox/merge-bookmarks.py	/^	def do_p(self, attrs):$/;"	m	class:BookMarksParser
+domains_by_count	./workhours/reports/places.py	/^def domains_by_count(s):$/;"	f
+dump	./workhours/models/json/__init__.py	/^dump = json_wrap_output(json.dump)$/;"	v
+dump_events_table	./workhours/reports/events.py	/^def dump_events_table(dburi, session=None, _output=sys.stdout):$/;"	f
+dumps	./workhours/models/es/test_es.py	/^dumps = lambda obj: json.dumps(obj, indent=2)$/;"	v
+dumps	./workhours/models/json/__init__.py	/^dumps = json_wrap_output(json.dumps)$/;"	v
+email	./workhours/security/models.py	/^    email = Column(Unicode(50))$/;"	v	class:User
+email	./workhours/security/views.py	/^    email = formencode.validators.Email(resolve_domain=False)$/;"	v	class:RegistrationSchema
+end_a	./workhours/firefox/merge-bookmarks.py	/^	def end_a(self):$/;"	m	class:BookMarksParser
+end_dd	./workhours/firefox/merge-bookmarks.py	/^	def end_dd(self):$/;"	m	class:BookMarksParser
+end_dl	./workhours/firefox/merge-bookmarks.py	/^	def end_dl(self):$/;"	m	class:BookMarksFormatter
+end_dl	./workhours/firefox/merge-bookmarks.py	/^	def end_dl(self):$/;"	m	class:BookMarksParser
+end_h1	./workhours/firefox/merge-bookmarks.py	/^	def end_h1(self):$/;"	m	class:BookMarksParser
+end_h3	./workhours/firefox/merge-bookmarks.py	/^	def end_h3(self):$/;"	m	class:BookMarksParser
+end_title	./workhours/firefox/merge-bookmarks.py	/^	def end_title(self):$/;"	m	class:BookMarksParser
+entity	./workhours/events/models.py	/^    entity = Event$/;"	v	class:EventsContextFactory
+entity	./workhours/places/models.py	/^    entity = Place$/;"	v	class:PlacesContextFactory
+entry_points	./setup.py	/^    entry_points={$/;"	v
+es_session	./workhours/__init__.py	/^    es_session = initialize_esdb$/;"	v	class:Request
+extend_timestamps	./workhours/mergeseq.py	/^def extend_timestamps(seq):$/;"	f
+extract_attr	./workhours/firefox/merge-bookmarks.py	/^def extract_attr(name, attrs):$/;"	f
+extract_delicious_bookmarks	./workhours/delicious/bookmarks.py	/^def extract_delicious_bookmarks(htmlstr):$/;"	f
+fields	./workhours/events/views.py	/^    def fields(self):$/;"	m	class:EventsRESTfulView
+fileglob	./workhours/syslog/authlog.py	/^        fileglob = '\/var\/log\/auth*'$/;"	v
+fileglob	./workhours/syslog/authlog.py	/^        fileglob = sys.argv[1]$/;"	v
+fileglob	./workhours/syslog/wtmp.py	/^        fileglob = '\/var\/log\/wtmp*'$/;"	v
+fileglob	./workhours/syslog/wtmp.py	/^        fileglob = sys.argv[1]$/;"	v
+files	./workhours/interfaces.py	/^    def files(self):$/;"	m	class:DataSource
+files	./workhours/interfaces.py	/^    files = Attribute('file paths')$/;"	v	class:IDataSource
+filetype	./workhours/reports/writers.py	/^    filetype = 'csv'$/;"	v	class:ResultWriter_csv
+filetype	./workhours/reports/writers.py	/^    filetype = 'html'$/;"	v	class:ResultWriter_html
+filetype	./workhours/reports/writers.py	/^    filetype = 'json'$/;"	v	class:ResultWriter_json
+filetype	./workhours/reports/writers.py	/^    filetype = 'txt'$/;"	v	class:ResultWriter_txt
+filetype	./workhours/reports/writers.py	/^    filetype = None$/;"	v	class:ResultWriter
+filterfn	./workhours/reports/places.py	/^    def filterfn(obj):$/;"	f	function:vcs_projects
+filterfn	./workhours/reports/places.py	/^    def filterfn(obj):$/;"	f	function:wikipedia_pages
+finalize_options	./setup.py	/^    def finalize_options(self):$/;"	m	class:PyTest
+footer	./workhours/reports/writers.py	/^    def footer(self):$/;"	m	class:ResultWriter_html
+footer	./workhours/reports/writers.py	/^    def footer(self, *args, **kwargs):$/;"	m	class:ResultWriter
+format_path	./workhours/models/files.py	/^    def format_path(self, path, source):$/;"	m	class:TempDir
+from_uhm	./workhours/models/__init__.py	/^    def from_uhm(cls, source, obj, **kwargs):$/;"	m	class:Event
+fromkeys	./workhours/future.py	/^    def fromkeys(cls, iterable, value=None):$/;"	m	class:OrderedDict
+get_by_username	./workhours/security/models.py	/^    def get_by_username(cls, username):$/;"	m	class:User
+get_collection	./workhours/events/models.py	/^    def get_collection(self, distinct=False, order_by=None, limit=None,$/;"	m	class:EventsContextFactory
+get_collection	./workhours/events/views.py	/^    def get_collection(self):$/;"	m	class:EventsRESTfulView
+get_collection	./workhours/models/context.py	/^    def get_collection(self, *args, **kwargs):$/;"	m	class:PlainContext
+get_collection	./workhours/places/models.py	/^    def get_collection(self, distinct=False, order_by=None, limit=None,$/;"	m	class:PlacesContextFactory
+get_collection	./workhours/places/views.py	/^    def get_collection(self):$/;"	m	class:PlacesRESTfulView
+get_indexes	./workhours/models/es/__init__.py	/^   def get_indexes(conn):$/;"	m	class:ESSession
+get_json_obj	./workhours/models/context.py	/^    def get_json_obj(self, value, fields, wrap):$/;"	m	class:PlainContext
+get_list_from_str	./workhours/reports/writers.py	/^def get_list_from_str(str_, cast_callable=int):$/;"	f
+get_local_context	./workhours/config/elasticsearch/__init__.py	/^def get_local_context():$/;"	f
+get_log	./workhours/models/files.py	/^    def get_log(self):$/;"	m	class:TempDir
+get_member	./workhours/models/context.py	/^    def get_member(self, key):$/;"	m	class:PlainContext
+get_member_key_as_string	./workhours/models/context.py	/^    def get_member_key_as_string(self, member):$/;"	m	class:PlainContext
+get_or_create	./workhours/models/__init__.py	/^    def get_or_create(cls, url, session=None, *args, **kwargs):$/;"	m	class:Place
+get_value	./workhours/climain.py	/^    def get_value(_config, attr, configpath, opts):$/;"	f	function:main
+get_writer	./workhours/reports/writers.py	/^    def get_writer(cls, _output,$/;"	m	class:ResultWriter
+getattrs	./workhours/models/__init__.py	/^    def getattrs(self, *attrs):$/;"	m	class:_Base
+groupby	./workhours/reports/date_queries.py	/^def groupby():$/;"	f
+groupby	./workhours/reports/events.py	/^def groupby():$/;"	f
+grouper	./workhours/reports/date_queries.py	/^    def grouper( item ):$/;"	f	function:groupby
+grouper	./workhours/reports/events.py	/^    def grouper( item ):$/;"	f	function:groupby
+handle_comment	./workhours/firefox/merge-bookmarks.py	/^	def handle_comment(self, data):$/;"	m	class:BookMarksParser
+handle_data	./workhours/firefox/merge-bookmarks.py	/^	def handle_data(self, data):$/;"	m	class:BookMarksParser
+handle_entityref	./workhours/firefox/merge-bookmarks.py	/^	def handle_entityref(self, name):	# Just pass these through unchanged$/;"	m	class:BookMarksParser
+hash_passphrase	./workhours/security/models.py	/^def hash_passphrase(passphrase):$/;"	f
+have_data	./workhours/static/deniz/test/terrain.py	/^def have_data(step):$/;"	f
+header	./workhours/reports/writers.py	/^    def header(self, *args, **kwargs):$/;"	m	class:ResultWriter
+header	./workhours/reports/writers.py	/^    def header(self, *args, **kwargs):$/;"	m	class:ResultWriter_csv
+header	./workhours/reports/writers.py	/^    def header(self, *args, **kwargs):$/;"	m	class:ResultWriter_html
+histogram	./workhours/reports/date_queries.py	/^def histogram(cls,$/;"	f
+histogram	./workhours/reports/events.py	/^def histogram(cls,$/;"	f
+hourly_bins	./workhours/reports/date_queries.py	/^def hourly_bins(start, end):$/;"	f
+hourly_bins	./workhours/reports/events.py	/^def hourly_bins(start, end):$/;"	f
+http403	./workhours/site/views/errors.py	/^def http403(request):$/;"	f
+http404	./workhours/site/views/errors.py	/^def http404(request):$/;"	f
+iDisplayLength	./workhours/models/html/datatables.py	/^    iDisplayLength = colander.SchemaNode(colander.Integer())$/;"	v	class:SearchForm
+iDisplayStart	./workhours/models/html/datatables.py	/^    iDisplayStart = colander.SchemaNode(colander.Integer())$/;"	v	class:SearchForm
+i_can_press	./workhours/static/deniz/test/terrain.py	/^def i_can_press(step, name):$/;"	f
+i_could_query_graph	./workhours/static/deniz/test/terrain.py	/^def i_could_query_graph(step, value):$/;"	f
+impl	./workhours/models/sqla_utils.py	/^    impl = VARCHAR$/;"	v	class:JSONEncodedDict
+include_package_data	./setup.py	/^    include_package_data=True,$/;"	v
+initialize_esdb	./workhours/models/es/__init__.py	/^def initialize_esdb(url, *args, **kwargs):$/;"	f
+initialize_fs	./workhours/models/files.py	/^def initialize_fs(*args, **kwargs):$/;"	f
+initialize_sql	./workhours/models/sql/__init__.py	/^def initialize_sql(engine):$/;"	f
+initialize_sql_db	./workhours/models/sql/__init__.py	/^def initialize_sql_db(meta):$/;"	f
+install_requires	./setup.py	/^    install_requires=[$/;"	v
+itemgetter_default	./workhours/reports/writers.py	/^def itemgetter_default(args, default=None):$/;"	f
+items	./workhours/future.py	/^    def items(self):$/;"	m	class:OrderedDict
+iteritems	./workhours/future.py	/^    def iteritems(self):$/;"	m	class:OrderedDict
+iterkeys	./workhours/future.py	/^    def iterkeys(self):$/;"	m	class:OrderedDict
+itervalues	./workhours/future.py	/^    def itervalues(self):$/;"	m	class:OrderedDict
+json	./workhours/delicious/bookmarks.py	/^    json = simplejson$/;"	v
+json	./workhours/models/sqla_utils.py	/^    json = simplejson$/;"	v
+json	./workhours/webkit/bookmarks.py	/^    json = simplejson$/;"	v
+json_encoder	./workhours/events/models.py	/^    json_encoder = DefaultJSONEncoder$/;"	v	class:EventsContextFactory
+json_encoder	./workhours/models/context.py	/^    json_encoder = json.DefaultJSONEncoder$/;"	v	class:PlainContext
+json_encoder	./workhours/places/models.py	/^    json_encoder = DefaultJSONEncoder$/;"	v	class:PlacesContextFactory
+json_wrap_input	./workhours/models/json/__init__.py	/^def json_wrap_input(f):$/;"	f
+json_wrap_output	./workhours/models/json/__init__.py	/^def json_wrap_output(f):$/;"	f
+jsonify	./workhours/site/templatefilters.py	/^def jsonify(eval_ctx, value):$/;"	f
+keys	./workhours/future.py	/^    def keys(self):$/;"	m	class:OrderedDict
+keywords	./setup.py	/^    keywords='',$/;"	v
+license	./setup.py	/^    license='New BSD',$/;"	v
+load	./workhours/models/json/__init__.py	/^load = json_wrap_input(json.load)$/;"	v
+load_data	./workhours/static/deniz/test/util.py	/^    def load_data(self, filename):$/;"	m	class:TestEndpoint
+load_json_file	./workhours/webkit/bookmarks.py	/^def load_json_file(file_):$/;"	f
+loads	./workhours/models/json/__init__.py	/^loads = json_wrap_input(json.loads)$/;"	v
+log	./workhours/climain.py	/^log = logging.getLogger('workhours.cli') #'workhours')$/;"	v
+log	./workhours/delicious/bookmarks.py	/^log = logging.getLogger()$/;"	v
+log	./workhours/events/models.py	/^log = logging.getLogger('.events.models')$/;"	v
+log	./workhours/events/views.py	/^log = logging.getLogger('.events.views')$/;"	v
+log	./workhours/firefox/history.py	/^log = logging.getLogger('firefox.history')$/;"	v
+log	./workhours/models/__init__.py	/^log = logging.getLogger('workhours.models')$/;"	v
+log	./workhours/models/es/__init__.py	/^log = logging.getLogger('workhours.models.es')$/;"	v
+log	./workhours/models/es/test_es.py	/^log = logging.getLogger('workhours.models.es.tests.TestESSession')$/;"	v
+log	./workhours/models/sql/__init__.py	/^log = logging.getLogger('workhours.models.sql')$/;"	v
+log	./workhours/places/models.py	/^log = logging.getLogger('.places.models')$/;"	v
+log	./workhours/places/views.py	/^log = logging.getLogger('.places.views')$/;"	v
+log	./workhours/reports/events.py	/^log = logging.getLogger('workhours.reports.events')$/;"	v
+log	./workhours/syslog/find.py	/^log = logging.getLogger('parse_find_printf') # TODO$/;"	v
+log	./workhours/syslog/sessionlog.py	/^log = logging.getLogger('parse_sessionlog')$/;"	v
+log	./workhours/tasks/__init__.py	/^log = logging.getLogger('workhours.tasks')$/;"	v
+log	./workhours/webkit/bookmarks.py	/^log = logging.getLogger('webkit.bookmarks')$/;"	v
+log	./workhours/webkit/history.py	/^log = logging.getLogger('webkit.history')$/;"	v
+login_form_view	./workhours/security/views.py	/^def login_form_view(request):$/;"	f
+login_view	./workhours/security/views.py	/^def login_view(request):$/;"	f
+logout_view	./workhours/security/views.py	/^def logout_view(request):$/;"	f
+long_description	./setup.py	/^    long_description='\\n'.join( ($/;"	v
+longdate_to_datetime	./workhours/webkit/__init__.py	/^def longdate_to_datetime(t):$/;"	f
+main	./workhours/__init__.py	/^def main(global_config, **settings):$/;"	f
+main	./workhours/climain.py	/^def main(*args):$/;"	f
+main	./workhours/delicious/bookmarks.py	/^def main():$/;"	f
+main	./workhours/firefox/bookmarks.py	/^def main():$/;"	f
+main	./workhours/firefox/merge-bookmarks.py	/^def main():$/;"	f
+main	./workhours/mergeseq.py	/^def main():$/;"	f
+main	./workhours/models/dataframes.py	/^def main():$/;"	f
+main	./workhours/serve.py	/^def main(*args, **kwargs):$/;"	f
+main	./workhours/syslog/find.py	/^def main():$/;"	f
+main	./workhours/webkit/bookmarks.py	/^def main():$/;"	f
+main_view	./workhours/site/views/main.py	/^def main_view(request):$/;"	f
+map_bookmark_node	./workhours/delicious/bookmarks.py	/^def map_bookmark_node(link_node, **kwargs):$/;"	f
+mapfn	./workhours/reports/places.py	/^    def mapfn(obj):$/;"	f	function:vcs_projects
+mapfn	./workhours/reports/places.py	/^    def mapfn(obj):$/;"	f	function:wikipedia_pages
+member_to_dict	./workhours/models/context.py	/^    def member_to_dict(cls, member, fields=None):$/;"	m	class:PlainContext
+merge	./workhours/firefox/merge-bookmarks.py	/^	def merge(self):$/;"	m	class:BookMarksMerge
+merge_files	./workhours/firefox/merge-bookmarks.py	/^	def merge_files(self, l1, l2, list_type = type([])):$/;"	m	class:BookMarksMerge
+minutely_bins	./workhours/reports/date_queries.py	/^def minutely_bins(start, end, minutes):$/;"	f
+minutely_bins	./workhours/reports/events.py	/^def minutely_bins(start, end, minutes):$/;"	f
+mkdir	./workhours/models/files.py	/^    def mkdir(self, path):$/;"	m	class:TempDir
+name	./workhours/security/models.py	/^    name = Column(Unicode(50))$/;"	v	class:User
+name	./workhours/security/views.py	/^    name = formencode.validators.String(not_empty=True)$/;"	v	class:RegistrationSchema
+named_tuple_types	./workhours/models/json/__init__.py	/^named_tuple_types = (namedtuple, sqla_namedtuple, )$/;"	v
+new_a	./workhours/firefox/merge-bookmarks.py	/^	def new_a(self, attrs, data):$/;"	m	class:BookMarksFormatter
+new_comment	./workhours/firefox/merge-bookmarks.py	/^	def new_comment(self, data):$/;"	m	class:BookMarksFormatter
+new_dd	./workhours/firefox/merge-bookmarks.py	/^	def new_dd(self, attrs, data):$/;"	m	class:BookMarksFormatter
+new_dt	./workhours/firefox/merge-bookmarks.py	/^	def new_dt(self, attrs):$/;"	m	class:BookMarksFormatter
+new_h1	./workhours/firefox/merge-bookmarks.py	/^	def new_h1(self, attrs, data):$/;"	m	class:BookMarksFormatter
+new_h3	./workhours/firefox/merge-bookmarks.py	/^	def new_h3(self, attrs, data):$/;"	m	class:BookMarksFormatter
+new_title	./workhours/firefox/merge-bookmarks.py	/^	def new_title(self, attrs, data):$/;"	m	class:BookMarksFormatter
+null	./workhours/models/context.py	/^def null(*args, **kwargs):$/;"	f
+open_db	./workhours/models/__init__.py	/^def open_db(dburi,$/;"	f
+open_deniz	./workhours/static/deniz/test/terrain.py	/^def open_deniz(step):$/;"	f
+package_data	./setup.py	/^    package_data={$/;"	v
+packages	./setup.py	/^    packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),$/;"	v
+parse	./workhours/interfaces.py	/^    def parse(self):$/;"	m	class:DataSource
+parse	./workhours/interfaces.py	/^    def parse(self):$/;"	m	class:IDataSource
+parse_authlog	./workhours/syslog/authlog.py	/^def parse_authlog(filename, year=None):$/;"	f
+parse_authlog_glob	./workhours/syslog/authlog.py	/^def parse_authlog_glob(glob_pattern):$/;"	f
+parse_authlog_yearless_date	./workhours/syslog/authlog.py	/^def parse_authlog_yearless_date(datestr, year):$/;"	f
+parse_delicious_bookmarks	./workhours/delicious/bookmarks.py	/^def parse_delicious_bookmarks(uri=None):$/;"	f
+parse_find_printf	./workhours/syslog/find.py	/^def parse_find_printf(uri, *args, **kwargs):$/;"	f
+parse_firefox_bookmarks	./workhours/firefox/history.py	/^def parse_firefox_bookmarks(uri=None):$/;"	f
+parse_firefox_history	./workhours/firefox/history.py	/^def parse_firefox_history(uri=None):$/;"	f
+parse_from	./workhours/models/__init__.py	/^    def parse_from(self, url):$/;"	m	class:Place
+parse_sessionlog	./workhours/syslog/sessionlog.py	/^def parse_sessionlog(uri=None, session_prefix='', **kwargs):$/;"	f
+parse_sessionlog_line	./workhours/syslog/sessionlog.py	/^def parse_sessionlog_line(line, session_prefix=''):$/;"	f
+parse_trac_date	./workhours/trac/timeline.py	/^def parse_trac_date(date, time):$/;"	f
+parse_trac_timeline	./workhours/trac/timeline.py	/^def parse_trac_timeline(timeline_file, users):$/;"	f
+parse_webkit_bookmarks	./workhours/webkit/bookmarks.py	/^def parse_webkit_bookmarks(uri=None):$/;"	f
+parse_webkit_history	./workhours/webkit/history.py	/^def parse_webkit_history(uri=None):$/;"	f
+parse_wtmp	./workhours/syslog/wtmp.py	/^def parse_wtmp(filename):$/;"	f
+parse_wtmp_glob	./workhours/syslog/wtmp.py	/^def parse_wtmp_glob(glob_pattern):$/;"	f
+passphrase	./workhours/security/models.py	/^    passphrase = property(_get_passphrase, _set_passphrase)$/;"	v	class:User
+passphrase	./workhours/security/models.py	/^    passphrase = synonym('_passphrase', descriptor=passphrase)$/;"	v	class:User
+passphrase	./workhours/security/views.py	/^    passphrase = validate_passphrase()$/;"	v	class:LoginSchema
+passphrase	./workhours/security/views.py	/^    passphrase = validate_passphrase()$/;"	v	class:RegistrationSchema
+password	./workhours/forms/colanderpw.py	/^    password = PasswordItem(validator=validate_password)$/;"	v	class:PasswordSchema
+password	./workhours/forms/colanderpw.py	/^    password = colander.SchemaNode(colander.String())$/;"	v	class:PasswordItem
+patch_tests	./workhours/events/tests/test_models.py	/^def patch_tests(**kwargs):$/;"	f
+path_	./workhours/webkit/history.py	/^    path_=sys.argv[1]$/;"	v
+pop	./workhours/firefox/merge-bookmarks.py	/^	def pop(self):$/;"	m	class:BookMarksFormatter
+pop	./workhours/future.py	/^    def pop(self, key, default=__marker):$/;"	m	class:OrderedDict
+popitem	./workhours/future.py	/^    def popitem(self, last=True):$/;"	m	class:OrderedDict
+populate_events_table	./workhours/tasks/__init__.py	/^def populate_events_table(eventsdb_uri, task_queues, fs):$/;"	f
+print_bookmarks	./workhours/webkit/bookmarks.py	/^def print_bookmarks(file_, outp, flatten, dated):$/;"	f
+process_bind_param	./workhours/models/sqla_utils.py	/^    def process_bind_param(self, value, dialect):$/;"	m	class:JSONEncodedDict
+process_result_value	./workhours/models/sqla_utils.py	/^    def process_result_value(self, value, dialect):$/;"	m	class:JSONEncodedDict
+push	./workhours/firefox/merge-bookmarks.py	/^	def push(self, new):$/;"	m	class:BookMarksFormatter
+put	./workhours/models/es/__init__.py	/^   def put(conn, obj, index='test-index', type='test-type'):$/;"	m	class:ESSession
+pyramid_csrf_demo	./workhours/forms/__init__.py	/^def pyramid_csrf_demo(request):$/;"	f
+read_config_file	./workhours/climain.py	/^    def read_config_file(config_file, opts=None, log=logging, **kwargs):$/;"	f	function:main
+read_datatables_params	./workhours/models/html/datatables.py	/^def read_datatables_params(request):$/;"	f
+read_queues_from_config	./workhours/config/__init__.py	/^def read_queues_from_config(_config, queues=QUEUES):$/;"	f
+refresh_indexes	./workhours/models/es/__init__.py	/^   def refresh_indexes(conn, indexes=INDEXES):$/;"	m	class:ESSession
+rel_path	./setup.py	/^def rel_path(path_):$/;"	f
+remove_attr	./workhours/firefox/merge-bookmarks.py	/^def remove_attr(name, attrs):$/;"	f
+render	./workhours/config/elasticsearch/__init__.py	/^def render(template_name, context, template_path=TEMPLATE_PATH):$/;"	f
+render_form	./workhours/forms/__init__.py	/^def render_form(request, form, appstruct=colander.null, submitted='submit',$/;"	f
+render_html	./workhours/events/views.py	/^    def render_html(self, value):$/;"	m	class:EventsRESTfulView
+render_html	./workhours/places/views.py	/^    def render_html(self, value):$/;"	m	class:PlacesRESTfulView
+render_json	./workhours/events/views.py	/^    def render_json(self, value):$/;"	m	class:EventsRESTfulView
+render_json	./workhours/places/views.py	/^    def render_json(self, value):$/;"	m	class:PlacesRESTfulView
+render_to_404	./workhours/events/views.py	/^    def render_to_404(self, value):$/;"	m	class:EventsRESTfulView
+render_to_404	./workhours/places/views.py	/^    def render_to_404(self, value):$/;"	m	class:PlacesRESTfulView
+render_to_response	./workhours/events/views.py	/^    def render_to_response(self, value, fields=None):$/;"	m	class:EventsRESTfulView
+render_to_response	./workhours/places/views.py	/^    def render_to_response(self, value, fields=None):$/;"	m	class:PlacesRESTfulView
+render_xml	./workhours/events/views.py	/^    def render_xml(self, value):$/;"	m	class:EventsRESTfulView
+render_xml	./workhours/places/views.py	/^    def render_xml(self, value):$/;"	m	class:PlacesRESTfulView
+renderer	./workhours/security/views.py	/^             renderer='security\/templates\/user.jinja2')$/;"	v
+renderer	./workhours/security/views.py	/^             renderer='security\/templates\/user_add.jinja2')$/;"	v
+renderer	./workhours/security/views.py	/^        renderer='workhours:security\/templates\/login_view.jinja2')$/;"	v
+renderer	./workhours/site/views/about.py	/^             renderer='templates\/about.jinja2')$/;"	v
+run	./workhours/static/deniz/test/util.py	/^    def run(self):$/;"	m	class:TestEndpoint
+run_tests	./setup.py	/^    def run_tests(self):$/;"	m	class:PyTest
+sSearch	./workhours/models/html/datatables.py	/^    sSearch = colander.SchemaNode(colander.String()) #$/;"	v	class:SearchForm
+salt_passphrase	./workhours/security/models.py	/^def salt_passphrase(passphrase,salt=SALT):$/;"	f
+save_bgn	./workhours/firefox/merge-bookmarks.py	/^	def save_bgn(self, attrs):$/;"	m	class:BookMarksParser
+save_end	./workhours/firefox/merge-bookmarks.py	/^	def save_end(self, join=string.join, split=string.split):$/;"	m	class:BookMarksParser
+select_columns	./workhours/models/__init__.py	/^    def select_columns(cls, attrs, order_by='date', session=None):$/;"	m	class:_Base
+setUp	./workhours/events/tests/test_models.py	/^    def setUp(self):$/;"	m	class:EventsContextTests
+setUp	./workhours/events/tests/test_views.py	/^    def setUp(self):$/;"	m	class:Test_datatables
+setUp	./workhours/models/html/tests/test_views.py	/^    def setUp(self):$/;"	m	class:Test_datatables
+setUp	./workhours/security/tests/views/test_views.py	/^    def setUp(self):$/;"	m	class:SecurityViewTests
+setUp	./workhours/site/tests/views/test_views.py	/^    def setUp(self):$/;"	m	class:ViewTests
+set_endpoint	./workhours/static/deniz/test/terrain.py	/^def set_endpoint(step, value):$/;"	f
+set_output	./workhours/reports/writers.py	/^    def set_output(self, _output):$/;"	m	class:ResultWriter
+setdefault	./workhours/future.py	/^    def setdefault(self, key, default=None):$/;"	m	class:OrderedDict
+setup	./workhours/interfaces.py	/^    def setup(self):$/;"	m	class:DataSource
+setup	./workhours/interfaces.py	/^    def setup(self):$/;"	m	class:IDataSource
+setup	./workhours/pshell.py	/^def setup(*args, **kwargs):$/;"	f
+setup	./workhours/reports/writers.py	/^    def setup(self, *args, **kwargs):$/;"	m	class:ResultWriter
+setup	./workhours/reports/writers.py	/^    def setup(self, *args, **kwargs):$/;"	m	class:ResultWriter_csv
+setup_browser	./workhours/static/deniz/test/terrain.py	/^def setup_browser():$/;"	f
+setup_couchdb_river	./workhours/models/es/__init__.py	/^def setup_couchdb_river(conn, kwargs):$/;"	f
+setup_indexes	./workhours/models/es/__init__.py	/^   def setup_indexes(conn, indexes=INDEXES, mappings=MAPPINGS):$/;"	m	class:ESSession
+setup_mappers	./workhours/firefox/history.py	/^def setup_mappers(engine):$/;"	f
+setup_mappers	./workhours/models/__init__.py	/^def setup_mappers(engine):$/;"	f
+setup_mappers	./workhours/webkit/history.py	/^def setup_mappers(engine):$/;"	f
+setup_slow_browser	./workhours/static/deniz/test/validate-steps.py	/^def setup_slow_browser():$/;"	f
+skipautoescape	./workhours/site/templatefilters.py	/^def skipautoescape(eval_ctx, value):$/;"	f
+sort_by	./workhours/reports/writers.py	/^def sort_by(sortstr, iterable, reverse=False):$/;"	f
+sort_file	./workhours/firefox/merge-bookmarks.py	/^	def sort_file(self, l, list_type = type([])):$/;"	m	class:BookMarksMerge
+start_a	./workhours/firefox/merge-bookmarks.py	/^	def start_a(self, attrs):$/;"	m	class:BookMarksParser
+start_dd	./workhours/firefox/merge-bookmarks.py	/^	def start_dd(self, attrs):$/;"	m	class:BookMarksParser
+start_dl	./workhours/firefox/merge-bookmarks.py	/^	def start_dl(self, attrs):$/;"	m	class:BookMarksFormatter
+start_dl	./workhours/firefox/merge-bookmarks.py	/^	def start_dl(self, attrs):$/;"	m	class:BookMarksParser
+start_h1	./workhours/firefox/merge-bookmarks.py	/^	def start_h1(self, attrs):$/;"	m	class:BookMarksParser
+start_h3	./workhours/firefox/merge-bookmarks.py	/^	def start_h3(self, attrs):$/;"	m	class:BookMarksParser
+start_title	./workhours/firefox/merge-bookmarks.py	/^	def start_title(self, attrs):$/;"	m	class:BookMarksParser
+stop	./workhours/static/deniz/test/util.py	/^    def stop(self):$/;"	m	class:TestEndpoint
+stop_endpoint	./workhours/static/deniz/test/terrain.py	/^def stop_endpoint(total):$/;"	f
+syserror	./workhours/firefox/merge-bookmarks.py	/^def syserror(type, name, reason):$/;"	f
+tearDown	./workhours/events/tests/test_models.py	/^    def tearDown(self):$/;"	m	class:EventsContextTests
+tearDown	./workhours/events/tests/test_views.py	/^    def tearDown(self):$/;"	m	class:Test_datatables
+tearDown	./workhours/models/html/tests/test_views.py	/^    def tearDown(self):$/;"	m	class:Test_datatables
+tearDown	./workhours/security/tests/views/test_views.py	/^    def tearDown(self):$/;"	m	class:SecurityViewTests
+tearDown	./workhours/site/tests/views/test_views.py	/^    def tearDown(self):$/;"	m	class:ViewTests
+test_about_view	./workhours/events/tests/test_views.py	/^    def test_about_view(self):$/;"	m	class:Test_datatables
+test_about_view	./workhours/models/html/tests/test_views.py	/^    def test_about_view(self):$/;"	m	class:Test_datatables
+test_about_view	./workhours/site/tests/views/test_views.py	/^    def test_about_view(self):$/;"	m	class:ViewTests
+test_context	./workhours/events/tests/test_models.py	/^    def test_context(self):$/;"	m	class:EventsContextTests
+test_create_member	./workhours/events/tests/test_models.py	/^    def test_create_member(self):$/;"	m	class:EventsContextTests
+test_create_test_data	./workhours/mergeseq.py	/^    def test_create_test_data(self):$/;"	m	class:Test_sequence_import
+test_data_source	./workhours/interfaces.py	/^def test_data_source():$/;"	f
+test_default_fields	./workhours/events/tests/test_models.py	/^    def test_default_fields(self):$/;"	m	class:EventsContextTests
+test_delete_member	./workhours/events/tests/test_models.py	/^    def test_delete_member(self):$/;"	m	class:EventsContextTests
+test_es_initialize_db	./workhours/models/es/test_es.py	/^    def test_es_initialize_db(self):$/;"	m	class:TestESSession
+test_es_session	./workhours/models/es/test_es.py	/^    def test_es_session(self):$/;"	m	class:TestESSession
+test_es_url	./workhours/models/es/test_es.py	/^test_es_url = 'http:\/\/localhost:9200'$/;"	v
+test_extend_timestamps	./workhours/mergeseq.py	/^    def test_extend_timestamps(self):$/;"	m	class:Test_sequence_import
+test_get_collection	./workhours/events/tests/test_models.py	/^    def test_get_collection(self):$/;"	m	class:EventsContextTests
+test_get_member	./workhours/events/tests/test_models.py	/^    def test_get_member(self):$/;"	m	class:EventsContextTests
+test_get_member_id_as_string	./workhours/events/tests/test_models.py	/^    def test_get_member_id_as_string(self):$/;"	m	class:EventsContextTests
+test_http404_view	./workhours/site/tests/views/test_views.py	/^    def test_http404_view(self):$/;"	m	class:ViewTests
+test_it	./workhours/delicious/bookmarks.py	/^    def test_it(self):$/;"	m	class:TestIt
+test_login_view_submit_fail	./workhours/security/tests/views/test_views.py	/^    def test_login_view_submit_fail(self):$/;"	m	class:SecurityViewTests
+test_login_view_submit_success	./workhours/security/tests/views/test_views.py	/^    def test_login_view_submit_success(self):$/;"	m	class:SecurityViewTests
+test_logout_view	./workhours/security/tests/views/test_views.py	/^    def test_logout_view(self):$/;"	m	class:SecurityViewTests
+test_main_view	./workhours/site/tests/views/test_views.py	/^    def test_main_view(self):$/;"	m	class:ViewTests
+test_member_to_dict	./workhours/events/tests/test_models.py	/^    def test_member_to_dict(self):$/;"	m	class:EventsContextTests
+test_output_expected	./workhours/delicious/bookmarks.py	/^test_output_expected=[$/;"	v
+test_parse_find_printf	./workhours/syslog/find.py	/^    def test_parse_find_printf(self):$/;"	m	class:Test_parse_find_printf
+test_password_fail	./workhours/forms/colanderpw.py	/^    def test_password_fail(self):$/;"	m	class:TestColanderPassword
+test_password_null_fail	./workhours/forms/colanderpw.py	/^    def test_password_null_fail(self):$/;"	m	class:TestColanderPassword
+test_password_success	./workhours/forms/colanderpw.py	/^    def test_password_success(self):$/;"	m	class:TestColanderPassword
+test_registration_nosubmit	./workhours/security/tests/views/test_views.py	/^    def test_registration_nosubmit(self):$/;"	m	class:SecurityViewTests
+test_registration_submit_empty	./workhours/security/tests/views/test_views.py	/^    def test_registration_submit_empty(self):$/;"	m	class:SecurityViewTests
+test_registration_submit_schema_succeed	./workhours/security/tests/views/test_views.py	/^    def test_registration_submit_schema_succeed(self):$/;"	m	class:SecurityViewTests
+test_to_dataframes	./workhours/models/dataframes.py	/^    def test_to_dataframes(self):$/;"	m	class:Test_to_dataframes
+test_to_json	./workhours/events/tests/test_models.py	/^    def test_to_json(self):$/;"	m	class:EventsContextTests
+test_toolbar_view	./workhours/site/tests/views/test_views.py	/^    def test_toolbar_view(self):$/;"	m	class:ViewTests
+test_update_member	./workhours/events/tests/test_models.py	/^    def test_update_member(self):$/;"	m	class:EventsContextTests
+test_user_view	./workhours/security/tests/views/test_views.py	/^    def test_user_view(self):$/;"	m	class:SecurityViewTests
+test_workhours_main	./workhours/climain.py	/^    def test_workhours_main(self):$/;"	m	class:TestWorkhoursCLI
+test_wrap_json_obj	./workhours/events/tests/test_models.py	/^    def test_wrap_json_obj(self):$/;"	m	class:EventsContextTests
+tests_require	./setup.py	/^    tests_require=['pytest','pytest-cov'],$/;"	v
+text	./workhours/forms/__init__.py	/^        text = colander.SchemaNode($/;"	v	class:pyramid_csrf_demo.MySchema
+the_page_validates_correctly	./workhours/static/deniz/test/validate-steps.py	/^def the_page_validates_correctly(step):$/;"	f
+the_page_validates_correctly	./workhours/static/deniz/test/validate-steps.py	/^def the_page_validates_correctly(step, file_path):$/;"	f
+the_store_graphs_are_loaded	./workhours/static/deniz/test/terrain.py	/^def the_store_graphs_are_loaded(step):$/;"	f
+the_store_s_concepts_are_loaded	./workhours/static/deniz/test/terrain.py	/^def the_store_s_concepts_are_loaded(step):$/;"	f
+then_i_see_spo_results	./workhours/static/deniz/test/execute-steps.py	/^def then_i_see_spo_results(step):$/;"	f
+title	./workhours/firefox/history.py	/^    def title(self):$/;"	m	class:Visit
+to_dataframes	./workhours/models/dataframes.py	/^def to_dataframes(dburi, *args, **kwargs):$/;"	f
+to_datetime	./workhours/syslog/wtmp.py	/^to_datetime = lambda x: datetime.datetime.fromtimestamp(x)$/;"	v
+to_event_row	./workhours/firefox/history.py	/^    def to_event_row(self):$/;"	m	class:Bookmark
+to_event_row	./workhours/firefox/history.py	/^    def to_event_row(self):$/;"	m	class:Visit
+to_json	./workhours/models/context.py	/^    def to_json(self, value, fields=None, wrap=True):$/;"	m	class:PlainContext
+toolbar_view	./workhours/site/views/blocks.py	/^def toolbar_view(request):$/;"	f
+type	./workhours/models/__init__.py	/^    def type(self):$/;"	m	class:Event
+types	./workhours/interfaces.py	/^    types = Attribute('types emitted')$/;"	v	class:IDataSource
+unknown_charref	./workhours/firefox/merge-bookmarks.py	/^	def unknown_charref(self, ref):$/;"	m	class:BookMarksParser
+unknown_endtag	./workhours/firefox/merge-bookmarks.py	/^	def unknown_endtag(self, tag, attrs):$/;"	m	class:BookMarksParser
+unknown_entityref	./workhours/firefox/merge-bookmarks.py	/^	def unknown_entityref(self, ref):$/;"	m	class:BookMarksParser
+unknown_starttag	./workhours/firefox/merge-bookmarks.py	/^	def unknown_starttag(self, tag, attrs):$/;"	m	class:BookMarksParser
+update	./workhours/future.py	/^    def update(*args, **kwds):$/;"	m	class:OrderedDict
+update_member	./workhours/models/context.py	/^    def update_member(self, key, data):$/;"	m	class:PlainContext
+url	./setup.py	/^    url='',$/;"	v
+url	./workhours/firefox/history.py	/^    def url(self):$/;"	m	class:Visit
+usage	./workhours/firefox/merge-bookmarks.py	/^def usage(reason=''):$/;"	f
+user_add	./workhours/security/views.py	/^def user_add(request):$/;"	f
+user_id	./workhours/security/models.py	/^    user_id = Column(Integer, primary_key=True)$/;"	v	class:User
+user_view	./workhours/security/views.py	/^def user_view(request):$/;"	f
+username	./workhours/security/models.py	/^    username = Column(Unicode(20), unique=True)$/;"	v	class:User
+username	./workhours/security/views.py	/^    username = validate_username()$/;"	v	class:LoginSchema
+username	./workhours/security/views.py	/^    username = validate_username()$/;"	v	class:RegistrationSchema
+validate_csrf	./workhours/forms/__init__.py	/^    def validate_csrf(node, value):$/;"	f	function:deferred_csrf_validator
+validate_passphrase	./workhours/security/views.py	/^def validate_passphrase(*args, **kwargs):$/;"	f
+validate_password	./workhours/forms/colanderpw.py	/^def validate_password(node, value):$/;"	f
+validate_username	./workhours/security/views.py	/^def validate_username(*args, **kwargs):$/;"	f
+validator	./workhours/forms/__init__.py	/^            validator=colander.Length(max=100),$/;"	v	class:pyramid_csrf_demo.MySchema
+validator	./workhours/forms/__init__.py	/^        validator = deferred_csrf_validator,$/;"	v	class:CSRFSchema
+values	./workhours/future.py	/^    def values(self):$/;"	m	class:OrderedDict
+vcs_projects	./workhours/reports/places.py	/^def vcs_projects(s):$/;"	f
+vcs_projects	./workhours/reports/views.py	/^def vcs_projects(request):$/;"	f
+version	./setup.py	/^    version=version,$/;"	v
+version	./setup.py	/^version = '0.5'$/;"	v
+viewitems	./workhours/future.py	/^    def viewitems(self):$/;"	m	class:OrderedDict
+viewkeys	./workhours/future.py	/^    def viewkeys(self):$/;"	m	class:OrderedDict
+viewvalues	./workhours/future.py	/^    def viewvalues(self):$/;"	m	class:OrderedDict
+warn	./workhours/firefox/merge-bookmarks.py	/^def warn(reason):$/;"	f
+wbkt_trav	./workhours/webkit/bookmarks.py	/^def wbkt_trav(nodes, depth=0, path=None):$/;"	f
+weekly_bins	./workhours/reports/date_queries.py	/^def weekly_bins(start, end):$/;"	f
+weekly_bins	./workhours/reports/events.py	/^def weekly_bins(start, end):$/;"	f
+widget	./workhours/forms/__init__.py	/^            widget=deform.widget.TextInputWidget(size=60),$/;"	v	class:pyramid_csrf_demo.MySchema
+widget	./workhours/forms/__init__.py	/^        widget = deform.widget.HiddenWidget(),$/;"	v	class:CSRFSchema
+wikipedia_pages	./workhours/reports/places.py	/^def wikipedia_pages(s):$/;"	f
+wikipedia_pages	./workhours/reports/views.py	/^def wikipedia_pages(request):$/;"	f
+wrap	./workhours/events/views.py	/^    def wrap(self):$/;"	m	class:EventsRESTfulView
+wrap_json_obj	./workhours/events/models.py	/^    def wrap_json_obj(self, obj):$/;"	m	class:EventsContextFactory
+wrap_json_obj	./workhours/models/context.py	/^    def wrap_json_obj(cls, obj):$/;"	m	class:PlainContext
+wrap_json_obj	./workhours/places/models.py	/^    def wrap_json_obj(self, obj):$/;"	m	class:PlacesContextFactory
+wrapper	./workhours/models/json/__init__.py	/^    def wrapper(*args, **kwargs):$/;"	f	function:json_wrap_input
+wrapper	./workhours/models/json/__init__.py	/^    def wrapper(*args, **kwargs):$/;"	f	function:json_wrap_output
+write	./workhours/firefox/merge-bookmarks.py	/^	def write(self, fd):$/;"	m	class:BookMarksMerge
+write	./workhours/reports/writers.py	/^    def write(self, obj):$/;"	m	class:ResultWriter
+write	./workhours/reports/writers.py	/^    def write(self, obj):$/;"	m	class:ResultWriter_csv
+write	./workhours/reports/writers.py	/^    def write(self, obj):$/;"	m	class:ResultWriter_html
+write	./workhours/reports/writers.py	/^    def write(self, obj):$/;"	m	class:ResultWriter_json
+write_csv	./workhours/reports/__init__.py	/^def write_csv(output, iterable, attrs, **kwargs):$/;"	f
+write_iterable_to_file	./workhours/reports/writers.py	/^def write_iterable_to_file(iterable, filename, *args, **kwargs):$/;"	f
+write_iterable_to_output	./workhours/reports/writers.py	/^def write_iterable_to_output($/;"	f
+write_list	./workhours/firefox/merge-bookmarks.py	/^	def write_list(self, level, l, list_type = type([])):$/;"	m	class:BookMarksMerge
+write_numbered	./workhours/reports/writers.py	/^    def write_numbered(self, obj):$/;"	m	class:ResultWriter
+write_numbered	./workhours/reports/writers.py	/^    def write_numbered(self, obj):$/;"	m	class:ResultWriter_csv
+write_numbered	./workhours/reports/writers.py	/^    def write_numbered(self, obj):$/;"	m	class:ResultWriter_txt
+write_numbered	./workhours/reports/writers.py	/^    write_numbered = write$/;"	v	class:ResultWriter_json
+yearly_bins	./workhours/reports/date_queries.py	/^def yearly_bins(start, end):$/;"	f
+yearly_bins	./workhours/reports/events.py	/^def yearly_bins(start, end):$/;"	f
+zip_safe	./setup.py	/^    zip_safe=False,$/;"	v
