@@ -4,11 +4,8 @@ import datetime
 datetime_types = (datetime.time, datetime.date, datetime.datetime)
 import decimal
 from sqlalchemy.util import NamedTuple as sqla_namedtuple
-try:
-    from collections import namedtuple
-    tuple_types = (namedtuple, sqla_namedtuple)
-except ImportError:
-    tuple_types = (sqla_namedtuple)
+from collections import namedtuple
+named_tuple_types = (namedtuple, sqla_namedtuple, )
 
 #import networkx as nx
 #graph_types = (nx.Graph, nx.DiGraph, nx.MultiGraph, nx.MultiDiGraph)
