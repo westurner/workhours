@@ -28,11 +28,11 @@ def main(global_config, **settings):
 
     #initialize_rdflib(virtuoso_connstr=settings['rdflib.virtuoso_connstr'])
 
-    fs_url = settings.get('fs.url')
-    if fs_uri:
+    fs_url = settings.get('fs.url').strip()
+    if fs_url:
         initialize_fs(fs_url)
 
-    esdb_url = settings.get('esdb.url')
+    esdb_url = settings.get('esdb.url').strip()
     if esdb_url:
         initialize_esdb(esdb_url)
 
