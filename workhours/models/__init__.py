@@ -204,6 +204,7 @@ class Event(_Base):
                 ))
 
     def __unicode__(self):
+        return self._to_txt_row()
         return (u"%s" % (str(self.date), self.source, self.url))
 
     def __str__(self):
