@@ -107,7 +107,7 @@ def _register_routes(config):
 
     from workhours.events.views import EventsContextFactory
     from workhours.events.views import EventsRESTfulView
-    config.add_restful_routes('event', EventsContextFactory,
+    config.add_restful_routes('api/events', EventsContextFactory,
                                     view=EventsRESTfulView)
 
     #from workhours.forms import pyramid_csrf_demo
