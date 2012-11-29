@@ -119,6 +119,21 @@ def _register_routes(config):
     config.add_restful_routes('api/places', PlacesContextFactory,
                                     view=PlacesRESTfulView)
 
+    from workhours.reports.places import (
+            DomainsContext,
+            ProjectsContext,
+            WikipediaPagesContext)
+    from workhours.reports.views import (
+            DomainsView,
+            ProjectsView,
+            WikipediaPagesView)
+    config.add_restful_routes('reports/domains', DomainsContext,
+                                    view=DomainsView)
+    config.add_restful_routes('reports/projects', ProjectsContext,
+                                    view=ProjectsView)
+    config.add_restful_routes('reports/wikipedia', WikipediaPagesContext,
+                                    view=WikipediaPagesView)
+
     #from workhours.forms import pyramid_csrf_demo
     config.add_route('pyramid_csrf_demo', '/formdemo')
 
