@@ -224,7 +224,13 @@ class Place(_Base):
             'boost': 1.0,
             'index': 'analyzed',
             'store': 'yes',
-            'type': 'integer',
+            'type': 'integer'},
+        'netloc': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': u'string',
+            'term_vector':'with_positions_offsets'
         },
     }
 
