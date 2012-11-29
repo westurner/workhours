@@ -21,7 +21,7 @@ def main(global_config, **settings):
 
     log.debug(settings)
     engine = engine_from_config(settings, 'db_main.')
-    initialize_sql(engine)
+    meta = initialize_sql(engine)
 
     #data_engine = engine_from_config(settings, 'db_data.')
     #initialize_sql(data_engine)
