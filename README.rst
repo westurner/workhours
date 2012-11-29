@@ -51,8 +51,8 @@ Command Line Interface
       -G GAPTIME, --gaptime=GAPTIME
                               Minute gap to detect between entries
       -p, --print-all       Dump the events table to stdout
-      -v, --verbose         
-      -q, --quiet           
+      -v, --verbose
+      -q, --quiet
       -t, --tes
 
 
@@ -142,6 +142,7 @@ SQLAlchemy
 
 ElasticSearch
 ~~~~~~~~~~~~~~~
+* TODO: connection timeouts configuration
 * TODO: tasks configuration
 * TODO: elasticsearch sqlalchemy event integration
 
@@ -151,7 +152,7 @@ PANDAS
 
 Models
 --------
-Standard python classes mapped to 
+Standard python classes mapped to
 SQLAlchemy tables.
 
 - ``Event``
@@ -168,7 +169,6 @@ Event
          .url
          .text
          .task_id
-         
 
 - TODO: sadisplay
 - TODO: stdout norm (__{str,unicode}__)
