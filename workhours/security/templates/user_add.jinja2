@@ -1,7 +1,6 @@
 {% extends "base.jinja2" %}
 {% block content %}
-    <h1>Register</h1>
-    {{ form.begin(request.route_url('register')) }}
+    {{ form.begin(request.route_url('register'), id='register_account') }}
         <fieldset>
             {{ form.csrf_token() }}
             {{ form.errorlist('username') }}
