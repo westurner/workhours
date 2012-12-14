@@ -21,7 +21,7 @@ def wbkt_trav(nodes, depth=0, path=None):
         yield {   'path': u'/'.join(path),
                 #node.get('type'), # folder || url
                 'url':  node.get('url','').encode('utf-8','replace'),
-                'name': node.get('name','').encode('utf-8','replace'),
+                'title': node.get('name'), #u'%s' % node.get('name','').encode('utf-8','replace'),
                 'date': longdate_to_datetime(long(node.get('date_added')))
         }
         if node.get('type') == NODETYPE:
@@ -47,11 +47,11 @@ def parse_webkit_bookmarks(uri=None):
 
 def print_bookmarks(file_, outp, flatten, dated):
 
-    fmtstr="{path}\t{url}\t{name}\t{date}"
+    fmtstr="{path}\t{url}\t{title}\t{date}"
     if flatten:
-        fmtstr="{url}\t{name}\t{date}"
+        fmtstr="{url}\t{title}\t{date}"
     if dated:
-        fmtstr = '{date}\t{url}\t{name}'
+        fmtstr = '{date}\t{url}\t{title}'
 
     for node in parse_webkit_bookmarks(file_):
         print fmtstr.format(**node)
