@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import  mapper, relationship, eagerload
 from pytz import timezone
-from workhours.models import open_db
+from workhours.models.sql import open_db
 
 import logging
 log = logging.getLogger('firefox.history')
@@ -55,7 +55,7 @@ class Place(object):
     """
     Firefox 'Place' in the ``moz_places`` table
     """
-   
+
     def __repr__(self):
         return unicode(self)
 
@@ -83,7 +83,7 @@ class Visit(object):
         return self.place.url
 
     def __str__(self):
-        return '%s || %s || %s' % (self._visit_date.ctime(), self.place.url, self.place.title)
+        return u'%s || %s || %s' % (self._visit_date.ctime(), self.place.url, self.place.title)
 
 
 def setup_mappers(engine):

@@ -2,7 +2,6 @@ import unittest
 from pyramid import testing
 from workhours.models.sql import _initialize_sql_test
 from workhours import _register_routes, _register_common_templates
-from workhours import Request
 
 from workhours.models.html.datatables import datatables_view
 
@@ -15,7 +14,6 @@ class Test_datatables(unittest.TestCase):
     def _get_test_request(self, *args, **kwargs):
         request = testing.DummyRequest(*args, **kwargs)
         request.db_session = self.session
-        # TODO/FIXME: Custom workhours.Request attributes
         return request
 
     def tearDown(self):
