@@ -25,7 +25,7 @@ def _get_param(request, param, _type=str):
     except Exception, e:
         return None
 
-from collections import OrderedDict
+from workhours.future import OrderedDict
 def read_datatables_params(request):
     r = OrderedDict()
 
