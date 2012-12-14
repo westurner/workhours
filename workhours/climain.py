@@ -35,7 +35,7 @@ import sys
 import logging
 import optparse
 from pprint import pformat
-from collections import OrderedDict
+from workhours.future import OrderedDict
 import workhours.models.json as json
 from ConfigParser import ConfigParser
 
@@ -137,8 +137,19 @@ def CommandlineOptionParser(*args,**kwargs):
 
     return prs
 
+import os
 import codecs
 def main(*args):
+    """workhours CLI main function
+
+    Parse args or sys.argv[1:] into opts and execute tasks
+
+    opts
+        .sqldb_url = str    #   from db_main.url
+        .esdb_url = str
+        .fs_url = str
+        ._queues[queue_name] = list
+    """
 
     prs = CommandlineOptionParser()
     args = args if args else sys.argv[1:]
@@ -146,13 +157,20 @@ def main(*args):
 
     if not opts.quiet:
         #datestr = datetime.datetime.now().strftime('%y-%m-%d-%H%M.%S')
-        logging.basicConfig()
+        if '_CFG' in os.environ:
+            logging.config.fileConfig(os.environ['_CFG'])
+        else:
+            logging.basicConfig()
+
+        logging.addLevelName(3, 'TRACE')
 
         if opts.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
 
             if opts.verbose > 1:
-                logging.getLogger('sqlalchemy').setLevel(logging.INFO)
+                logging.getLogger().setLevel(3)
+            #if opts.verbose > 1:
+            #    logging.getLogger('sqlalchemy').setLevel(logging.INFO)
 
     if opts.run_tests:
         sys.argv = [sys.argv[0]] + args
@@ -170,10 +188,10 @@ def main(*args):
         opts._output = (opts._output
                         or codecs.open(opts.output, 'w', encoding='utf8'))
 
-    from workhours.tasks import QUEUES
+    from workhours.tasks.events import QUEUES
     from workhours.config import read_queues_from_config
 
-    opts._queues = getattr(opts,'_queues', OrderedDict())
+    opts._queues = getattr(opts, '_queues', OrderedDict())
 
     def get_value(_config, attr, configpath, opts):
         # if the file is in the config file
@@ -215,11 +233,7 @@ def main(*args):
 
 
     # Read datastore and task queue configuration from config file
-    # into opts
-    #       .sqldb_url = str    #   from db_main.url
-    #       .esdb_url = str
-    #       .fs_url = str
-    #       ._queues[queue_name] = list
+
     _config = None
     if opts.config_file is not None:
         _config, opts = read_config_file(opts.config_file, opts)
@@ -242,7 +256,7 @@ def main(*args):
 
     from workhours.models.files import initialize_fs
     if opts.fs_url is None:
-        logging.error("Must specify a fs url")
+        log.error("Must specify a fs url")
         exit(0)
     opts._filestore = initialize_fs( os.path.expanduser(opts.fs_url) )
 
@@ -255,11 +269,11 @@ def main(*args):
     debug_conf(opts)
 
     if opts.parse and any(x[0] for x in opts._queues.iteritems()):
-        from workhours import tasks
-        for result in tasks.populate_events_table(
+        from workhours.tasks.events import populate_events_table
+        for result in populate_events_table(
                             opts.sqldb_url,
                             opts._queues,
-                            fs=opts._filestore):
+                            filestore=opts._filestore):
             print(result, file=opts._output)
 
     def _do_events_report(opts):

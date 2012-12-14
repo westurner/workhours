@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from workhours.tasks import QUEUES
+from workhours.tasks.events import QUEUES
 
 from collections import namedtuple
 Source = namedtuple('Source', ('type','key','url'))
