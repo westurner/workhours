@@ -53,6 +53,6 @@ setup(name='workhours',
             'workhours = workhours.climain:main',
             ]
         },
-    tests_require=['pytest','pytest-cov'],
+    tests_require=['pytest','pytest-cov','fixture'],
     cmdclass = {'test': PyTest},
 )
