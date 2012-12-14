@@ -9,6 +9,7 @@ margin: 0; padding: 0;
 html, body {
 font: Georgia, "Times New Roman", Times, serif 14px/1.5em;
 color: #000;
+background: #F0F0F0;
 }
 
 /* REMOVE PADDING AND MARGIN VALUES */
@@ -54,7 +55,7 @@ body {
 body, input, textarea, select {
 	font: normal small "Trebuchet MS", Arial, Helvetica, sans-serif;
 	color: #333;
-	margin: 5px auto;
+	margin: 4px auto;
 }
 
 h1, h2, h3 {
@@ -108,11 +109,13 @@ a:link, a:visited {color: #5979b7;}
 
 #wrapper {
 	background-color: #FFFFFF;
-    width: 100%;
+    width: 100% !important;
+    margin: 0 4px !important;
 }
 
 .container {
-    width: 100% !important;
+    /*width: 100% !important;*/
+
 }
 
 /* Header */
@@ -134,7 +137,7 @@ a:link, a:visited {color: #5979b7;}
 	letter-spacing: -2px;
 	text-decoration: none;
 	color: #707070;
-    padding: 8px 16px;
+    padding: 8px 4px;
     margin-bottom: 0;
 }
 
@@ -153,14 +156,13 @@ a:link, a:visited {color: #5979b7;}
 #menu
 {
 	/*width: 928px;*/
-	background: #EEEEEE no-repeat;
 }
 
 #menu ul
 {
 	list-style: none;
 	/* text-align: right; */
-	padding: 10px 0px 10px 0px;
+	padding: 4px 0px;
 	margin: 0;
 }
 
@@ -207,10 +209,12 @@ a:link, a:visited {color: #5979b7;}
 /* Content */
 
 #content {
-    padding: 0 16px;
+    padding: 2px 4px;
 	background: #FFFFFF;
     /* border-bottom: 1px solid #EEEEEE; */
     border: 0;
+
+    border: 1px solid #DEDEDE;
 }
 
 /* Blog */
@@ -374,8 +378,7 @@ a:link, a:visited {color: #5979b7;}
 /* Footer */
 
 #footer {
-	background: #F0F0F0 !important; /* override */
-    height: 50px;
+    height: 42px;
 }
 
 #footer p {
@@ -383,6 +386,7 @@ a:link, a:visited {color: #5979b7;}
 	padding: 10px 0;
 	text-align: center;
 	font-size: x-small;
+    color: #C0C0C0;
 }
 
 #footer a {
@@ -393,7 +397,12 @@ div.footermenu li, div.footermenu ul { list-style: none; display: inline; text-a
 #toolbar {
         float: right;
        /* font-size: 90%;*/
-        padding: 16px 0px 8px 8px;
+        padding: 4px;
+        color: #c0c0c0;
+}
+
+#toolbar a {
+    color: #A0A0A0;
 }
 
 
@@ -440,11 +449,13 @@ label {
         float: left;
         width: 120px;
         font-weight: bold;
+        padding: 8px 8px 4px 0 !important;
 }
 
 input {
         margin-bottom: 5px;
         border: 2px solid #ddd;
+        padding: 4px;
 }
 
 textarea {
@@ -527,8 +538,6 @@ form br {
 
 #messages {
     background-color: #F7F7F7 ;
-    margin: 0px auto;
-    width: 20em;
     padding: 12px;
     padding-bottom: 4px;
     /*border: 1px solid #D0D0D0 ;*/
@@ -554,4 +563,8 @@ div.message {
 
 table#events td.title {
     min-width: 200px;
+}
+
+div.dataTables_scrollBody {
+    min-height: 64px;
 }
