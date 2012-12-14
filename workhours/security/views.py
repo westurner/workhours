@@ -63,6 +63,7 @@ def user_add(request):
     return {
         'form': FormRenderer(form),
         'login_form': login_form,
+        'title': 'create an account',
     }
 
 
