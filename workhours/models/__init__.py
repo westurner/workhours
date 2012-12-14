@@ -1,68 +1,28 @@
 #!/usr/bin/env python
 #encoding: utf-8
 """
-event aggregation models
+workhours core models
 """
 import datetime
 import urlparse
-from sqlalchemy import MetaData, DateTime, Table, Column, Integer, Unicode, UnicodeText
-from sqlalchemy import ForeignKey
-#from sqlalchemy import UniqueConstraint
-from sqlalchemy.orm import mapper, relation, object_session
-#from sqlalchemy.orm import sessionmaker, eagerload
-#from sqlalchemy.ext.associationproxy import association_proxy
-
-from workhours.models.sql import initialize_sql
-from workhours.models.sqla_utils import MutationDict, JSONEncodedDict, clear_mappers
-
-__ALL__=['TaskQueue',
-         'Task',
-         'Event',
-         'Place',
-         'setup_mappers']
-
+from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
+from workhours.models.sql.guid import GUID
 import logging
 log = logging.getLogger('workhours.models')
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-
-def open_db(dburi,
-            setup_mappers,
-            destructive_recover=False,
-            munge_mappers=[]):
-    """
-    Open a single session
-    """
-    try:
-        engine = create_engine(dburi)
-        meta = initialize_sql(engine)
-    except Exception:
-        if dburi.startswith('sqlite') and destructive_recover:
-            from workhours.models.sqlite_utils import commit_uncommitted_transactions
-            commit_uncommitted_transactions(dburi)
-            engine = create_engine(dburi)
-        else:
-            raise
-
-    if munge_mappers:
-        clear_mappers(munge_mappers)
-
-    meta = setup_mappers(engine)
-    meta.engine = engine
-    meta.Session = sessionmaker(bind=engine)
-    return meta
-
-
-def Session(uri):
-    meta = open_db(uri,
-                    setup_mappers,
-                    destructive_recover=False)
-    return meta.Session()
+__ALL__ = [
+    'TaskQueue',
+    'Task',
+    'Event',
+    'Place',
+    'setup_mappers'
+]
 
 
 class _Base(object):
+    _fields = ('_id',)
+    _key_fields = ('_id',)
+
     def getattrs(self, *attrs):
         if attrs:
             return (getattr(self, attr) for attr in attrs)
@@ -75,27 +35,146 @@ class _Base(object):
                     *(getattr(cls,attr) for attr in attrs) )
                 .order_by( getattr(cls,order_by)) )
 
+    def get_id(self, _id=None):
+        return _id or getattr(self, '_id') or GUID.new_guid() #self.keyfunc()
+
+    def keyfunc(self):
+        return (getattr(self, attr) for attr in self.keyfields)
+
+    def _asdict(self, fields=None):
+        return {k:getattr(self,k) for k in fields or self._fields}
+
     def __str__(self):
         return unicode(self).encode('utf-8')
 
 
+from workhours.models.passphrase import salt_passphrase
+from workhours.models.passphrase import hash_passphrase
+from workhours.models.passphrase import crypt
+
+class User(_Base):
+    """
+    Application's user model.
+    """
+    _fields = (
+        '_id',
+        'username',
+        'name',
+        'email',
+        'passphrase',
+    )
+    _key_fields = (
+        'username',
+    )
+
+    def _get_passphrase(self):
+        return self._passphrase
+
+    def _set_passphrase(self, passphrase):
+        self._passphrase = hash_passphrase(passphrase)
+
+    passphrase = property(_get_passphrase, _set_passphrase)
+    #passphrase = synonym('_passphrase', descriptor=passphrase) # TODO
+
+    def __init__(self,
+                    username=None,
+                    passphrase=None,
+                    _passphrase=None,
+                    name=None,
+                    email=None,
+                    _id=None,
+                    ):
+        self.username = username
+        self.name = name
+        self.email = email
+        self._id = self.get_id(_id)
+        if _passphrase:
+            self._passphrase = _passphrase
+        elif passphrase:
+            self.passphrase = passphrase
+
+    @classmethod
+    def get_by_username(cls, username):
+        return DBSession.query(cls).filter(cls.username==username).one()
+
+    @classmethod
+    def check_passphrase(cls, username, passphrase):
+        user = cls.get_by_username(username)
+        if not user:
+            return False
+        return check(user.passphrase,salt_passphrase(passphrase))
+
+
+
 class TaskQueue(_Base):
-    def __init__(self, type, label=None, uri=None, host=None, user=None):
+    """
+    TODO: really more of a
+    """
+    _fields = (
+        '_id',
+        'type',
+        'label',
+        'uri',
+        'host',
+        'user',)
+    _key_fields = (
+        'type',
+        'uri',
+        'host',
+        'user'
+    )
+    def __init__(self,
+                    type=None,
+                    label=None,
+                    uri=None,
+                    host=None,
+                    user=None,
+                    _id=None,
+                    ):
         self.type = type
         self.label = label
         self.uri = uri
         self.host = host
         self.user = user
+        self._id = self.get_id(_id)
+
 
 class Task(_Base):
-    def __init__(self, queue_id, args, date=None, state=None, statemsg=None):
+    _fields = (
+        '_id',
+        'queue_id',
+        'args',
+        'date',
+        'state',
+        'statemsg',
+    )
+    _key_fields = (
+        '_id'
+        #'queue_id',
+    )
+    def __init__(self,
+                    queue_id=None,
+                    args=None,
+                    date=None,
+                    state=None,
+                    statemsg=None,
+                    _id=None,
+                    ):
+
         self.queue_id = queue_id
         self.args = MutationDict()
         log.debug(args)
-        self.args.update(args)
+        if args is not None:
+            self.args.update(args)
         self.date = date or datetime.datetime.now()
         self.state = state
         self.statemsg = statemsg
+        self._id = self.get_id(_id)
+
+    def __unicode__(self):
+        return u', '.join( (str(self._id), str(self.queue_id),
+            str(self.date),
+                ))
 
 
 class Event(_Base):
@@ -145,6 +224,21 @@ class Event(_Base):
         },
 
     }
+    _fields = (
+        '_id',
+        'source',
+        'date',
+        'url',
+        'title',
+        'meta',
+        'place_id',
+        'task_id',
+    )
+    _key_fields = (
+        'task_id',
+        'date',
+        'url',
+    )
     def __init__(self, source=None,
                         date=None,
                         url=None,
@@ -152,16 +246,18 @@ class Event(_Base):
                         meta=None,
                         place_id=None,
                         task_id=None,
-                        *args,
-                        **kwargs):
+                        _id=None,
+                        ):
         self.source = source
         self.date = date
         self.url = url
         self.title = title
-        self.meta = meta
+        self.meta = MutationDict()
+        if meta:
+            self.meta.update(meta)
         self.place_id = place_id
         self.task_id = task_id
-
+        self._id = self.get_id(_id)
 
     @classmethod
     def from_uhm(cls, source, obj, **kwargs):
@@ -171,12 +267,12 @@ class Event(_Base):
         try:
             if isinstance(obj, dict):
                 _kwargs.update(obj)
-                _obj = cls(source, **_kwargs)
+                _obj = cls(source=source, **_kwargs)
             elif hasattr(obj, 'to_event_row'):
-                _obj = cls(source, *obj.to_event_row(), **_kwargs)
+                _obj = cls(source=source, *obj.to_event_row(), **_kwargs)
             # punt
             elif hasattr(obj, '__iter__'):
-                _obj = cls(source, *obj, **_kwargs)
+                _obj = cls(source=source, *obj, **_kwargs)
             else:
                 raise
         except Exception, e:
@@ -194,6 +290,8 @@ class Event(_Base):
 
     def _to_txt_row(self):
         return u"%s\t%s\t%s" % (self.date, self.url, self.title and self.title or '')
+
+    def __verbose(self):
         return ("%s/%s/%s\t%s\t%s\t%s" % (
                 self.task_id,
                 'other', #self.task.queue.type,
@@ -205,15 +303,16 @@ class Event(_Base):
 
     def __unicode__(self):
         return self._to_txt_row()
-        return (u"%s" % (str(self.date), self.source, self.url))
 
     def __str__(self):
         return unicode(self).encode('utf-8')
 
-    @property
-    def type(self):
-        # FIXME TODO
-        return self.task.queue.type
+    #@property
+    #def type(self):
+    #    # FIXME TODO
+    #    return self.task.queue.type
+    #    return self.source
+
 
 class Place(_Base):
     _pyes_version = 0
@@ -234,22 +333,45 @@ class Place(_Base):
             'index': 'analyzed',
             'store': 'yes',
             'type': u'string',
-            'term_vector':'with_positions_offsets'
+            'term_vector':'with_positions_offsets',
         },
     }
+    _fields = (
+        '_id',
+        'url',
+        'eventcount',
 
-    def __init__(self, url_, eventcount=0, meta=None):
-        self.url=url_
-        self.eventcount=eventcount
-        self.meta=meta
-        self.parse_from(self.url)
+        'meta',
+        'scheme',
+        'port',
+        'netloc',
+        'path',
+        'query',
+        'fragment',
+    )
+    _key_fields = (
+        'url',
+    )
+    def __init__(self,
+                    url=None,
+                    eventcount=1,
+                    meta=None,
+                    _id=None,
+                    ):
+        self.url = url
+        self.eventcount = eventcount
+        self.meta = MutationDict()
+        if meta is not None:
+            self.meta.update(meta)
+        if self.url is not None:
+            self.parse_from(self.url)
+        self._id = self.get_id(_id)
 
     def parse_from(self, url):
         urlp = urlparse.urlparse(url)
         for attr in ('scheme','port','netloc','path','query','fragment'):
             setattr(self, attr, getattr(urlp, attr))
         del urlp
-        # self.meta = # TODO
 
     @classmethod
     def get_or_create(cls, url, session=None, *args, **kwargs):
@@ -267,139 +389,88 @@ class Place(_Base):
                 raise
         return obj
 
+    @property
+    def title(self):
+        # TODO
+        return len(self.events) and self.events[-1].title or None
+
 
 class ReportType(_Base):
-    def __init__(self, label, data={}):
+    _fields = (
+        '_id',
+        'label',
+        'data',
+    )
+    _key_fields = (
+        'label',
+        'data',
+    )
+    def __init__(self,
+                    label=None,
+                    _id=None,
+                    data=None,
+                    ):
         self.label = label
-        self.data = data
+        self.data = MutationDict()
+        if data:
+            self.data.update(data)
+        self._id = self.get_id(_id)
 
 
 class Report(_Base):
-    def __init__(self, report_type_id, title, data):
+    _fields = (
+        '_id',
+        'report_type_id',
+        'title',
+        'data',
+    )
+    _key_fields = (
+        'report_type_id',
+        'title',
+        'data',
+    )
+    def __init__(self,
+                    report_type_id=None,
+                    title=None,
+                    data=None,
+                    _id=None,
+                    ):
         self.report_type_id = report_type_id
         self.title = title
-        self.data = data
+        self.data = MutationDict()
+        if data:
+            self.data.update(data)
+        self._id = self.get_id(_id)
 
 
-_MAPPED = False
-def setup_mappers(engine):
-    """
-    Setup SQLAlchemy mappers for the aggregate events database
+#all_models = [
+#    (v) for (k,v) in models.__dict__.items()
+#        if hasattr(v,'fields')
+#        and not k.startswith('_')]
 
-    :param engine: SQLAlchemy engine
-    :type engine: SQLAlchemy engine
 
-    :returns: SQLAlchemy meta
-    """
-    meta = MetaData()
+#from workhours.security.models import User
+ALL_MODELS = (
+    User,
+    TaskQueue,
+    Task,
+    Place,
+    Event,
+    ReportType,
+    Report,
+)
 
-    global _MAPPED # FIXME:
-    if not _MAPPED:
-        _MAPPED = True
-        queues_tbl = Table('queues', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('type', Unicode(length=255), index=True),
-                Column('uri', UnicodeText()),
-                Column('label', UnicodeText(), unique=True),
-                Column('date', DateTime(), index=True,
-                    onupdate=datetime.datetime.now),
-
-                Column('host', UnicodeText()), # default=$(hostname)
-                Column('user', UnicodeText())  # default=$(whoami)
-        )
-        mapper(TaskQueue, queues_tbl)
-
-        tasks_tbl = Table('tasks', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('queue_id', Integer(),
-                    ForeignKey(queues_tbl.c.id), index=True),
-                Column('args', MutationDict.as_mutable(JSONEncodedDict)),
-                Column('label', UnicodeText()),
-                Column('date', DateTime(), index=True,
-                    onupdate=datetime.datetime.now,),
-        )
-        mapper(Task, tasks_tbl, properties={
-            'queue': relation(TaskQueue, backref='tasks')
-        })
-
-        places_tbl = Table('places', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('url', UnicodeText(), index=True),
-
-                Column('scheme', Unicode()),
-                Column('netloc', UnicodeText(), index=True),
-                Column('port', Integer(), ),
-                Column('path', UnicodeText(), index=True),
-                Column('query', UnicodeText(), index=True),
-                Column('fragment', UnicodeText()),
-
-                Column('eventcount', Integer()),
-                Column('meta', MutationDict.as_mutable(JSONEncodedDict)),
-        )
-        mapper(Place, places_tbl)
-
-        # TODO: tags
-
-        events_tbl = Table('events', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('source', Unicode(), index=True),
-                Column('date', DateTime(), index=True),
-                Column('url', UnicodeText()),
-                Column('title', UnicodeText()),
-                Column('meta', UnicodeText()),
-
-                Column('host', UnicodeText()),
-                Column('user', UnicodeText()),
-
-                Column('place_id', Integer(),
-                    ForeignKey(places_tbl.c.id), nullable=True),
-                Column('task_id', Integer(),
-                    ForeignKey(tasks_tbl.c.id), nullable=False),
-
-                # TODO: sync
-                # UniqueConstraint('date','url','task_id',
-                #    name='uix_event_date_url_taskid'),
-                # breaks w/ webkit history on date !?
-                # UniqueConstraint('source','date','url', 'task_id',
-                #   name='uix_event_source_task_id'),
-        )
-        mapper(Event, events_tbl, properties={
-            'task': relation(Task, backref='events'),
-            'place': relation(Place, backref='events'),
-            #'queue': relation(TaskQueue, backref='events'),
-        })
-
-        report_types_tbl = Table('report_types', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('label', Unicode(), index=True),
-                Column('data', MutationDict.as_mutable(JSONEncodedDict))
-        )
-
-        mapper(ReportType, report_types_tbl)
-
-        reports_tbl = Table('reports', meta,
-            Column('id', Integer(), primary_key=True, nullable=False),
-                Column('report_type_id', Integer(),
-                    ForeignKey(report_types_tbl.c.id), nullable=False),
-                Column('title', Unicode(), nullable=True),
-                Column('data', MutationDict.as_mutable(JSONEncodedDict)))
-
-        mapper(Report, reports_tbl, properties={
-            'report_type': relation(ReportType, backref='reports'),
-        })
-
-    return meta
-
-####
-
+from workhours.models.sql import open_db
+from workhours.models.sql import Session
 from workhours.models.sql import Base
-from workhours.models.sql import DBSession
+from workhours.models.sql import DBSession # primary database session
 from workhours.models.sql import initialize_sql
-from workhours.security.models import User
 
 from pyramid.security import Everyone
 from pyramid.security import Authenticated
 from pyramid.security import Allow
+
+from workhours.models.sql.tables import setup_mappers # ... ?
 
 #__ALL__ = ("Base", "DBSession", "initialize_sql",
             #"User",
@@ -413,6 +484,9 @@ class RootFactory(object):
         (Allow, Authenticated, 'post')
     ]
     def __init__(self, request):
+        self.request = request
         pass
+
+
 
 

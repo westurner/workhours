@@ -5,21 +5,22 @@ from workhours import _register_routes
 from workhours import _register_common_templates
 from workhours.models.sql import _initialize_sql_test
 
-class SecurityViewTests(unittest.TestCase):
-    def setUp(self):
-        self.meta = _initialize_sql_test()
-        self.session = self.meta.Session
-        self.config = testing.setUp()
+from workhours import testing
+from workhours.models.fixtures import data
 
-    def tearDown(self):
-        import transaction
-        transaction.abort()
-        testing.tearDown()
+import transaction
 
-    def _addUser(self, username=u'username'):
+class SecurityViewTests(testing.PyramidFixtureTestCase):
+    TEST_USERNAME = u'test_username'
+    fixtures = tuple() #data.UserData,)
+
+    def _addUser(self, username):
         from workhours.models import User
-        user = User(username=username, passphrase=u'passphrase', name=u'name',
-                    email=u'email')
+        user = User(
+                username=username,
+                passphrase=u'passphrase',
+                name=u'name',
+                email=u'email')
         self.session.add(user)
         self.session.flush()
         return user
@@ -28,7 +29,7 @@ class SecurityViewTests(unittest.TestCase):
         from workhours.security.views import user_add
         _register_routes(self.config)
         _register_common_templates(self.config)
-        request = testing.DummyRequest()
+        request = self._new_request()
         result = user_add(request)
         self.assertTrue('form' in result)
 
@@ -36,10 +37,14 @@ class SecurityViewTests(unittest.TestCase):
         from workhours.security.views import user_add
         _register_routes(self.config)
         _register_common_templates(self.config)
-        request = testing.DummyRequest()
+        request = self._new_request()
         result = user_add(request)
         self.assertTrue('form' in result)
-        request = testing.DummyRequest(post={'form.submitted': 'Shoot'})
+        request = self._new_request()
+        request.POST = {
+            'form.submitted': 'Shoot',
+            #'_csrf': request.session.get_csrf_token(),
+        }
         result = user_add(request)
         self.assertEqual(
             result['form'].form.errors,
@@ -48,30 +53,34 @@ class SecurityViewTests(unittest.TestCase):
                 'confirm_passphrase': u'Missing value',
                 'passphrase': u'Missing value',
                 'email': u'Missing value',
-                'name': u'Missing value'
+                'name': u'Missing value',
             }
         )
 
     def test_registration_submit_schema_succeed(self):
+        from workhours.models import User
         from workhours.security.views import user_add
-        from workhours.security.models import User
         _register_routes(self.config)
         _register_common_templates(self.config)
-        request = testing.DummyRequest(
-            post={
-                'form.submitted': u'Register',
-                'username': u'username',
-                'passphrase': u'secret',
-                'confirm_passphrase': u'secret',
-                'email': u'username@example.com',
-                'name': u'John Doe',
-            }
-        )
+        request = self._new_request()
+        request.POST = {
+            'form.submitted': u'Register',
+            'username': 'username3',
+            'passphrase': u'secret',
+            'confirm_passphrase': u'secret',
+            'email': u'username@example.com',
+            'name': u'John Doe',
+            '_csrf': request.session.get_csrf_token()
+        }
         user_add(request)
-        users = self.session.query(User).all()
-        self.assertEqual(len(users), 1)
-        user = users[0]
-        self.assertEqual(user.username, u'username')
+
+        user = (
+            self.session.query(User)
+                .filter(User.username == 'username3').one())
+
+        #self.assertTrue(len(users), 1)
+        #user = users[0]
+        self.assertEqual(user.username, 'username3')
         self.assertEqual(user.name, u'John Doe')
         self.assertEqual(user.email, u'username@example.com')
         #self.assertEqual(user.hits, 0)
@@ -84,26 +93,26 @@ class SecurityViewTests(unittest.TestCase):
 
     def test_user_view(self):
         from workhours.security.views import user_view
-        self.config.testing_securitypolicy(u'username')
+        self.config.testing_securitypolicy(self.TEST_USERNAME)
         _register_routes(self.config)
         _register_common_templates(self.config)
-        request = testing.DummyRequest()
-        request.matchdict = {'username': u'username'}
-        self._addUser()
+        request = self._new_request()
+        request.matchdict = {'username': self.TEST_USERNAME}
+        self._addUser(self.TEST_USERNAME)
         result = user_view(request)
-        self.assertEqual(result['user'].username, u'username')
-        self.assertEqual(result['user'].user_id, 1)
+        self.assertEqual(result['user'].username, self.TEST_USERNAME)
+        self.assertTrue(result['user']._id)
 
 
 
     def test_login_view_submit_fail(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
-        self._addUser()
-        request = testing.DummyRequest()
+        self._addUser(self.TEST_USERNAME)
+        request = self._new_request()
         request.POST = {
             'form.submitted': u'Login',
-            'username': u'username',
+            'username': self.TEST_USERNAME,
             'passphrase': u'wrongpassphrase',
             '_csrf': request.session.get_csrf_token()
         }
@@ -115,14 +124,14 @@ class SecurityViewTests(unittest.TestCase):
     def test_login_view_submit_success(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
-        self._addUser()
-        request = testing.DummyRequest(
-            post={
-                'form.submitted': u'Login',
-                'username': u'username',
-                'passphrase': u'passphrase',
-            }
-        )
+        self._addUser(self.TEST_USERNAME)
+        request = self._new_request()
+        request.POST ={
+            'form.submitted': u'Login',
+            'username': self.TEST_USERNAME,
+            'passphrase': u'passphrase',
+            '_csrf': request.session.get_csrf_token()
+        }
         login_view(request)
         messages = request.session.peek_flash()
         self.assertEqual(messages, [u'Logged in successfully.'])
@@ -130,7 +139,7 @@ class SecurityViewTests(unittest.TestCase):
     def test_logout_view(self):
         from workhours.security.views import logout_view
         _register_routes(self.config)
-        request = testing.DummyRequest()
+        request = self._new_request()
         logout_view(request)
         messages = request.session.peek_flash()
         self.assertEqual(messages, [u'Logged out.'])
