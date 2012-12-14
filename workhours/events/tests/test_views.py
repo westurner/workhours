@@ -2,7 +2,6 @@ import unittest
 from pyramid import testing
 from workhours.models.sql import _initialize_sql_test
 from workhours import _register_routes, _register_common_templates
-from workhours import Request
 
 from workhours.models.html import datatables
 from workhours.events.views import EventsRESTfulView

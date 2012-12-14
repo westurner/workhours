@@ -1,7 +1,8 @@
 from __future__ import print_function
 
 import datetime
-from workhours.models import Event, Session
+from workhours.models import Event
+from workhours.models.sql import Session
 
 
 import logging
