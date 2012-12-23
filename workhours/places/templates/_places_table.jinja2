@@ -1,23 +1,43 @@
-{% extends "models/templates/_table.jinja2" %}
-{% block datatable_columns %}[
-                { "mDataProp": "id",
-                    "sWidth": "30px", "aTargets": [0],
-                    "fnRender": function (obj) {
-                       return "<a href=\"/api/places/" + obj.aData.id + "\">" + obj.aData.id + "</a>"; /* TODO: escape */
- 
-                }},
+{% extends "models/templates/_datatable.jinja2" %}
+{% block datatable_columns %}
+[
+{ 
+    "mDataProp": "_id",
+    "sWidth": "1px",
+    "aTargets": [0],
+    "fnRender": function (obj) {
+        return ("<a href=\"/api/places/" + obj.aData.id + "\">" +
+            obj.aData.id + "</a>"); /* TODO: escape */
 
-                { "mDataProp": "url",
-                    "sWidth": "400px", "aTargets": [1],
-                    "fnRender": function (obj) {
-                    return ("<a href=\"" + obj.aData.url + "\">" + obj.aData.url + "</a><br/><span>"+obj.aData.netloc+"</span>"); /* TODO: escape */
-                    }
-                },
-                { "mDataProp": "netloc", "bVisible": true, 
-                    "sWidth": "200px", "aTargets": [2]
-                    },
-                { "mDataProp": "eventcount", "bVisible": true, 
-                    "sWidth": "50px", "aTargets": [3]
-                }
-                ]{% endblock datatable_columns %}
-
+        }
+},
+{
+    "mDataProp": "url",
+    "aTargets": [1],
+    "sWidth": "70%",
+    "fnRender": function (obj) {
+        return ((obj.aData.title ? ("<b>" + obj.aData.title +
+            "</b><br/>") : "") + "<a href=\"" + obj.aData.url + "\">" + obj.aData.url + "</a><br/><span>"+obj.aData.netloc+"</span>"); /* TODO: escape */
+    }
+},
+{ 
+    "mDataProp": "netloc",
+    "bVisible": false, 
+    "sWidth": "200px",
+    "aTargets": [2]
+},
+{
+    "mDataProp": "eventcount",
+    "bVisible": true, 
+    "sWidth": "50px",
+    "sWidth": "30%",
+    "aTargets": [3]
+},
+{
+    "mDataProp": "title",
+    "bVisible": false, 
+    "sWidth": "200px",
+    "aTargets": [4]
+},
+]
+{% endblock datatable_columns %}
