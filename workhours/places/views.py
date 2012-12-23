@@ -1,32 +1,31 @@
-from pyramid.renderers import render
-from pyramid.decorator import reify
-from pyramid.response import Response
-from pyramid_restler.view import RESTfulView
-from collections import OrderedDict
-
-from workhours.models import Place, DBSession
-
-import logging
-
-log = logging.getLogger('.places.views')
-from workhours.models.html.datatables import read_datatables_params
-from pprint import pformat
-from sqlalchemy import orm
-from workhours.places.models import PlacesContextFactory
 
 from jinja2 import Markup
+from pprint import pformat
+from pyramid.decorator import reify
+from pyramid.exceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.renderers import render
+from pyramid.response import Response
+from pyramid_restler.view import RESTfulView
+from sqlalchemy import orm
+from workhours.models import Place, DBSession
+from workhours.models.html.datatables import read_datatables_params
+from workhours.places.models import PlacesContextFactory
+from workhours.future import OrderedDict
+import logging
 import workhours.models.json as json
+log = logging.getLogger('workhours.places.views')
 
 class PlacesRESTfulView(RESTfulView):
-    #def render_to_response(self, member):
-    #    raise Exception(member)
-
     _entity_name = 'place'
+    _entity_name_plural = 'places'
     _renderers = OrderedDict((
         ('html', (('text/html',), 'utf-8',)),
         ('json', (('application/json',), 'utf-8')),
         ('xml', (('application/xml',), 'utf-8')),
     ))
+
+    fields = ['_id','url','netloc','eventcount','title']
 
     def get_collection(self):
         kwargs = self.request.params.get('$$', {})
@@ -97,24 +96,30 @@ class PlacesRESTfulView(RESTfulView):
     def render_html(self, value):
         renderer=self._renderers['html']
         title='api : places'
-        fields = self.context.default_fields
+        fields = self.fields
 
         # a model instance
-        if not hasattr(value, '__iter__'):
+        if isinstance(value, Place): #not hasattr(value, '__iter__'):
             value = [value]
-            title = u"Place: %s" % self.request.matchdict['id']
+            title = u"Place: %s" % self.request.matchdict['_id']
+            template = 'places/templates/_place.jinja2'
+        else:
+            template = 'places/templates/_places_table.jinja2'
 
         # an iterable
         return dict(
-            body=render('places/templates/_places_table.jinja2',
+            body=render(template,
                 dict(
                     value=value,
                     fields=fields,
-                    table_id='places',
+                    table_id=self._entity_name_plural,
                     title=title,
                     wrap=self.wrap,
-                    js_links="datatable/js/jquery.dataTables.min.js",
-                    fields_json=Markup(json.dumps([dict(mDataProp=f) for f in fields]))
+                    js_links=("workhours:static/datatable/js/jquery.dataTables.min.js",),
+                    fields_json=(
+                        Markup(
+                            json.dumps([dict(mDataProp=f) for f in fields])
+                    ))
                 ),
                 self.request),
             charset=renderer[1],
