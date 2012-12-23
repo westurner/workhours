@@ -4,26 +4,31 @@ from __future__ import print_function
 """
 to_dataframes
 """
+from pandas import DataFrame
+from workhours.models import DBSession, Event
 
+import logging
+log = logging.getLogger('workhours.models.dataframes')
 
-def to_dataframes(dburi, *args, **kwargs):
+def to_dataframes(*args, **kwargs):
     """
     serialize data to dataframes
     """
-    from pandas import DataFrame
-
-    from workhours import models
-    s = models.Session(dburi)
+    s = kwargs.get('session', DBSession())
 
     query = kwargs.get('query')
     if query is None:
         query = (Event.date, Event.title, Event.url)
+        query = s.query(*query)
+        log.debug('default query: %r' % query)
+        log.debug('default query: %s' % query)
+    else:
+        log.debug('query: %r' % query)
+        log.debug('query: %s' % query)
 
-    column_names = kwargs.get('column_names')
-    if column_names is None:
-        column_names = [q.__name for q in query] # TODO
+    column_names = kwargs.get('column_names', ('date','title','url'))
+    log.debug('column_names: %r' % column_names)
 
-    result_iter =  s.query(*query)
     df = DataFrame.from_records(
             query,
             columns=column_names,
@@ -34,7 +39,8 @@ def to_dataframes(dburi, *args, **kwargs):
 import unittest
 class Test_to_dataframes(unittest.TestCase):
     def test_to_dataframes(self):
-        pass
+        df = to_dataframes()
+        assert df
 
 
 def main():
