@@ -2,7 +2,6 @@
 import workhours.models.json as json
 import logging
 
-from collections import OrderedDict
 from jinja2 import Markup
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
@@ -12,6 +11,7 @@ from pyramid_restler.view import RESTfulView
 from workhours.events.models import EventsContextFactory
 from workhours.models import Event, DBSession
 from workhours.models.html.datatables import read_datatables_params, build_query
+from workhours.future import OrderedDict
 
 log = logging.getLogger('.events.views')
 from pprint import pformat
@@ -21,12 +21,12 @@ class EventsRESTfulView(RESTfulView):
     #    raise Exception(member)
     context = EventsContextFactory
     _entity_name = 'event'
+    _entity_name_plural = 'events'
     _renderers = OrderedDict((
         ('html', (('text/html',), 'utf-8',)),
         ('json', (('application/json',), 'utf-8')),
         ('xml', (('application/xml',), 'utf-8')),
     ))
-    defualt_render = 100
 
     def get_collection(self):
         kwargs = self.request.params.get('$$', {})
@@ -89,7 +89,7 @@ class EventsRESTfulView(RESTfulView):
         raise HTTPBadRequest('XML renderer not implemented.')
 
     @reify
-    def fields(self):
+    def fields(self): # TODO
         fields = self.request.params.get('$fields', None)
         if fields is not None:
             fields = json.loads(fields)
@@ -119,21 +119,26 @@ class EventsRESTfulView(RESTfulView):
         fields = self.context.default_fields
 
         # a model instance
-        if not hasattr(value, '__iter__'):
-            value = [value]
-            title = u"Event: %s" % self.request.matchdict['id']
+        if isinstance(value, Event): #hasattr(value, '__iter__'):
+            value = (value,)
+            title = u"Event: %s" % Event._id
+            template = 'events/templates/_event.jinja2'
+        else:
+            template = 'events/templates/_events_table.jinja2'
+
+        fieldsdict = [dict(mDataProp=f) for f in fields]
 
         # an iterable
         return dict(
-            body=render('events/templates/_events_table.jinja2',
+            body=render(template,
                 dict(
                     value=value,
                     fields=fields,
-                    table_id='events',
+                    table_id=self._entity_name_plural,
                     title=title,
                     wrap=self.wrap,
-                    js_links="datatable/js/jquery.dataTables.min.js",
-                    fields_json=Markup(json.dumps([dict(mDataProp=f) for f in fields]))
+                    js_links=("workhours:static/datatable/js/jquery.dataTables.min.js",),
+                    fields_json=Markup(json.dumps(fieldsdict))
                 ),
                 self.request),
             charset=renderer[1],
