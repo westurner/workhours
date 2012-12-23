@@ -103,7 +103,7 @@ class EventsContextTests(unittest.TestCase):
         # self.context.member_to_dict(member, fields=['one'])
 
     def test_default_fields(self):
-        expected = ('id', 'date','type','url','title')
+        expected = ('_id', 'date', 'source', 'url', 'title')
         fields = self.context.default_fields
         self.assertEqual(expected, fields)
 
