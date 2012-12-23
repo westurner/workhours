@@ -60,78 +60,82 @@ def check_queue_set(task_queues):
                         % (queuetype, argset.url))
     return not errflag
 
-# TODO: more elegant generalization
-def populate_events_table(eventsdb_uri, task_queues, filestore):
+def events_table_worker(eventsdb_uri, task_queues, filestore):
 
     log.debug(task_queues)
     if not check_queue_set(task_queues):
         raise Exception()
 
-    meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
-    s = meta.Session()
     for queuetype, sources in task_queues.iteritems():
-        s.begin(subtransactions=True)
-        queue = TaskQueue( type=queuetype )
-        s.add(queue)
-        s.commit()
-        s.close()
-
-        parser_parse, get_fileset = QUEUES[queuetype]
-
-        # Consume task iterable
-        for argset in sources:
+        try:
+            meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
             s = meta.Session()
+
             s.begin(subtransactions=True)
-            task = Task(queue_id=queue._id,
-                        args=argset._asdict())
-            log.debug("%r : %s " % (task, task._asdict()))
-            s.add(task)
-            s.commit() # get task._id
+            queue = TaskQueue( type=queuetype )
+            s.add(queue)
+            s.commit()
+            #s.close()
 
-            _log = logging.getLogger('workhours.tasks.%s.%s' % (queuetype, task._id))
+            parser_parse, get_fileset = QUEUES[queuetype]
 
-            task_dirname = '%s_%s' % (task._id, queuetype)
-            task_dir = filestore.mkdir(task_dirname)
+            # Consume task iterable
+            for argset in sources:
+                s = meta.Session()
+                s.begin(subtransactions=True)
+                task = Task(queue_id=queue._id,
+                            args=argset._asdict())
+                log.debug("%r : %s " % (task, task._asdict()))
+                s.add(task)
+                s.commit() # get task._id
 
-            # Run Tasks
-            try:
-                files_ = [
-                    task_dir.copy_here(f)
-                        for f in get_fileset(task.args)
-                ]
-                uri = files_[0]
-                for event_ in parser_parse(uri=uri):
-                    _log.log(3, "%r : %s" % (event_, event_))
-                    try:
-                        #_log.debug("%s : %s" % (type(event_), event_))
-                        event = Event.from_uhm(
-                                    queuetype,
-                                    event_,
-                                    task_id=task._id)
-                        if event.url and '://' in event.url[:10]:
-                            place = Place.get_or_create(event.url, session=s)
-                            event.place_id = place._id
-                        s.add(event)
+                _log = logging.getLogger('workhours.tasks.%s.%s' % (queuetype, task._id))
 
-                        # TODO:
-                        #s.flush() # get event._id
-                        # sunburnt.index(event + **addl_attrs)
-                        # pyes.insert( **event.to_dict() )
-                        yield event
+                task_dirname = '%s_%s' % (task._id, queuetype)
+                task_dir = filestore.mkdir(task_dirname)
 
-                    except Exception, e:
-                        task.status = 'err'
-                        task.statusmsg = str(e)
-                        s.flush()
-                        raise
+                # Run Tasks
+                try:
+                    files_ = [
+                        task_dir.copy_here(f)
+                            for f in get_fileset(task.args)
+                    ]
+                    uri = files_[0]
+                    for event_ in parser_parse(uri=uri):
+                        _log.log(3, "%r : %s" % (event_, event_))
+                        try:
+                            #_log.debug("%s : %s" % (type(event_), event_))
+                            event = Event.from_uhm(
+                                        queuetype,
+                                        event_,
+                                        task_id=task._id)
+                            if event.url and '://' in event.url[:10]:
+                                place = Place.get_or_create(event.url, session=s)
+                                event.place_id = place._id
+                            s.add(event)
 
-                s.commit()
-                s.close()
-            except Exception, e:
-                log.error("ERROR Parsing: %s" % queuetype)
-                log.error(e)
-                log.exception(e)
-                s.rollback()
-                raise
-                #pass # TOOD
+                            # TODO:
+                            #s.flush() # get event._id
+                            # sunburnt.index(event + **addl_attrs)
+                            # pyes.insert( **event.to_dict() )
+                            yield event
 
+                        except Exception, e:
+                            task.status = 'err'
+                            task.statusmsg = str(e)
+                            s.flush()
+                            raise
+
+                    s.commit()
+                    s.close()
+                except Exception, e:
+                    log.error("ERROR Parsing: %s" % queuetype)
+                    log.error(e)
+                    log.exception(e)
+                    s.rollback()
+                    raise
+                    #pass # TOOD
+        except Exception, e:
+            log.exception(e)
+        finally:
+            s.close()
