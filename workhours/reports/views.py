@@ -1,6 +1,6 @@
 import workhours.models.json as json
 
-from collections import OrderedDict
+from workhours.future import OrderedDict
 from jinja2 import Markup
 from pyramid.renderers import render, render_to_response
 from pyramid.response import Response
@@ -14,12 +14,6 @@ class ReportViews(object):
     def __init__(self, request):
         self.request = request
 
-    def list_reports(self):
-        return render_to_response("reports/templates/_report_list.jinja2",
-            {
-                "title": "Reports",
-                "report_types": self.request.db_session.query(ReportType)
-            }, self.request)
 
 
 class ReportView(RESTfulView):
@@ -32,6 +26,7 @@ class ReportView(RESTfulView):
         ('xml', (('application/xml',), 'utf-8')),
     ))
     default_render = 'html'
+    fields = ReportContext.default_fields
 
     def determine_renderer(self):
         request = self.request
@@ -59,17 +54,25 @@ class ReportView(RESTfulView):
                 body=render('reports/templates/_report.jinja2',
                     dict(
                         report=value,
-                        fields=fields,
+                        fields=self.fields,
                         table_id=self._entity_name,
                         title=title,
                         wrap=self.wrap,
                         js_links="datatable/js/jquery.dataTables.min.js",
                         fields_json=Markup(
-                            json.dumps([dict(mDataProp=f) for f in fields]))
+                            json.dumps(
+                                [dict(mDataProp=f) for f in self.fields]))
                     ),
                     self.request),
 
             )
+        else:
+            return render_to_response("reports/templates/_report_list.jinja2",
+                {
+                    "title": "Reports",
+                    "report_types": value
+                                    #self.request.db_session.query(ReportType)
+                }, self.request)
         raise Exception()
 
 
@@ -84,3 +87,5 @@ class ProjectsView(ReportView):
 class WikipediaPagesView(ReportView):
     _report_name = 'wikipedia pages'
 
+class QuestionsView(ReportView):
+    _report_name = 'questions'
