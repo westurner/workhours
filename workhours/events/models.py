@@ -4,29 +4,33 @@
 from pyramid_restler.model import SQLAlchemyORMContext
 import sqlalchemy
 from sqlalchemy import orm
+from sqlalchemy.sql import func
 #from pyramid_restler.view import RESTfulView
-#from collections import OrderedDict
+from workhours.future import OrderedDict
 
-from workhours.models import Event
+from workhours.models import Event, Task, TaskQueue
 from workhours.models.json import DefaultJSONEncoder
+
+
 
 import logging
 
 log = logging.getLogger('.events.models')
 
-class EventsContextFactory(SQLAlchemyORMContext):
+class WorkhoursORMContext(SQLAlchemyORMContext):
+    entity = None
+
     json_encoder = DefaultJSONEncoder
+    default_fields = ('_id',)
+
+class EventsContextFactory(WorkhoursORMContext):
     entity = Event
-
-    default_fields = ('id','date','type','url','title')
-
-    #def get_collection(self, *args, **kwargs):
-#
-        #return super(EventsContextFactory, self).get_collection(*args, **kwargs)
-    #    return SQLAlchemyORMContext.get_collection(self, *args, **kwargs)
+    default_fields = ('_id','date','source','url','title')
+    eagerload = ('task.queue',)
 
     def get_collection(self, distinct=False, order_by=None, limit=None,
-                       offset=None, filters=None, **kwargs):
+                       offset=None, filters=None, eagerload=None,
+                       **kwargs):
         """Get the entire collection or a subset of it.
 
         By default, this will fetch all records for :attr:`entity`. Various
@@ -54,10 +58,12 @@ class EventsContextFactory(SQLAlchemyORMContext):
         query.
 
         """
-        q = self.session.query(self.entity)
+        q = self.request.db_session.query(self.entity)
 
         # XXX: Handle joined loads here?
-        q.options(orm.joinedload_all('task.queue'))
+        if eagerload is not None:
+            q.options(
+                orm.joinedload_all(*EventsContextFactory.eagerload))
 
         # Apply "global" (i.e., every request) filters
         if hasattr(self, 'filters'):
@@ -78,10 +84,13 @@ class EventsContextFactory(SQLAlchemyORMContext):
             q = q.distinct()
 
         search = kwargs.get('search')
-        if search is not None:
+        if search is not None and search is not u'':
+            if '%' not in search:
+                search = u'%%%s%%' % search
             q = q.filter(
-                        ( self.entity.url.like(search) )
-                    |   ( self.entity.title.like(search) )
+                    ( Event.url.like(search) )
+                |   ( Event.title.like(search) )
+                |   ( Event.source.like(search) )
             )
 
         if order_by is not None:
@@ -106,7 +115,11 @@ class EventsContextFactory(SQLAlchemyORMContext):
 
     def count(self):
         # TODO: ...
-        return self.request.db_session.query(self.entity).count()
+        return (
+            self
+            .request
+            .db_session
+            .query(func.count(self.entity._id)).one())
 
     def wrap_json_obj(self, obj):
         result_count=len(obj)

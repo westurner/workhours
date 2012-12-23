@@ -3,26 +3,41 @@
 {% endif %}
 
 {% block content %}
-<table class="modeltable" id="{{ table_id }}">
-<thead>
+{# <thead>
 <tr>{% for field in fields %}<th>{{ field }}</th>{% endfor %}</tr>
 </thead>
-<tbody>
+#}
 {% for obj in value %}
-<tr>
+<table class="modeltable" id="{{ table_id }}">
+<tbody>
     {% for field in fields %}
+<tr>
+    <td>{{ field }}</td>
     <td>
-    {% if 'url' in field and obj[field].startswith('http') %}
+    {% if obj[field] and 'url' in field and obj[field].startswith('http') %}
     <a href="{{ obj[field] }}">{{ obj[field] }}</a>
     {% else %}
     <span>{{ obj[field] }}</span>
     {% endif %}
     </td>
-    {% endfor %}
 </tr>
 {% endfor %}
+<tr>
+    <td>source</td>
+    <td>
+
+        {{ obj.task.args['url'] }}
+    </td>
+</tr>
 </tbody>
 </table>
 
+{# 
+<pre>
+{{ obj.task }} {{ obj.task.args['url'] }}
+</pre>
 
+#}
+
+{% endfor %}
 {% endblock content %}
