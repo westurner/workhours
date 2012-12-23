@@ -29,28 +29,37 @@ Command Line Interface
    event aggregation CLI
 
    Options:
-      -h, --help            show this help message and exit
+      -h, --help                show this help message and exit
       -c CONFIG_FILE, --config=CONFIG_FILE
+                                path to configuration file containing
+                                db.uri, fs.uri, and TaskQueue
+                                definitions
       --db=EVENTSDB_URI, --eventsdb=EVENTSDB_URI
-                              Filepath for the aggregate events database
+                                database uri for storing task results
+                                ex: ``sqlite:///:memory:``
       --fs=FS_URI, --task-storage=FS_URI
-                              Path where task and reports files will be stored
+                                Path where task data will be copied
+                                and reports files will be stored
       -l, --list-source-types
+                                List supported source (TaskQueue) types
       -s SRC_QUEUES, --src=SRC_QUEUES
-                              Type and filename tuples (ex. 'shell.log ./.usrlog')
-      -P, --parse           Parse
+                                Type and filename tuples
+                                (ex: ``-s shell.log ./.usrlog``)
+      -P, --parse               Parse and extract all sources defined in
+                                by the ``-s`` option and the ``-c``
+                                config
       -u USERNAMES, --username=USERNAMES
-                              Usernames to include
-      --list-report-types   List supported reports
+                                Usernames to include
+      --list-report-types       List supported report types
       -r REPORTS, --report=REPORTS
-                              Generate a report type
+                                Generate a report type
       -o OUTPUT, --output-file=OUTPUT
-                              Output file (default: '-' for stdout)
+                                Output file (default: '-' for stdout)
       -O OUTPUT_FORMAT, --output-format=OUTPUT_FORMAT
-                              Output format <csv|json> (default: None)
+                                Output format <csv|json> (default: None)
       -G GAPTIME, --gaptime=GAPTIME
-                              Minute gap to detect between entries
-      -p, --print-all       Dump the events table to stdout
+                                Minute gap to detect between entries
+      -p, --print-all           Dump the events table to stdout
       -v, --verbose
       -q, --quiet
       -t, --tes
