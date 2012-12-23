@@ -3,25 +3,26 @@
 #from pyramid.response import Response
 from pyramid_restler.model import SQLAlchemyORMContext
 #from pyramid_restler.view import RESTfulView
-#from collections import OrderedDict
+#from workhours.future import OrderedDict
 
 from workhours.models import Place
 from workhours.models.json import DefaultJSONEncoder
 import sqlalchemy
 from sqlalchemy import orm
+from sqlalchemy.sql import func
 
 import logging
 
-log = logging.getLogger('.places.models')
+log = logging.getLogger('workhours.places.models')
 
 class PlacesContextFactory(SQLAlchemyORMContext):
     json_encoder = DefaultJSONEncoder
     entity = Place
-
-    default_fields = ('id','url','netloc','eventcount')
+    default_fields = ('_id','url','netloc','eventcount','title')
 
     def get_collection(self, distinct=False, order_by=None, limit=None,
-                       offset=None, filters=None, **kwargs):
+                       offset=None, filters=None,
+                       **kwargs):
         """Get the entire collection or a subset of it.
 
         By default, this will fetch all records for :attr:`entity`. Various
@@ -52,7 +53,7 @@ class PlacesContextFactory(SQLAlchemyORMContext):
         q = self.session.query(self.entity)
 
         # XXX: Handle joined loads here?
-        q.options(orm.joinedload_all('events'))
+        q.options(orm.joinedload(self.entity.events))
 
         # Apply "global" (i.e., every request) filters
         if hasattr(self, 'filters'):
@@ -72,7 +73,9 @@ class PlacesContextFactory(SQLAlchemyORMContext):
         if distinct:
             q = q.distinct()
         search = kwargs.get('search')
-        if search:
+        if search is not None and search is not u'':
+            if '%' not in search:
+                search = u'%%%s%%' % search
             q = q.filter(
                         ( self.entity.url.like(search) )
                     |   ( self.entity.netloc.like(search) )
@@ -93,17 +96,35 @@ class PlacesContextFactory(SQLAlchemyORMContext):
         if offset is not None:
             q = q.offset(offset)
         if limit is not None:
+            log.debug("limit: %r" % limit)
             q = q.limit(limit)
 
-        return q.all()
+        return q
+
+    def get_member(self, id):
+        q = self.session.query(self.entity)
+        intval = None
+        try:
+            intval = int(id)
+            return q.get(id)
+        except Exception, e:
+            log.debug("not an int: %r" % id)
+            if hasattr(id, '__contains__') and '://' in id:
+                return q.filter(self.entity.url == id).one()
+            return q.get(id)
 
     def count(self):
         # TODO: ...
-        return self.request.db_session.query(self.entity).count()
+        return (
+            self.request
+                .db_session
+                .query(
+                    func.count(self.entity._id)
+                ).one() )
 
     def wrap_json_obj(self, obj):
         result_count=len(obj)
-        total_count = self.count()
+        total_count = self.count()[0]
         return dict(
             results=obj,
             result_count=result_count,
