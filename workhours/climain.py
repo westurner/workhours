@@ -269,8 +269,8 @@ def main(*args):
     debug_conf(opts)
 
     if opts.parse and any(x[0] for x in opts._queues.iteritems()):
-        from workhours.tasks.events import populate_events_table
-        for result in populate_events_table(
+        from workhours.tasks.events import events_table_worker
+        for result in events_table_worker(
                             opts.sqldb_url,
                             opts._queues,
                             filestore=opts._filestore):
