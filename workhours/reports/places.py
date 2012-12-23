@@ -5,6 +5,7 @@ from urlparse import urlparse
 from workhours.models import Place
 from workhours.reports.models import ReportContext
 from zope.interface import implements
+from workhours.future import OrderedDict
 
 class DomainsContext(ReportContext):
     _report_type = 'domains'
@@ -65,17 +66,46 @@ class WikipediaPagesContext(ReportContext):
                     Place.netloc.like('%wikipedia.org')))
 
         def mapfn(obj):
-            return(
+            return (
                 (obj.netloc,) + tuple(obj.path.split('/')[1:]),
                 obj)
 
         def filterfn(obj):
             return obj[0][0:1] and obj[0][1] == u'wiki'
 
-        objects = itertools.imap(mapfn, query)
+        objects = itertools.imap(mapfn, query.all())
         objects = itertools.ifilter(filterfn, objects)
 
-        for k,i in itertools.groupby(objects, lambda x: u'/'.join(x[0])):
-            urls = [ (v[1].url, v[1].eventcount or 1) for v in i]
-            yield k, [x[0] for x in urls], sum(x[1] for x in urls)
+        for k,objiter in itertools.groupby(objects, lambda x: u'/'.join(x[0])):
+            places = list(objiter)
+            urls = [
+                (
+                    obj[1].url,
+                    len(obj[1].events) or 1, # FIXME
+                    obj) # TODO.. SQL
+                for obj in places]
+            yield OrderedDict((
+                ('url', k),
 
+                ('urls', len(urls) > 1 and [x[0] for x in urls]),
+                ('count', sum(x[1] for x in urls)),
+                ('events', [str(place[-1].events) for place in places]),
+                #[str(e) for e in x[0].events]
+            ))
+
+class QuestionsContext(ReportContext):
+    _report_type = 'questions'
+
+    def generate_report(self):
+        query = (
+            self.request.db_Session().query(Place)
+                .filter(
+                    Place.netloc.in_(
+                        'stackoverflow.com',
+                        'serverfault.com',
+                        'superuser.com',
+                        'webmasters.stackexchange.com',
+                        'quora.com',
+                    )))
+
+        return query.all()
