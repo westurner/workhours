@@ -3,16 +3,56 @@
 {% endif %}
 
 {% block content %}
-<table id="{{ table_id }}">
-<thead>
-<tr>{% for field in fields %}<th>{{ field }}</th>{% endfor %}</tr>
-</thead>
-<tbody>
 {% for obj in value %}
-<tr>{% for field in fields %}<td>{{ obj[field] }}</td>{% endfor %}</tr>
+<table id="{{ table_id }}">
+    {# <thead>
+<tr>{% for field in fields %}<th>{{ field }}</th>{% endfor %}</tr>
+</thead> #}
+<tbody>
+{% for field in fields %}
+
+<tr>
+<td>{{ field }}</td>
+<td>{{ obj[field] }}</td>
+</tr>
 {% endfor %}
 </tbody>
 </table>
 
+<div id="events_div">
+    <h2>events</h2>
+{% with %}
+{% set value = obj.events %}
+{% set table_id = 'events' %}
+{% set wrap = False %}
+{% set no_json = True %}
+{% set fields = ['_id','date','source','url','title'] %}
+{% include "events/templates/_events_table.jinja2" %}
+{% endwith %}
 
+{#
+{% for event in obj.events %}
+{% with %}
+{% set value = [event] %}
+{% set wrap = False %}
+{% set table_id = 'events_{{event.id}}' %}
+{% set no_json = True %}
+{% set fields = ["_id","url","netloc","eventcount","source"] %}
+{% include "models/templates/_table.jinja2" %}
+{% endwith %}
+{% endfor %}
+#}
+
+{#
+<pre>
+{{ obj.events }}
+</pre>
+#}
+
+</div>
+{# {{ e }} #}
+
+{# {{  obj.__dict__|jsonify_indent }} #}
+
+{% endfor %}
 {% endblock content %}
