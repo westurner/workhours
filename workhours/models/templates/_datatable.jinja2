@@ -1,0 +1,63 @@
+{% if wrap %}
+{% extends "base.jinja2" %}
+{% endif %}
+{% block extracss %}
+    <link rel="stylesheet"
+        href="{{ request.static_url("workhours:static/datatable/css/demo_table.css") }}"
+        media="screen,projection"
+        type="text/css"
+        />
+{% endblock extracss %}
+{% block extrajs %}
+<script type="text/javascript" language="javascript" 
+    src="{{ request.static_url("workhours:static/datatable/js/jquery.js")}}"></script>
+<script type="text/javascript" language="javascript" 
+    src="{{ request.static_url("workhours:static/datatable/js/jquery.dataTables.min.js")}}"></script>
+    <script type="text/javascript" language="javascript">
+
+
+ $(document).ready(function() {
+    $('#{{ table_id }}').dataTable({
+             "bSort": true,
+             "bPaginate": true,
+             "bLengthChange": true,
+             /*"sPaginationType": "full_numbers",*/
+             "bFilter": true,
+             "bAutoWidth": false,
+             "bAutoCss": false,
+             "iDisplayLength": 20, 
+             "aLengthMenu": [[20, 50, 100, 1000, 2000, -1], [20, 50, 100, 1000, 2000, "All"]],
+
+             {% if not no_json %}
+             "bProcessing": true,
+             "bServerSide": true,
+             "sAjaxSource": "/api/{{ table_id }}.json",
+             "sAjaxDataProp": "results",
+             /* "aoColumns": , */
+
+
+             "bScrollInfinite": true,
+             "bScrollCollapse": true,
+             /* "sScrollY": "000px", /* window.height-300px */
+             "sScrollY": "400px", /* $(window).height()-300 + "px", */
+             "sScrollX": $(window).width()-100,
+
+            {% endif %}
+
+             "bStateSave": true,
+             "aoColumns": {%- block datatable_columns -%}
+                {{ fields_json|skipautoescape }}
+{%- endblock datatable_columns -%}
+
+             /*"sDom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>',*/
+
+             /*"bJQueryUI": true,*/
+    });
+}); 
+</script>
+{% endblock extrajs %}
+
+
+{% block contentframe %}
+{% include "models/templates/_table.jinja2" %}
+{% endblock contentframe %}
