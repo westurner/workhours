@@ -11,8 +11,8 @@ from workhours.models.fixtures import data
 import transaction
 
 class SecurityViewTests(testing.PyramidFixtureTestCase):
-    TEST_USERNAME = u'test_username'
-    fixtures = tuple() #data.UserData,)
+    TEST_USERNAME = u'testfixture_username'
+    fixtures = (data.UserData, )
 
     def _addUser(self, username):
         from workhours.models import User
@@ -98,7 +98,6 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         _register_common_templates(self.config)
         request = self._new_request()
         request.matchdict = {'username': self.TEST_USERNAME}
-        self._addUser(self.TEST_USERNAME)
         result = user_view(request)
         self.assertEqual(result['user'].username, self.TEST_USERNAME)
         self.assertTrue(result['user']._id)
@@ -108,7 +107,6 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
     def test_login_view_submit_fail(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
-        self._addUser(self.TEST_USERNAME)
         request = self._new_request()
         request.POST = {
             'form.submitted': u'Login',
@@ -124,9 +122,8 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
     def test_login_view_submit_success(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
-        self._addUser(self.TEST_USERNAME)
         request = self._new_request()
-        request.POST ={
+        request.POST = {
             'form.submitted': u'Login',
             'username': self.TEST_USERNAME,
             'passphrase': u'passphrase',
