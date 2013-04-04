@@ -30,7 +30,7 @@ def open_db(dburi,
     """
     try:
         engine = create_engine(dburi)
-        meta = initialize_sql(engine)
+        meta = initialize_sql(engine, setup_mappers)
         meta.bind = engine
     except Exception:
         if dburi.startswith('sqlite') and destructive_recover:
@@ -58,7 +58,7 @@ def Session(uri):
     return meta.Session()
 
 
-def initialize_sql(engine, create_tables_on_init=False):
+def initialize_sql(engine, setup_mappers, create_tables_on_init=False):
     log.debug("initialize_sql: %r" % engine)
     # uhm
     try:
