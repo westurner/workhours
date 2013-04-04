@@ -16,7 +16,7 @@ build:
 	python setup.py build bdist_egg
 
 local:
-	time workhours -c ./local.ini -p -v 2>&1 | tee local.log
+	workhours -c ${_ETC}/local.ini -P -v 2>&1 && echo $# | tee local.log
 
 nosetests:
 	python setup.py nosetests
