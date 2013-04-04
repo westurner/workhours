@@ -86,7 +86,7 @@ class Visit(object):
         return u'%s || %s || %s' % (self._visit_date.ctime(), self.place.url, self.place.title)
 
 
-def setup_mappers(engine):
+def setup_mappers(meta=None, engine=None):
     """
     Setup SQLAlchemy mappings for the firefox places.sqlite history file
 
