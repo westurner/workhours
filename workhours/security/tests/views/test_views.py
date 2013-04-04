@@ -42,8 +42,8 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         self.assertTrue('form' in result)
         request = self._new_request()
         request.POST = {
-            'form.submitted': 'Shoot',
-            #'_csrf': request.session.get_csrf_token(),
+            'loginform.submitted': 'Shoot',
+            '_csrf': request.session.get_csrf_token(),
         }
         result = user_add(request)
         self.assertEqual(
@@ -64,7 +64,7 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         _register_common_templates(self.config)
         request = self._new_request()
         request.POST = {
-            'form.submitted': u'Register',
+            'loginform.submitted': u'Register',
             'username': 'username3',
             'passphrase': u'secret',
             'confirm_passphrase': u'secret',
@@ -72,7 +72,8 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
             'name': u'John Doe',
             '_csrf': request.session.get_csrf_token()
         }
-        user_add(request)
+        resp = user_add(request)
+        raise Exception()
 
         user = (
             self.session.query(User)
@@ -109,7 +110,7 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         _register_routes(self.config)
         request = self._new_request()
         request.POST = {
-            'form.submitted': u'Login',
+            'loginform.submitted': u'Login',
             'username': self.TEST_USERNAME,
             'passphrase': u'wrongpassphrase',
             '_csrf': request.session.get_csrf_token()
@@ -124,9 +125,9 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         _register_routes(self.config)
         request = self._new_request()
         request.POST = {
-            'form.submitted': u'Login',
+            'loginform.submitted': u'Login',
             'username': self.TEST_USERNAME,
-            'passphrase': u'passphrase',
+            'passphrase': data.UserData.one.passphrase,
             '_csrf': request.session.get_csrf_token()
         }
         login_view(request)
