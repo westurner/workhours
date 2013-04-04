@@ -91,6 +91,7 @@ class EventsContextTests(PyramidFixtureTestCase):
                 results=obj,
                 result_count=len(obj),
                 iTotalDisplayRecords=(1,),  # datatables
+        )
         self.assertEqual(self.context.wrap_json_obj(obj), outp)
 
     def test_member_to_dict(self):
