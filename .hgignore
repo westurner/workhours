@@ -1,3 +1,4 @@
+.tox
 syntax:glob
 *.pyc
 *.egg-info
