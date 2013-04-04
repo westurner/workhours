@@ -42,7 +42,7 @@ class Visit(object):
         return '%s, %s, %s' % (cst.localize(self._visit_date).ctime(), self._url.url, self.title)
 
 
-def setup_mappers(engine):
+def setup_mappers(meta=None, engine=None):
     """
     Setup SQLAlchemy mappings for the webkit urls.sqlite history file
 
@@ -51,7 +51,7 @@ def setup_mappers(engine):
 
     :returns: SQLAlchemy meta
     """
-    meta = MetaData()
+    meta = meta or MetaData()
     # reflect all tables into meta.tables[]
     meta.reflect(bind=engine)
 
