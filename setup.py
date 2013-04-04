@@ -9,22 +9,22 @@ def rel_path(path_):
 
 from setuptools.command.test import test as TestCommand
 
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-    def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
-        import pytest
-        pytest.main(self.test_args)
+#class PyTest(TestCommand):
+#    def finalize_options(self):
+#        TestCommand.finalize_options(self)
+#        self.test_args = []
+#        self.test_suite = True
+#    def run_tests(self):
+#        #import here, cause outside the eggs aren't loaded
+#        import pytest
+#        pytest.main(self.test_args)
 
 setup(name='workhours',
     version=version,
     description="Aggregates events from various sources",
-    long_description='\n'.join( (
-        file(rel_path('README.rst'),'rb').read(),
-        file(rel_path('CHANGES.rst'), 'rb').read(),) ),
+    #long_description='\n'.join( (
+    #    file(rel_path('README.rst'),'rb').read(),
+    #    file(rel_path('CHANGES.rst'), 'rb').read(),) ),
     classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     keywords='',
     author='Wes Turner',
@@ -33,16 +33,23 @@ setup(name='workhours',
     license='New BSD',
     packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
     package_data={
-        'workhours': ['scripts/*.sh',] },
+        'workhours': [
+            'README.rst',
+            'CHANGES.rst',
+            'scripts/*.sh',] },
     include_package_data=True,
     zip_safe=False,
     install_requires=[
         # -*- Extra requirements: -*-
-        'SQLAlchemy>=0.6beta1',
+        'SQLAlchemy',
         'pytz>=2010e',
         'BeautifulSoup',
         'pyutmp',
-        'pyes'
+        'pyes',
+
+        'pyramid',
+        'zope.sqlalchemy',
+        'cryptacular'
         ],
     entry_points={
         # -*- Entry points: -*-
@@ -53,6 +60,6 @@ setup(name='workhours',
             'workhours = workhours.climain:main',
             ]
         },
-    tests_require=['pytest','pytest-cov','fixture'],
-    cmdclass = {'test': PyTest},
+    tests_require=['nose', 'fixture'],
+    #cmdclass = {'test': PyTest},
 )
