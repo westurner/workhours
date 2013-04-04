@@ -194,9 +194,9 @@ def main(*args):
     opts._queues = getattr(opts, '_queues', OrderedDict())
 
     def get_value(_config, attr, configpath, opts):
+        optsval = getattr(opts, attr, None)
         # if the file is in the config file
         if _config.has_option(*configpath):
-            optsval = getattr(opts, attr, None)
             if optsval:
                 log.warn("config %r overridden by cmdline" % attr)
             else:
