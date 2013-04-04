@@ -115,7 +115,7 @@ def create_tables(meta):
 
 def drop_tables(meta):
     try:
-        log.info('drop_tables(%r)' % meta)
+        log.info('DROP all (%r)' % meta) # FIXME:
         meta.drop_all()
     except Exception, e:
         log.error(meta)
