@@ -137,12 +137,14 @@ def _initialize_sql_test(engine=None, url=None):
         else:
             engine = create_engine(url)
 
-    meta = initialize_sql(engine, create_tables_on_init=False)
+    import workhours.models
+    from workhours.models.sql.tables import setup_mappers
+    meta = initialize_sql(engine, setup_mappers, create_tables_on_init=False)
     drop_tables(meta)
     clear_mappers()
-    import workhours.models
-    workhours.models.sql.tables._MAPPED = False
-    meta = initialize_sql(engine, create_tables_on_init=True)
+    #import workhours.models
+    workhours.models.sql.tables._MAPPED = False # ...
+    meta = initialize_sql(engine, setup_mappers, create_tables_on_init=True)
     #session = DBSession()
     #session.configure(bind=engine)
     #Base.metadata.bind = engine
