@@ -19,7 +19,8 @@ def initialize_esdb(url, *args, **kwargs):
     return ESSession(url,
             encoder=json.DefaultJSONEncoder,
             #decoder=json.DefaultJSONDecoder,
-            dump_curl=sys.stdout) # TODO
+            #dump_curl=sys.stdout) # TODO
+            )
 
 class ESSession(pyes.es.ES):
     indexes = []
@@ -45,7 +46,7 @@ class ESSession(pyes.es.ES):
                 _type   = getattr(model, '_pyes_type',
                                     model.__class__.__name__)
                 indexes.append(_index)
-                mappings[_type] = {'properties': model._pyes_schema}
+                mappings[_type] = model._pyes_schema
                 #yield (
                 #    model,
                 #    model._pyes_schema,
@@ -69,7 +70,7 @@ class ESSession(pyes.es.ES):
             self.create_index_if_missing(index)
 
         for key, mapping in mappings.iteritems():
-            self.put_mapping(key, {'properties': mappping,}, indexes=[])
+            self.put_mapping(key, {'properties': mapping,}, indices=[])
 
         if refresh:
             self.refresh_indexes(indexes)
@@ -92,11 +93,13 @@ class ESSession(pyes.es.ES):
             _obj = obj._asdict()
         elif hasattr(obj, '_fields'):
             _obj = {f:getattr(obj,f) for f in _fields}
+        else:
+            _obj = obj # TODO
 
         return self.index(_obj ,
-                            index=index,
-                            type=type,
-                            version=version,
+                            index,
+                            type,
+                            #version=version,
                             **kwargs)
 
 
@@ -106,10 +109,10 @@ class ESSession(pyes.es.ES):
             version = 1
 
         return self.index(objects,
-                            index=index,
-                            type=type,
+                            index,
+                            type,
                             bulk=True,
-                            version=version,
+                            #version=version,
                             **kwargs)
 
    #def index(self,
