@@ -247,6 +247,7 @@ class Event(_Base):
                         place_id=None,
                         task_id=None,
                         _id=None,
+                        **kwargs
                         ):
         self.source = source
         self.date = date
@@ -255,6 +256,8 @@ class Event(_Base):
         self.meta = MutationDict()
         if meta:
             self.meta.update(meta)
+        if kwargs:
+            self.meta.update(kwargs) # TODO
         self.place_id = place_id
         self.task_id = task_id
         self._id = self.get_id(_id)
