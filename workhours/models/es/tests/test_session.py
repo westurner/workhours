@@ -1,5 +1,5 @@
 
-test_es_url = 'http://localhost:9200'
+test_es_url = 'http://localhost:9200/'
 
 import logging
 log = logging.getLogger('workhours.models.es.tests.TestESSession')
@@ -26,7 +26,7 @@ class TestESSession(unittest.TestCase):
 
         self.assertTrue(result['ok'])
         self.assertEqual(result['_type'], obj_type)
-        self.assertEqual(result['_id'], u'1')
+        self.assertTrue(result.get('_id'))
         self.assertEqual(result['_index'], index)
 
     def test_es_initialize_db(self):
