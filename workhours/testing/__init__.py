@@ -44,28 +44,32 @@ def initialize_db(*args, **kwargs):
     dbfixture = SQLAlchemyFixture(
                     env=models,
                     style=NamedDataStyle(),
-                    engine=meta.bind )
+                    engine=engine )
     return meta, dbfixture
 
 from workhours.models.fixtures import data
 
 class PyramidFixtureTestCase(unittest.TestCase):
-    fixtures = tuple() #data.ALL_FIXTURES
+    fixtures = data.ALL_FIXTURES #tuple()
 
     def setUp(self, request=None):
-
-        self.config = testing.setUp()
+        log.debug("fixture setUp")
+        self.config = testing.setUp(request=request)
         self.meta, self.dbfixture = initialize_db(config=self.config)
         self.setUp_fixtures()
         self.session = self.meta.Session()
         self.request = self._new_request()
-        transaction.begin()
+        #transaction.begin()
+
+        #import ipdb
+        #ipdb.set_trace()
 
     def setUp_fixtures(self):
-        if self.fixtures:
-            log.debug('setup fixtures: %s', self.fixtures)
-            self.data = self.dbfixture.data(*self.fixtures)
-            self.data.setup()
+        if not self.fixtures:
+            raise Exception('no fixtures specified')
+        log.debug('setup fixtures: %s', self.fixtures)
+        self.data = self.dbfixture.data(*self.fixtures)
+        self.data.setup()
 
     def tearDown_fixtures(self):
         if self.fixtures:
@@ -87,7 +91,7 @@ class PyramidFixtureTestCase(unittest.TestCase):
         return request
 
 
-class ExampleTestCase(object): # unittest.TestCase
+class ExampleTestCase(PyramidTestCase): # unittest.TestCase
     def example_text_function(self):
         from pyramid.httpexceptions import HTTPForbidden
         from workhours.site.views import about
