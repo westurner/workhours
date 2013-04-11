@@ -1,4 +1,5 @@
 .tox
+tags
 syntax:glob
 *.pyc
 *.egg-info
@@ -18,4 +19,3 @@ whtmp*
 local/
 *.log
 *.db
-tags
