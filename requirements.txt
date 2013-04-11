@@ -8,7 +8,7 @@
 
 -r /srv/repos/etc/requirements-pyramidsqlalchemy.txt
 
-file:///srv/repos/src/cryptacular
+file:///srv/repos/src/passlib
 
 file:///srv/repos/src/formencode
 file:///srv/repos/src/webhelpers
