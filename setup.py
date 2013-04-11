@@ -49,7 +49,7 @@ setup(name='workhours',
 
         'pyramid',
         'zope.sqlalchemy',
-        'cryptacular'
+        'passlib'
         ],
     entry_points={
         # -*- Entry points: -*-

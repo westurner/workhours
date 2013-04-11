@@ -1,10 +1,5 @@
-import cryptacular.bcrypt
+from passlib.hash import pbkdf2_sha512
 
-crypt = cryptacular.bcrypt.BCRYPTPasswordManager()
-SALT = "88"
-
-def salt_passphrase(passphrase,salt=SALT):
-    return ':'.join((passphrase, salt))
-
-def hash_passphrase(passphrase):
-    return unicode(crypt.encode(salt_passphrase(passphrase)))
+def hash_passphrase(salt, passphrase):
+    return pbkdf2_sha512.encrypt(passphrase,
+            salt=(salt and salt.encode('hex')))
