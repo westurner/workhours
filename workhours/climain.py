@@ -153,6 +153,9 @@ def CommandlineOptionParser(*args,**kwargs):
     prs.add_option('-q', '--quiet',
                     dest='quiet',
                     action='store_true',)
+    prs.add_option('-I', '--ipython',
+                    dest='ipython',
+                    action='store_true',)
     prs.add_option('-t', '--test',
                     dest='run_tests',
                     action='store_true',)
@@ -351,6 +354,19 @@ def main(*args):
             raise Exception("report type %r unsupported" % report)
         result = reportfunc(opts)
         print(result, file=opts._output)
+
+    if opts.ipython:
+        from IPython import embed
+        from workhours.models.sql import open_db
+        from workhours.models.sql.tables import setup_mappers
+        from workhours.models import Base
+        meta = open_db(
+                opts.sqldb_url,
+                setup_mappers=setup_mappers,
+                create_tables_on_init=False,
+                )
+        s = meta.Session()
+        embed(user_ns=locals())
 
     return 0
 
