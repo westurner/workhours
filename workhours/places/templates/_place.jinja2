@@ -21,14 +21,14 @@
 
 <div id="events_div">
     <h2>events</h2>
-{% with %}
+{#% with %#}
 {% set value = obj.events %}
 {% set table_id = 'events' %}
 {% set wrap = False %}
 {% set no_json = True %}
 {% set fields = ['_id','date','source','url','title'] %}
 {% include "events/templates/_events_table.jinja2" %}
-{% endwith %}
+{#% endwith %#}
 
 {#
 {% for event in obj.events %}

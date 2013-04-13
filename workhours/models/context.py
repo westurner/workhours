@@ -3,7 +3,6 @@ from collections import Iterable
 from pyramid.decorator import reify
 from pyramid_restler.interfaces import IContext
 from zope.interface import implementer
-#from sqlalchemy.schema import Column
 
 def null(*args, **kwargs):
     return {}
@@ -140,7 +139,7 @@ class PlainContext(object):
     def member_to_dict(cls, member, fields=None):
         #if fields is None:
         #    fields = self.default_fields
-        return member
+        return member._asdict()
         #dict((name, getattr(member, name)) for name in fields)
 
     @reify
@@ -165,4 +164,11 @@ class PlainContext(object):
                         #fields.append(name)
         #fields = set(fields)
         #return fields
+
+from pyramid_restler.model import SQLAlchemyORMContext
+class WorkhoursORMContext(SQLAlchemyORMContext):
+    entity = None
+
+    json_encoder = json.DefaultJSONEncoder
+    default_fields = ('_id',)
 

@@ -1,7 +1,7 @@
 #from pyramid.renderers import render
 #from pyramid.decorator import reify
 #from pyramid.response import Response
-from pyramid_restler.model import SQLAlchemyORMContext
+
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy.sql import func
@@ -9,23 +9,19 @@ from sqlalchemy.sql import func
 from workhours.future import OrderedDict
 
 from workhours.models import Event, Task, TaskQueue
-from workhours.models.json import DefaultJSONEncoder
 
-
+from workhours.models.context import WorkhoursORMContext
 
 import logging
 
 log = logging.getLogger('.events.models')
 
-class WorkhoursORMContext(SQLAlchemyORMContext):
-    entity = None
 
-    json_encoder = DefaultJSONEncoder
-    default_fields = ('_id',)
 
 class EventsContextFactory(WorkhoursORMContext):
     entity = Event
-    default_fields = ('_id','date','source','url','title')
+    default_fields = ('_id','date','source','url','title',
+                      'place_id', 'source_id', 'task_id', 'meta')
     eagerload = ('task.queue',)
 
     def get_collection(self, distinct=False, order_by=None, limit=None,

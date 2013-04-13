@@ -7,7 +7,7 @@ class TempDir(object):
     def __init__(self,
                 path=None,
                 create=True,
-                dir='.',
+                dir='tmp',
                 prefix='whtmp-'):
         if not path:
             if create:

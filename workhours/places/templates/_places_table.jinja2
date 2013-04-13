@@ -6,8 +6,8 @@
     "sWidth": "1px",
     "aTargets": [0],
     "fnRender": function (obj) {
-        return ("<a href=\"/api/places/" + obj.aData.id + "\">" +
-            obj.aData.id + "</a>"); /* TODO: escape */
+        return ("<a href=\"/api/places/" + obj.aData._id + "\">" +
+            obj.aData._id + "</a>"); /* TODO: escape */
 
         }
 },

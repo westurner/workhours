@@ -26,7 +26,7 @@ def parse_sessionlog_line(line, session_prefix=''):
     date = cmd = cmdstr = dt = None
     if rest:
         rest_terms = [w.strip() for w in rest.split(':::',1)]
-        date, cmd = rest_terms[0], len(rest_terms) > 1 and u''.join(rest_terms[1:])
+        date, cmd = rest_terms[0], len(rest_terms) > 1 and u''.join(x.decode('utf8', errors='ignore') for x in rest_terms[1:])
         try:
             dt = datetime.strptime(date, "%m/%d/%y %H:%M.%S")
         except ValueError, e:
@@ -77,4 +77,4 @@ if __name__=="__main__":
     else:
         filename = sys.argv[1]
     for pair in parse_sessionlog(filename):
-        print '---'.join(map(str, pair))
+        print ' : '.join(map(str, pair))

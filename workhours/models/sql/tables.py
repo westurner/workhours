@@ -19,6 +19,7 @@ from workhours.models.sql.guid import GUID
 
 from workhours.models import User
 from workhours.models import TaskQueue
+from workhours.models import TaskSource
 from workhours.models import Task
 from workhours.models import Place
 from workhours.models import Event
@@ -51,17 +52,17 @@ def setup_mappers(meta=None, engine=None):
             Column('username', Unicode(32), index=True, unique=True),
             Column('name', Unicode(128)),
             Column('email', Unicode(128)),
-            Column('passphrase', Unicode(128)),
+            Column('passphrase_', Unicode(128)),
     )
     mapper(User, users_tbl, properties={
-        #'passphrase': synonym('_passphrase'),
+#        'passphrase': synonym("passphrase_")
     })
 
     queues_tbl = Table('queues', meta,
         Column('_id', GUID(), primary_key=True, nullable=False),
-            Column('type', Unicode(length=255), index=True),
+            Column('type', Unicode(length=255), index=True, unique=True),
             Column('uri', UnicodeText()),
-            Column('label', UnicodeText(), unique=True),
+            Column('label', UnicodeText()),
             Column('date', DateTime(), index=True,
                 onupdate=datetime.datetime.now),
 
@@ -70,17 +71,36 @@ def setup_mappers(meta=None, engine=None):
     )
     mapper(TaskQueue, queues_tbl)
 
+
+    tasksources_tbl = Table('tasksources', meta,
+        Column('_id', GUID(), primary_key=True, nullable=False),
+            Column('queue_id', GUID(), ForeignKey(queues_tbl.c._id), index=True),
+            Column('type', Unicode(length=255), index=True), # taskqueue.type # TODO
+            Column('url', UnicodeText()),
+            Column('label', UnicodeText()),
+            Column('date', DateTime(), index=True,
+                onupdate=datetime.datetime.now),
+
+            Column('host', UnicodeText()), # default=$(hostname)
+            Column('user', UnicodeText())  # default=$(whoami)
+    )
+    mapper(TaskSource, tasksources_tbl, properties={
+        'queue': relation(TaskQueue, backref='sources')
+        })
+
     tasks_tbl = Table('tasks', meta,
         Column('_id', GUID(), primary_key=True, nullable=False),
-            Column('queue_id', Integer(),
-                ForeignKey(queues_tbl.c._id), index=True),
+            Column('source_id', GUID(),
+                ForeignKey(tasksources_tbl.c._id), index=True),
             Column('args', MutationDict.as_mutable(JSONEncodedDict)),
             Column('label', UnicodeText()),
+            Column('state', Unicode(), index=True, nullable=True), # TODO: ENUM: celery
+            Column('statemsg', Unicode()),
             Column('date', DateTime(), index=True,
                 onupdate=datetime.datetime.now,),
     )
     mapper(Task, tasks_tbl, properties={
-        'queue': relation(TaskQueue, backref='tasks'),
+        'source': relation(TaskSource, backref='tasks'),
     })
 
     places_tbl = Table('places', meta,
@@ -102,7 +122,7 @@ def setup_mappers(meta=None, engine=None):
     # TODO: tags
 
     events_tbl = Table('events', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('_id', GUID(), primary_key=True), # TODO, nullable=False),
             Column('source', Unicode(), index=True),
             Column('date', DateTime(), index=True),
             Column('url', UnicodeText()),
@@ -112,9 +132,11 @@ def setup_mappers(meta=None, engine=None):
             Column('host', UnicodeText()),
             Column('user', UnicodeText()),
 
-            Column('place_id', Integer(),
+            Column('place_id', GUID(),
                 ForeignKey(places_tbl.c._id), nullable=True),
-            Column('task_id', Integer(),
+            Column('source_id', GUID(),
+                ForeignKey(tasksources_tbl.c._id), nullable=False),
+            Column('task_id', GUID(),
                 ForeignKey(tasks_tbl.c._id), nullable=False),
 
             # TODO: sync
@@ -140,7 +162,7 @@ def setup_mappers(meta=None, engine=None):
 
     reports_tbl = Table('reports', meta,
         Column('_id', GUID(), primary_key=True, nullable=False),
-            Column('report_type_id', Integer(),
+            Column('report_type_id', GUID(),
                 ForeignKey(report_types_tbl.c._id), nullable=False),
             Column('title', Unicode(), nullable=True),
             Column('data', MutationDict.as_mutable(JSONEncodedDict)))

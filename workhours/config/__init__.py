@@ -4,7 +4,7 @@
 from workhours.tasks.events import QUEUES
 
 from collections import namedtuple
-Source = namedtuple('Source', ('type','key','url'))
+ConfigTaskSource = namedtuple('Source', ('type','label','url', 'host', 'user'))
 
 import os.path
 def read_queues_from_config(_config, queues=QUEUES):
@@ -27,4 +27,10 @@ def read_queues_from_config(_config, queues=QUEUES):
             entry = v.strip()
             values = [str.strip(x) for x in entry.split('\n')]
             for value in values:
-                yield Source(queue_name, k, os.path.expanduser(value))
+                yield ConfigTaskSource(
+                        type=queue_name,
+                        label=k,
+                        url=os.path.expanduser(value),
+                        host='hostname', # TODO
+                        user='username', # TODO
+                )

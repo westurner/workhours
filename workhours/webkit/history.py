@@ -42,6 +42,8 @@ class Visit(object):
         return '%s, %s, %s' % (cst.localize(self._visit_date).ctime(), self._url.url, self.title)
 
 
+import warnings
+from sqlalchemy import exc as sa_exc
 def setup_mappers(meta=None, engine=None):
     """
     Setup SQLAlchemy mappings for the webkit urls.sqlite history file
@@ -53,7 +55,11 @@ def setup_mappers(meta=None, engine=None):
     """
     meta = meta or MetaData()
     # reflect all tables into meta.tables[]
-    meta.reflect(bind=engine)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+
+        meta.reflect(bind=engine)
 
     # redefine url_id as a foreign key
     urls = meta.tables['urls']
@@ -88,7 +94,13 @@ def parse_webkit_history(uri=None):
     :returns: Generator of (datetime, url) tuples
     """
     log.info("Parse: %s" % uri)
-    s = _Session(uri)
+    #s = _Session(uri)
+    meta = open_db('sqlite:///%s' % uri,
+                    setup_mappers=None,
+                    destructive_recover=True, # TODO: pragma-journal[...]
+                    munge_mappers=MAPPED_CLASSES)
+    meta = setup_mappers(meta, meta.bind)
+    s = meta.Session
     for v in (s.query(Visit).
                 options(
                     eagerload(Visit._url))):

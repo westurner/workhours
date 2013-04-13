@@ -48,7 +48,10 @@ class Bookmark(object):
         return _epoch_to_datetime(self.dateAdded)
 
     def __str__(self):
-        return u'||'.join(unicode(x).encode('utf-8') for x in self.to_event_row())
+        return u'%s||%s||%s' % (self.to_event_row())
+        return u'||'.join(
+            unicode(x).decode('utf-8',errors='xmlcharref')
+                for x in self.to_event_row())
 
 
 class Place(object):
@@ -86,6 +89,8 @@ class Visit(object):
         return u'%s || %s || %s' % (self._visit_date.ctime(), self.place.url, self.place.title)
 
 
+import warnings
+from sqlalchemy import exc as sa_exc
 def setup_mappers(meta=None, engine=None):
     """
     Setup SQLAlchemy mappings for the firefox places.sqlite history file
@@ -95,9 +100,14 @@ def setup_mappers(meta=None, engine=None):
 
     :returns: SQLAlchemy meta
     """
-    meta = MetaData()
-    # reflect all tables into meta.tables[]
-    meta.reflect(bind=engine)
+    meta = meta or MetaData()
+    #if meta.is_bound:
+    #    return meta
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+
+        meta.reflect(bind=engine)
 
     # redefine place_id as a foreign key
     places = meta.tables['moz_places']
@@ -127,9 +137,11 @@ MAPPED_CLASSES = ['Mapper|Place|moz_places',
 def _Session(uri):
     meta = open_db('sqlite:///%s' % uri,
                     setup_mappers,
-                    destructive_recover=True,
+                    destructive_recover=False, # TODO: pragma-journal[...]
                     munge_mappers=MAPPED_CLASSES)
-    return meta.Session()
+    meta = setup_mappers(meta, meta.bind)
+    return meta
+    #.Session()
 
 
 def parse_firefox_history(uri=None):
@@ -142,7 +154,12 @@ def parse_firefox_history(uri=None):
     :returns: Generator of (datetime, url) tuples
     """
     log.info("Parse: %s" % uri)
-    s = _Session(uri)
+    meta = open_db('sqlite:///%s' % uri,
+                    setup_mappers=None,
+                    destructive_recover=True, # TODO: pragma-journal[...]
+                    munge_mappers=MAPPED_CLASSES)
+    meta = setup_mappers(meta, meta.bind)
+    s = meta.Session
     for v in (s.query(Visit).
                 options(
                     eagerload(Visit.place))):
@@ -159,7 +176,12 @@ def parse_firefox_bookmarks(uri=None):
     :returns: Generator of (datetime, url, title) tuples
     """
     log.info("Parse: %s" % uri)
-    s = _Session(uri)
+    meta = open_db('sqlite:///%s' % uri,
+                    setup_mappers=None,
+                    destructive_recover=True, # TODO: pragma-journal[...]
+                    munge_mappers=MAPPED_CLASSES)
+    meta = setup_mappers(meta, meta.bind)
+    s = meta.Session
 
     for v in (s.query(Bookmark).
                 options(
