@@ -8,7 +8,7 @@ import datetime
 import logging
 import transaction
 import workhours.models
-from workhours.models import TaskQueue, Task, Event, Place
+from workhours.models import TaskQueue, TaskSource, Task, Event, Place
 from workhours.models import open_db
 from workhours.models.sql.tables import setup_mappers
 from workhours.future import OrderedDict
@@ -63,70 +63,119 @@ def check_queue_set(task_queues):
 
 
 
-
+from pprint import pformat
 
 def update_task_queues(eventsdb_uri, task_queues, filestore):
-    log.debug(task_queues)
+    log.debug(pformat(dict(task_queues)))
     log.debug("UPDATING TASK QUEUES")
     if not check_queue_set(task_queues):
         raise Exception()
 
-    for queuetype, sources in task_queues.iteritems():
+    for queue_type, sources in task_queues.iteritems():
+        #import ipdb
+        #ipdb.set_trace()
         try:
-            meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
+            meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=False)
             s = meta.Session()
-            queue = TaskQueue( type=queuetype )
+
+            queue = TaskQueue.get_or_create(
+                        TaskQueue.type, queue_type,
+                        _id=TaskQueue._new_id(),
+                        type=queue_type,
+                        #uri=sources[0].url, # TODO)
+                        host='localhost', # TODO
+                        user='username', # TODO
+            )
             s.add(queue)
+
+            for source in sources:
+                source = TaskSource(
+                        _id=TaskSource._new_id(),
+                        queue_id=queue._id,
+                        **source._asdict()
+                )
+                s.add(source)
+
+            #s.commit()
             transaction.commit()
         except Exception, e:
             log.exception(e)
-            s.rollback()
+            transaction.abort()
         finally:
             s.close()
 
-def parse_event_source(queue_id):
-    log.debug("parse_event_source: %r" % queue_id)
+from workhours.models.files import TempDir # TODO
+def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
+    """
+    Create and execute a Task for each TaskSource
+
+    """
+    log.debug("parse_event_source: (%r, %r)" % (eventsdb_uri, queue_id))
+
+    filestore = TempDir(filestore_uri or os.environ.get('$_TMP')) # TODO
     meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
     s = meta.Session()
-    queue = s.query(TaskQueue).filter(_id==queue_id).one()
+    s.expire_on_commit = False
+
+    # lookup queue
+    queue = s.query(TaskQueue).filter(TaskQueue._id==queue_id).one()
+    queue_type = queue.type
+
     parser_parse, get_fileset = QUEUES[queue.type]
 
-    # Consume task iterable
-    for argset in sources:
+# a Task, really, is a combination of
+# * _id: a globally unique ID
+# * queue_id: TaskQueue with a queue.type that maps to a parsing function
+# * args: arguments
+
+    for source in queue.sources: #sources:
+
         s = meta.Session()
-        task = Task(queue_id=queue._id,
-                    args=argset._asdict())
-        log.debug("%r : %s " % (task, task._asdict()))
+        task = Task(
+                    _id=Task._new_id(),
+                    source_id=source._id,
+                    #args=argset._asdict(),
+                    args=source._asdict()
+                    )
+        log.info("TASK: %r : %s " % (task, task._asdict()))
         s.add(task)
-        transaction.commit() # get task._id
+        transaction.commit()
 
-        _log = logging.getLogger('workhours.tasks.%s.%s' % (queuetype, task._id))
+        _log = logging.getLogger('workhours.tasks.%s.%s' % (queue.type, task._id))
 
-        task_dirname = '%s_%s' % (task._id, queuetype)
+        #transaction.commit() # get task._id
+        task_dirname = '%s_%s' % (task._id, queue.type)
+
         task_dir = filestore.mkdir(task_dirname)
 
         # Run Tasks
         try:
-            meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
-            s = meta.Session()
-            s.begin()
+            #meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
+
+            #s = meta.Session()
             files_ = [
                 task_dir.copy_here(f)
                     for f in get_fileset(task.args)
             ]
             uri = files_[0]
-            for event_ in parser_parse(uri=uri):
-                _log.log(3, "%r : %s" % (event_, event_))
+
+            for parser_event in parser_parse(uri=uri):
+                _log.log(3, "%r : %s" % (parser_event, parser_event))
                 try:
-                    #_log.debug("%s : %s" % (type(event_), event_))
                     event = Event.from_uhm(
-                                queuetype,
-                                event_,
-                                task_id=task._id)
+                        parser_event,
+                        _id=Event._new_id(),
+                        task_id=task._id,
+                        #source=queue_type,
+                        source=source.type,
+                        #source=task.args['type'],
+                        source_id=source._id
+                    )
                     if event.url and '://' in event.url[:10]:
                         place = Place.get_or_create(event.url, session=s)
                         event.place_id = place._id
                     s.add(event)
+                    #transaction.commit()
 
                     # TODO:
                     #s.flush() # get event._id
@@ -140,28 +189,35 @@ def parse_event_source(queue_id):
                     s.flush()
                     raise
 
+            #s.commit()
             transaction.commit()
         except Exception, e:
-            log.error("ERROR Parsing: %s" % queuetype)
-            log.error(e)
+            #log.error("ERROR Parsing: %s" % queue)
+            #log.error(e)
             log.exception(e)
-            s.rollback()
+            #s.rollback()
+            #transaction.abort()
             raise
-            #pass # TOOD
+            pass # TOOD
         finally:
-            s.close()
+            #s.close()
+            pass
 
 def events_table_worker(eventsdb_uri, task_queues, filestore):
     log.debug("events_table_worker")
-    update_task_queues(eventsdb_uri, task_queues, filestore)
 
     meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
-    s = meta.Session()
 
-    event_sources = s.query(TaskQueue).all() # TODO
-    for source in event_sources:
+    update_task_queues(eventsdb_uri, task_queues, filestore)
+
+    s = meta.Session()
+    task_queues = s.query(TaskQueue).all() # TODO
+    #event_sources = s.query(TaskSource).all()
+    for queue in task_queues:
         try:
-            parse_event_source(source._id)
+            log.info('parsing event source: %r ' % (queue.type))
+            for event in parse_event_source(eventsdb_uri, queue._id, filestore_uri=filestore):
+                yield event
         except Exception, e:
-            log.exception(e)
+            raise
             pass # TODO

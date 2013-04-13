@@ -101,7 +101,7 @@ class PlacesRESTfulView(RESTfulView):
         # a model instance
         if isinstance(value, Place): #not hasattr(value, '__iter__'):
             value = [value]
-            title = u"Place: %s" % self.request.matchdict['_id']
+            title = u"Place: %s" % self.request.matchdict['id']
             template = 'places/templates/_place.jinja2'
         else:
             template = 'places/templates/_places_table.jinja2'

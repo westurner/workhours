@@ -7,14 +7,21 @@ import datetime
 import urlparse
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 from workhours.models.sql.guid import GUID
+from sqlalchemy.orm import object_session
+from sqlalchemy.ext.hybrid import hybrid_property
+import sqlalchemy.orm.exc
 import logging
 log = logging.getLogger('workhours.models')
 
 __ALL__ = [
+    'User',
     'TaskQueue',
+    'TaskSource',
     'Task',
     'Event',
     'Place',
+    'ReportType',
+    'Report',
     'setup_mappers'
 ]
 
@@ -36,21 +43,58 @@ class _Base(object):
                 .order_by( getattr(cls,order_by)) )
 
     def get_id(self, _id=None):
-        return _id or getattr(self, '_id') or GUID.new_guid() #self.keyfunc()
+        """
+        on instantia
+        """
+        return self.id #self.keyfunc()
+
+
+    @hybrid_property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def _set_id(self, id):
+        if self._id is not None:
+            raise Exception()
+        self._id = id
+
+    @id.expression
+    def _id_expression(self):
+        return Base._id
+
+
+    @classmethod
+    def _new_id(cls):
+        return GUID.new_guid()
 
     def keyfunc(self):
         return (getattr(self, attr) for attr in self.keyfields)
 
     def _asdict(self, fields=None):
-        return {k:getattr(self,k) for k in fields or self._fields}
-
-    def __str__(self):
-        return unicode(self).encode('utf-8')
+        return {k:getattr(self,k) for k in (fields or self._fields)}
 
 
-from workhours.models.passphrase import salt_passphrase
+    #def __str__(self):
+    #    return unicode(self).encode('utf-8')
+#
+#    def __unicode__(self):
+#        return unicode(self._asdict())
+
+    @classmethod
+    def get_or_create(cls, attr, value, **kwargs):
+        try:
+            obj = DBSession.query(cls).filter(attr==value).one()
+            return obj
+        except sqlalchemy.orm.exc.NoResultFound as e:
+            kwargs[attr.property.key] = value #
+            obj = cls(**kwargs)
+            return obj
+        except sqlalchemy.orm.exc.MultipleResultsFound as e:
+            raise
+
+
 from workhours.models.passphrase import hash_passphrase
-from workhours.models.passphrase import crypt
 
 class User(_Base):
     """
@@ -61,25 +105,17 @@ class User(_Base):
         'username',
         'name',
         'email',
-        'passphrase',
+        'passphrase_',
     )
     _key_fields = (
         'username',
     )
 
-    def _get_passphrase(self):
-        return self._passphrase
-
-    def _set_passphrase(self, passphrase):
-        self._passphrase = hash_passphrase(passphrase)
-
-    passphrase = property(_get_passphrase, _set_passphrase)
-    #passphrase = synonym('_passphrase', descriptor=passphrase) # TODO
 
     def __init__(self,
                     username=None,
                     passphrase=None,
-                    _passphrase=None,
+                    passphrase_=None,
                     name=None,
                     email=None,
                     _id=None,
@@ -87,22 +123,59 @@ class User(_Base):
         self.username = username
         self.name = name
         self.email = email
-        self._id = self.get_id(_id)
-        if _passphrase:
-            self._passphrase = _passphrase
-        elif passphrase:
+        self.id = _id #self.get_id(_id)
+        if self.passphrase is not None:
             self.passphrase = passphrase
+
+
+        self.passphrase_ = passphrase_
+        #if not _passphrase:
+        #    self.passphrase = passphrase # self.set_passphrase(passphrase)
+
 
     @classmethod
     def get_by_username(cls, username):
         return DBSession.query(cls).filter(cls.username==username).one()
 
+
+    @hybrid_property
+    def passphrase(self):
+        return self.passphrase_
+
+    @passphrase.setter
+    def set_passphrase(self, passphrase):
+        if self.username is None: # test fixture setattr magic
+            #log.debug('username is None')
+            return
+
+        log.error('set_passphrase: (%r,%r)' % (username, passphrase)) # TODO
+        hashed_passphrase = self._hash_passphrase(passphrase)
+        log.error('%r' % hashed_passphrase)
+        self.passphrase_ = hashed_passphrase
+        # self._passphrase_last_updated = TODO
+
     @classmethod
-    def check_passphrase(cls, username, passphrase):
-        user = cls.get_by_username(username)
-        if not user:
+    def check_login(cls, username, passphrase):
+        try:
+            user = cls.get_by_username(username)
+            return user and user._check_passphrase(passphrase)
+        except Exception as e:
             return False
-        return check(user.passphrase,salt_passphrase(passphrase))
+
+    def _hash_passphrase(self, passphrase):
+        salt = self.username # + {...}
+        if passphrase is None:
+            return None
+        return hash_passphrase(salt, passphrase)
+
+    def _check_passphrase(self, passphrase):
+        if self.passphrase_ is None:
+            return False
+        _hashed_passphrase = self._hash_passphrase(passphrase)
+        if _hashed_passphrase is None:
+            return False
+        return self.passphrase_ == _hashed_passphrase
+
 
 
 
@@ -136,13 +209,47 @@ class TaskQueue(_Base):
         self.uri = uri
         self.host = host
         self.user = user
-        self._id = self.get_id(_id)
+        self.id = _id
 
+
+class TaskSource(_Base):
+    """
+    TODO: really more of a
+    """
+    _fields = (
+        '_id',
+        'type',
+        'label',
+        'url',
+        'host',
+        'user',)
+    _key_fields = (
+        'type',
+        'uri',
+        'host',
+        'user'
+    )
+    def __init__(self,
+                    queue_id=None,
+                    type=None,
+                    label=None,
+                    url=None,
+                    host=None,
+                    user=None,
+                    _id=None,
+                    ):
+        self.queue_id = queue_id
+        self.type = type # queue.type
+        self.label = label
+        self.url = url
+        self.host = host
+        self.user = user
+        self.id = _id
 
 class Task(_Base):
     _fields = (
         '_id',
-        'queue_id',
+        'source_id',
         'args',
         'date',
         'state',
@@ -153,7 +260,7 @@ class Task(_Base):
         #'queue_id',
     )
     def __init__(self,
-                    queue_id=None,
+                    source_id=None,
                     args=None,
                     date=None,
                     state=None,
@@ -161,7 +268,7 @@ class Task(_Base):
                     _id=None,
                     ):
 
-        self.queue_id = queue_id
+        self.source_id = source_id
         self.args = MutationDict()
         log.debug(args)
         if args is not None:
@@ -169,7 +276,7 @@ class Task(_Base):
         self.date = date or datetime.datetime.now()
         self.state = state
         self.statemsg = statemsg
-        self._id = self.get_id(_id)
+        self.id = _id
 
     def __unicode__(self):
         return u', '.join( (str(self._id), str(self.queue_id),
@@ -180,6 +287,12 @@ class Task(_Base):
 class Event(_Base):
     _pyes_version = 0
     _pyes_schema = {
+        '_id': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store':'yes',
+            'type': 'string',
+        },
         'source': {
             'boost': 1.0,
             'index': 'analyzed',
@@ -216,6 +329,12 @@ class Event(_Base):
             'store': 'yes',
             'type': 'string',
         },
+        'source_id': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store': 'yes',
+            'type': 'string',
+        },
         'task_id': {
             'boost': 1.0,
             'index': 'analyzed',
@@ -226,29 +345,36 @@ class Event(_Base):
     }
     _fields = (
         '_id',
-        'source',
         'date',
         'url',
         'title',
         'meta',
         'place_id',
+        'source',
+        'source_id',
         'task_id',
     )
     _key_fields = (
-        'task_id',
         'date',
-        'url',
+        'task_id',
+        #'url',
     )
-    def __init__(self, source=None,
-                        date=None,
+    def __init__(self,  date=None,
                         url=None,
                         title=None,
                         meta=None,
                         place_id=None,
+                        source=None,
+                        source_id=None,
                         task_id=None,
                         _id=None,
                         **kwargs
                         ):
+        """
+        Create a new event with a new _id attribute
+        """
+        self.id = _id
+        log.debug('new event: (%r, %r, %r, %r)' % (self._id, source, date, url))
         self.source = source
         self.date = date
         self.url = url
@@ -259,23 +385,27 @@ class Event(_Base):
         if kwargs:
             self.meta.update(kwargs) # TODO
         self.place_id = place_id
+        self.source_id = source_id
         self.task_id = task_id
-        self._id = self.get_id(_id)
 
     @classmethod
-    def from_uhm(cls, source, obj, **kwargs):
+    def from_uhm(cls, obj, **kwargs):
+        # TODO
         _kwargs = {}
         _kwargs['task_id'] = kwargs.get('task_id')
+        _kwargs['_id'] = cls._new_id()
+        _kwargs['source'] = kwargs.get('source')
+        _kwargs['source_id'] = kwargs['source_id']
 
         try:
             if isinstance(obj, dict):
                 _kwargs.update(obj)
-                _obj = cls(source=source, **_kwargs)
+                _obj = cls(**_kwargs)
             elif hasattr(obj, 'to_event_row'):
-                _obj = cls(source=source, *obj.to_event_row(), **_kwargs)
+                _obj = cls(*obj.to_event_row()[:3], **_kwargs) # TODO
             # punt
             elif hasattr(obj, '__iter__'):
-                _obj = cls(source=source, *obj, **_kwargs)
+                _obj = cls(*obj[:3], **_kwargs) # TODO
             else:
                 raise
         except Exception, e:
@@ -320,6 +450,12 @@ class Event(_Base):
 class Place(_Base):
     _pyes_version = 0
     _pyes_schema = {
+        '_id': {
+            'boost': 1.0,
+            'index': 'analyzed',
+            'store':'yes',
+            'type': 'string',
+        },
         'url': {
             'boost': 1.0,
             'index': 'analyzed',
@@ -368,7 +504,7 @@ class Place(_Base):
             self.meta.update(meta)
         if self.url is not None:
             self.parse_from(self.url)
-        self._id = self.get_id(_id)
+        self.id = _id
 
     def parse_from(self, url):
         urlp = urlparse.urlparse(url)
@@ -386,7 +522,7 @@ class Place(_Base):
             session.flush()
         else:
             try:
-                obj = cls(url, *args, **kwargs)
+                obj = cls(url, *args, _id=cls._new_id(), **kwargs)
                 session.add(obj)
             except Exception:
                 raise
@@ -417,7 +553,7 @@ class ReportType(_Base):
         self.data = MutationDict()
         if data:
             self.data.update(data)
-        self._id = self.get_id(_id)
+        self.id = _id
 
 
 class Report(_Base):
@@ -443,7 +579,7 @@ class Report(_Base):
         self.data = MutationDict()
         if data:
             self.data.update(data)
-        self._id = self.get_id(_id)
+        self.id = _id
 
 
 #all_models = [
@@ -456,6 +592,7 @@ class Report(_Base):
 ALL_MODELS = (
     User,
     TaskQueue,
+    TaskSource,
     Task,
     Place,
     Event,

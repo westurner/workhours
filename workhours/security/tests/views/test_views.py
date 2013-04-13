@@ -1,3 +1,4 @@
+from __future__ import print_function
 import unittest
 from pyramid import testing
 
@@ -14,17 +15,6 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
     TEST_USERNAME = u'testfixture_username'
     fixtures = (data.UserData, )
 
-    def _addUser(self, username):
-        from workhours.models import User
-        user = User(
-                username=username,
-                passphrase=u'passphrase',
-                name=u'name',
-                email=u'email')
-        self.session.add(user)
-        self.session.flush()
-        return user
-
     def test_registration_nosubmit(self):
         from workhours.security.views import user_add
         _register_routes(self.config)
@@ -40,20 +30,20 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         request = self._new_request()
         result = user_add(request)
         self.assertTrue('form' in result)
-        request = self._new_request()
-        request.POST = {
-            'loginform.submitted': 'Shoot',
+        _post = {
+            'loginform.submitted': 'Register',
             '_csrf': request.session.get_csrf_token(),
         }
+        request = self._new_request(post=_post)
         result = user_add(request)
         self.assertEqual(
             result['form'].form.errors,
             {
-                'username': u'Missing value',
-                'confirm_passphrase': u'Missing value',
-                'passphrase': u'Missing value',
-                'email': u'Missing value',
-                'name': u'Missing value',
+                'username': u'Required',
+                #'confirm_passphrase': u'Required',
+                'passphrase': u'Required',
+                'email': u'Required',
+                'name': u'Required',
             }
         )
 
@@ -63,33 +53,49 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         _register_routes(self.config)
         _register_common_templates(self.config)
         request = self._new_request()
-        request.POST = {
-            'loginform.submitted': u'Register',
-            'username': 'username3',
+
+        test_user = {
+            'username': u'username3',
             'passphrase': u'secret',
-            'confirm_passphrase': u'secret',
             'email': u'username@example.com',
             'name': u'John Doe',
+        }
+
+        _post = {
+            'loginform.submitted': u'Register',
+            'username': test_user['username'],
+            'passphrase': test_user['passphrase'],
+            #'confirm_passphrase': test_user['passphrase'],
+            'email': test_user['email'],
+            'name': test_user['name'],
             '_csrf': request.session.get_csrf_token()
         }
+        request = self._new_request(post=_post)
         resp = user_add(request)
-        raise Exception()
 
-        user = (
-            self.session.query(User)
-                .filter(User.username == 'username3').one())
+        transaction.commit()
 
-        #self.assertTrue(len(users), 1)
-        #user = users[0]
-        self.assertEqual(user.username, 'username3')
-        self.assertEqual(user.name, u'John Doe')
-        self.assertEqual(user.email, u'username@example.com')
-        #self.assertEqual(user.hits, 0)
-        #self.assertEqual(user.misses, 0)
-        #self.assertEqual(user.delivered_hits, 0)
-        #self.assertEqual(user.delivered_misses, 0)
-        #self.assertEqual(user.ideas, [])
-        #self.assertEqual(user.voted_ideas, [])
+        self.assertNotIn('Failed to add user',
+                request.session.peek_flash())
+
+        try:
+            user = (
+                self.session.query(User)
+                    .filter(User.username == test_user['username']).one())
+            self.assertTrue(user)
+
+            self.assertEqual(user.username, test_user['username'])
+            self.assertEqual(user.name, test_user['name'])
+            self.assertEqual(user.email, test_user['email'])
+        except Exception, e:
+            print(e) # TODO FIXME
+            self.assertFalse(e)
+            #import ipdb
+            #ipdb.set_trace()
+            #raise
+
+
+
 
 
     def test_user_view(self):
@@ -103,8 +109,6 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         self.assertEqual(result['user'].username, self.TEST_USERNAME)
         self.assertTrue(result['user']._id)
 
-
-
     def test_login_view_submit_fail(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
@@ -117,22 +121,22 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         }
         login_view(request)
         messages = request.session.peek_flash()
-        self.assertEqual(messages, [u'Failed to login.'])
-
+        self.assertIn(u'Failed to login.', messages)
 
     def test_login_view_submit_success(self):
         from workhours.security.views import login_view
         _register_routes(self.config)
         request = self._new_request()
-        request.POST = {
+        _post = {
             'loginform.submitted': u'Login',
-            'username': self.TEST_USERNAME,
+            'username': data.UserData.one.username,
             'passphrase': data.UserData.one.passphrase,
             '_csrf': request.session.get_csrf_token()
         }
-        login_view(request)
+        request = self._new_request(post=_post)
+        resp = login_view(request)
         messages = request.session.peek_flash()
-        self.assertEqual(messages, [u'Logged in successfully.'])
+        self.assertIn(u'Logged in successfully.', messages)
 
     def test_logout_view(self):
         from workhours.security.views import logout_view
@@ -140,4 +144,4 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
         request = self._new_request()
         logout_view(request)
         messages = request.session.peek_flash()
-        self.assertEqual(messages, [u'Logged out.'])
+        self.assertIn(u'Logged out.', messages)

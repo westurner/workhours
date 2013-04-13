@@ -16,6 +16,7 @@ from pyramid_simpleform.renderers import FormRenderer
 from ..models import DBSession
 from ..models import User #, Idea, Tag
 
+import deform
 
 def validate_username(*args, **kwargs):
     return formencode.validators.PlainText(*args, not_empty=True, **kwargs)
@@ -24,16 +25,25 @@ def validate_passphrase(*args, **kwargs):
     return formencode.validators.String(*args, not_empty=True, **kwargs)
 
 class RegistrationSchema(colander.MappingSchema):
-    username = colander.SchemaNode(colander.String(), validator=colander.Length(255))
+    username = colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
     email = colander.SchemaNode(colander.String(), validator=colander.Email())
-    name = colander.SchemaNode(colander.String(), validator=colander.Length(255))
-    passphrase = colander.SchemaNode(colander.String(), validator=colander.Length(255))
-    confirm_passphrase = colander.SchemaNode(colander.String(), validator=colander.Length(255))
+    name = colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
+    passphrase = colander.SchemaNode(
+                colander.String(),
+                validator=colander.Length(min=6),
+                widget=deform.widget.CheckedPasswordWidget(size=20),
+                description='Type your password and confirm it')
+
+    #colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
+    #confirm_passphrase = colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
 
     #chained_validators = [
     #    formencode.validators.FieldsMatch('passphrase','confirm_passphrase')
     #]
 
+
+import logging
+log = logging.getLogger('workhours.security.views')
 
 @view_config(permission='view', route_name='register',
              renderer='security/templates/user_add.jinja2')
@@ -46,6 +56,7 @@ def user_add(request):
             session = DBSession()
             username=form.data['username']
             user = User(
+                _id=User._new_id(),
                 username=username,
                 passphrase=form.data['passphrase'],
                 name=form.data['name'],
@@ -59,7 +70,10 @@ def user_add(request):
 
             return HTTPFound(location=redirect_url, headers=headers)
         else:
-            raise Exception()
+            #import ipdb
+            #ipdb.set_trace()
+            log.error(form.data)
+            log.error(form.errors)
             request.session.flash("Failed to add user")
 
     login_form = login_form_view(request)
@@ -84,8 +98,8 @@ def user_view(request):
 
 
 class LoginSchema(colander.MappingSchema):
-    username = colander.SchemaNode(colander.String(), validator=colander.Length(255))
-    passphrase = colander.SchemaNode(colander.String(), validator=colander.Length(255))
+    username = colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
+    passphrase = colander.SchemaNode(colander.String()) #, validator=colander.Length(255))
 
 
 @view_config(permission='view', route_name='login',
@@ -102,7 +116,7 @@ def login_view(request):
                 username = form.data['username']
                 passphrase = form.data['passphrase']
 
-                if User.check_passphrase(username, passphrase):
+                if User.check_login(username, passphrase):
                     headers = remember(request, username)
                     request.session.flash(u'Logged in successfully.')
                     return HTTPFound(location=came_from, headers=headers)
@@ -131,5 +145,7 @@ def login_form_view(request):
              '_partial': True,
              'form': FormRenderer(Form(request, schema=LoginSchema))},
             request)
+
+
 
 

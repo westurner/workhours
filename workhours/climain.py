@@ -12,24 +12,46 @@ log = logging.getLogger('workhours.cli') #'workhours')
 import unittest
 import os
 class TestWorkhoursCLI(unittest.TestCase):
+    def setUp(self):
+        import sys
+        sys.argv[0] = 'workhours'
+        sys.__exit = sys.exit
+        sys.exit = lambda x: x
+
+    def tearDown(self):
+        sys.exit = sys.__exit
+
     def test_workhours_main(self):
         ARG_TESTS = (
             tuple(),
-            ("--help",),
-            ("-e","sqlite:///:memory:",),
-            ("-e","sqlite:///:memory:","-p",),
-            ("-e","sqlite:///:memory:","-p","--shell-log",
-                os.environ.get("USRLOG",
-                    os.path.expanduser('~/.usrlog'))),
-            ("-e","sqlite:///:memory:","-p",)
+            ("-h",), ("--help",),
+            ("-l",), ('--list-source-types',),
+
+            ("--db","sqlite:///test.db","--fs","./tmp"),
+            ("--db","sqlite:///test.db","--fs","./tmp",
+                "--print-all"),
+            ("--db","sqlite:///test.db","--fs","./tmp",
+                "-s","log.shell",
+                    os.environ.get("USRLOG",
+                        os.path.expanduser('~/.usrlog')),
+                "--parse",
+                "--report=events"),
         )
 
+        log = logging.getLogger('workhours.cli.test')
         for argset in ARG_TESTS:
-            log.debug("test_main: %r" % argset)
+            log.debug('$ workhours %s' % ' '.join(argset))
+            #log.debug(argset)
             try:
-                main(*argset)
+                print(argset)
+                ret = main(*argset)
+                print('ret: %r' % ret)
+                print(argset)
+                self.assertFalse(ret, argset)
             except Exception, e:
                 log.exception(e)
+                raise
+
 
 import sys
 import logging
@@ -153,12 +175,12 @@ def main(*args):
 
     prs = CommandlineOptionParser()
     args = args if args else sys.argv[1:]
-    (opts, args) = prs.parse_args()
+    (opts, args) = prs.parse_args(list(args))
 
     if not opts.quiet:
         #datestr = datetime.datetime.now().strftime('%y-%m-%d-%H%M.%S')
-        if '_CFG' in os.environ:
-            logging.config.fileConfig(os.environ['_CFG'])
+        if opts.config_file:
+            logging.config.fileConfig(opts.config_file)
         else:
             logging.basicConfig()
 
@@ -175,7 +197,9 @@ def main(*args):
     if opts.run_tests:
         sys.argv = [sys.argv[0]] + args
         import unittest
-        exit(unittest.main())
+        ret=unittest.main()
+        return ret
+        #exit(unittest.main())
 
     #if opts.file is '-':
     #    _input_file = sys.stdin
@@ -238,7 +262,7 @@ def main(*args):
     if opts.config_file is not None:
         _config, opts = read_config_file(opts.config_file, opts)
 
-    from workhours.config import Source
+    from workhours.config import ConfigTaskSource
     if opts.src_queues:
         for (_type, _path) in opts.src_queues:
             if _type not in QUEUES:
@@ -247,18 +271,20 @@ def main(*args):
             if _type not in opts._queues:
                 opts._queues[_type] = []
             opts._queues[_type].append(
-                Source(_type,None,os.path.expanduser(_path)))
+                ConfigTaskSource(
+                    type=_type,
+                    label=None, # TODO
+                    url=os.path.expanduser(_path),
+                    host='localhost', # TODO
+                    user='user',
+                ))
 
     if opts.list_source_types:
         for queue_name in QUEUES:
             print(queue_name)
-        exit(0)
+        return 0
+        #exit(0)
 
-    from workhours.models.files import initialize_fs
-    if opts.fs_url is None:
-        log.error("Must specify a fs url")
-        exit(0)
-    opts._filestore = initialize_fs( os.path.expanduser(opts.fs_url) )
 
     def debug_conf(opts):
         log.debug("sql.url: %r", opts.sqldb_url)
@@ -268,13 +294,30 @@ def main(*args):
 
     debug_conf(opts)
 
-    if opts.parse and any(x[0] for x in opts._queues.iteritems()):
-        from workhours.tasks.events import events_table_worker
-        for result in events_table_worker(
-                            opts.sqldb_url,
-                            opts._queues,
-                            filestore=opts._filestore):
-            print(result, file=opts._output)
+
+    if opts.dump_events_table:
+        opts.reports.append('events')
+
+    if opts.parse or opts.reports:
+        from workhours.models.files import initialize_fs
+        if opts.fs_url is None:
+            print("Must specify a fs url", file=sys.stderr)
+            return -3
+            #exit(0)
+        opts._filestore = initialize_fs( os.path.expanduser(opts.fs_url) )
+
+
+    if opts.parse:
+        if not opts._queues:
+            raise Exception()
+        if any(x[0] for x in opts._queues.iteritems()):
+            from workhours.tasks.events import events_table_worker
+            for result in events_table_worker(
+                                opts.sqldb_url,
+                                opts._queues,
+                                filestore=opts.fs_url):
+                #print(result, file=opts._output)
+                pass
 
     def _do_events_report(opts):
         from workhours.reports.events import dump_events_table
@@ -293,10 +336,12 @@ def main(*args):
         'events': _do_events_report,
     }
 
+
     if opts.list_report_types:
         for k, v in REPORTS.iteritems():
             print("%s := %r" % (k, v))
-        exit(0)
+        #exit(0)
+
 
     if opts.reports:
         reportsdir = opts._filestore.mkdir('reports')
@@ -306,6 +351,8 @@ def main(*args):
             raise Exception("report type %r unsupported" % report)
         result = reportfunc(opts)
         print(result, file=opts._output)
+
+    return 0
 
 if __name__=="__main__":
     main()

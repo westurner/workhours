@@ -47,7 +47,12 @@ def _connect_sqldb(request):
                 'db_main.')
 
         def setup(*args):
-            return initialize_sql(engine=engine)
+            from workhours.models import Base
+            from workhours.models.sql.tables import setup_mappers
+            return initialize_sql(
+                    engine=engine,
+                    setup_mappers=setup_mappers,
+                    Base=Base)
         request.set_property(setup, 'meta')
 
         conn = request.meta.Session # TODO
@@ -133,9 +138,19 @@ def configure_app(settings, authn_policy, authz_policy, session_factory):
     _register_routes(config)
     return config
 
+import os
+from pyramid.response import FileResponse
+
+def favicon_view(request):
+    here = os.path.dirname(__file__)
+    icon = os.path.join(here, 'static', 'favicon.ico')
+    return FileResponse(icon, request=request)
 
 def _register_routes(config):
     config.add_static_view('static', 'workhours:static')
+    config.add_route('favicon', '/favicon.ico')
+    config.add_view('workhours.favicon_view', name='favicon')
+
     config.include('deform_jinja2')
 
     ## Security Routes

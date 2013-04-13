@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from zope.sqlalchemy import ZopeTransactionExtension
 
+
 from workhours.models.sqla_utils import clear_mappers as _clear_mappers
 
 from sqlalchemy.orm import clear_mappers, configure_mappers
@@ -21,13 +22,18 @@ Base = declarative_base()
 #meta = None
 
 def open_db(dburi,
-            setup_mappers,
+            setup_mappers=None,
             destructive_recover=False,
             munge_mappers=[],
             create_tables_on_init=False):
     """
     Open a single session
     """
+    if setup_mappers is None:
+        from workhours.models.sql.tables import setup_mappers
+
+    log.info("open_db: %s %r" % (dburi, setup_mappers))
+
     try:
         engine = create_engine(dburi)
         meta = initialize_sql(engine, setup_mappers)
@@ -37,6 +43,7 @@ def open_db(dburi,
             from workhours.models.sqlite_utils import commit_uncommitted_transactions
             commit_uncommitted_transactions(dburi)
             engine = create_engine(dburi)
+            meta.bind = engine
         else:
             raise
 
@@ -44,27 +51,24 @@ def open_db(dburi,
         _clear_mappers(munge_mappers)
 
     if create_tables_on_init:
-        create_tables(meta)
-    #meta = setup_mappers(engine)
-    #meta.Session = sessionmaker(bind=engine)
+        meta = create_tables(meta)
+
     return meta
 
 
-def Session(uri):
-    from workhours.models.sql.tables import setup_mappers
+def Session(uri, setup_mappers=None):
     meta = open_db(uri,
                     setup_mappers,
                     destructive_recover=False)
     return meta.Session()
 
 
-def initialize_sql(engine, setup_mappers, create_tables_on_init=False):
+def initialize_sql(engine, setup_mappers, create_tables_on_init=False, Base=None):
     log.debug("initialize_sql: %r" % engine)
     # uhm
     try:
 
         # and explicit mappings
-        from workhours.models.sql.tables import setup_mappers
 
         meta = MetaData()
         meta.bind = engine
@@ -73,7 +77,8 @@ def initialize_sql(engine, setup_mappers, create_tables_on_init=False):
         if create_tables_on_init:
             meta = create_tables(meta)
 
-        Base.metadata = meta #.bind = engine
+        if Base:
+            Base.metadata = meta #.bind = engine
         meta.Session = scoped_session(
                         sessionmaker(
                             extension=ZopeTransactionExtension(),
@@ -93,7 +98,7 @@ def initialize_sql(engine, setup_mappers, create_tables_on_init=False):
 def create_tables(meta):
     # Create tables
     try:
-        log.debug("meta.create_all()")
+        log.debug("CREATE all (%r)" % meta)
         meta.create_all()
     except Exception, e:
         log.error(meta)
@@ -115,8 +120,8 @@ def create_tables(meta):
 
 def drop_tables(meta):
     try:
-        log.info('DROP all (%r)' % meta) # FIXME:
-        meta.drop_all()
+        log.debug('DROP all (%r)' % meta) # FIXME:
+        return meta.drop_all()
     except Exception, e:
         log.error(meta)
         log.exception(e)
@@ -130,7 +135,7 @@ def get_test_engine():
     engine = sqlalchemy.engine_from_config(conf, 'db_main.')
     return engine
 
-def _initialize_sql_test(engine=None, url=None):
+def _initialize_sql_test(engine=None, url=None, Base=None):
     if engine is None:
         if url is None:
             engine = get_test_engine()
@@ -147,6 +152,8 @@ def _initialize_sql_test(engine=None, url=None):
     meta = initialize_sql(engine, setup_mappers, create_tables_on_init=True)
     #session = DBSession()
     #session.configure(bind=engine)
+    if Base:
+        Base.metadata = Base
     #Base.metadata.bind = engine
     #Base.metadata.create_all(engine)
     return meta

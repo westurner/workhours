@@ -1,27 +1,19 @@
 # -*- coding: utf-8 -*-
 
 
+import transaction
 import unittest
 from pyramid import testing
-
-#from .. import _register_routes
-#from .. import _register_common_templates
-
-from workhours.events.models import EventsContextFactory
 from pyramid_restler.model import SQLAlchemyORMContext
-#from ..numbers.views import NumberGraphRESTfulView
-
-import workhours.models
-from workhours.models.sql import _initialize_sql_test
-
-from workhours.testing import PyramidFixtureTestCase
+from workhours.events.models import EventsContextFactory
+#import workhours.models
 from workhours.models.fixtures import data
-
-import transaction
+from workhours.models.sql import _initialize_sql_test
+from workhours.testing import PyramidFixtureTestCase
 
 #IContextFactory
 class EventsContextTests(PyramidFixtureTestCase):
-    fixtures = (data.EventData,)
+    #fixtures = (data.EventData,)
     def setUp(self):
         super(EventsContextTests, self).setUp()
         #req = testing.DummyRequest()
@@ -77,7 +69,10 @@ class EventsContextTests(PyramidFixtureTestCase):
     def test_to_json(self):
         obj = self.context.get_member(data.EventData.one._id)
         self.assertIsNotNone(obj)
-        self.context.to_json(obj)
+
+        output = self.context.to_json(obj)
+        import json
+        self.assertIsNotNone(json.loads(output)) # TODO
 
     #def test_get_json_obj(self):
     #    self.context.get_json_obj(value, fields, wrap)
@@ -85,29 +80,34 @@ class EventsContextTests(PyramidFixtureTestCase):
     def test_wrap_json_obj(self):
         #obj = ['one','two','three']
         #outp = dict(results=obj, result_count=len(obj))
-        ID = data.UserData.one._id
-        obj = self.context.get_member(ID)
+        ID = data.EventData.one._id
+        obj = [self.context.get_member(ID)]
+        self.assertTrue(obj)
         outp = dict(
                 results=obj,
                 result_count=len(obj),
                 iTotalDisplayRecords=(1,),  # datatables
+                iTotalRecords=(1,),
         )
         self.assertEqual(self.context.wrap_json_obj(obj), outp)
 
     def test_member_to_dict(self):
-        ID = data.UserData.one._id
+        ID = data.EventData.one._id
         obj = self.context.get_member(ID)
         self.assertIsNotNone(obj)
         self.assertEqual(
-                obj,
+                obj._asdict(),
                 self.context.member_to_dict(obj)
         )
         # TODO
         # self.context.member_to_dict(member, fields=['one'])
 
     def test_default_fields(self):
-        expected = ('_id', 'date', 'source', 'url', 'title')
+        expected = ('_id', 'date', 'source', 'url', 'title',
+                    'place_id', 'source_id', 'task_id', 'meta')
         fields = self.context.default_fields
         self.assertEqual(expected, fields)
+
+
 
 

@@ -102,7 +102,11 @@ a:hover {
 	text-decoration: none;
 }
 
-a:link, a:visited {color: #5979b7;}
+a:link, a:visited {
+    /* color: #5979b7; */
+    color: #4070a0;
+
+}
 */
 
 /* Wrapper */
@@ -121,7 +125,7 @@ a:link, a:visited {color: #5979b7;}
 /* Header */
 
 #header {
-	background: #F7F7F7 no-repeat;
+	/* background: #F7F7F7 no-repeat; */
     /* height: 56px; */
     /* padding: 10px; */
 }
@@ -214,7 +218,7 @@ a:link, a:visited {color: #5979b7;}
     /* border-bottom: 1px solid #EEEEEE; */
     border: 0;
 
-    border: 1px solid #DEDEDE;
+    /* border: 1px solid #DEDEDE; */
 }
 
 /* Blog */
@@ -567,4 +571,13 @@ table#events td.title {
 
 div.dataTables_scrollBody {
     min-height: 64px;
+}
+
+
+tbody tr:nth-child(even) td, tbody tr.even td {
+    background: #f7f7f7 !important;
+}
+
+tbody tr:nth-child(odd) td, tbody tr.odd td {
+    background: #fefefe !important;
 }

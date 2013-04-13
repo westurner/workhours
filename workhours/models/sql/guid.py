@@ -20,35 +20,40 @@ class GUID(TypeDecorator):
         if dialect.name == 'postgresql':
             return dialect.type_descriptor(UUID())
         else:
-            return dialect.type_descriptor(CHAR(32))
+            return dialect.type_descriptor(CHAR(36))
 
     def process_bind_param(self, value, dialect):
-        #if value is None:
-        #    return value
+        """
+        Receive a bound parameter value to be converted
+        for TypeEngine and DBAPI.execute
+        """
         if dialect.name == 'postgresql':
             return str(value)
         else:
 
             if value is None:
-                return GUID.new_guid(value)
+                return None
             elif not isinstance(value, uuid.UUID):
                 return value
             else:
-                # hexstring
                 return GUID.to_str(value)
 
     def process_result_value(self, value, dialect):
+        """
+        Receive a result-row column value to be converted
+        from TypeEngine and DBAPI.fetch*()
+        """
         if value is None:
             return value
         else:
             return GUID.to_str(value)
 
     @classmethod
-    def new_guid(cls, value=None):
+    def new_guid(cls, value=None, namespace=NAMESPACE):
         if value is None:
             guid = uuid.uuid4()
         else:
-            guid = uuid.uuid5(NAMESPACE, value)
+            guid = uuid.uuid5(namespace, value)
         log.log(3,'guid: %r' % guid)
         return GUID.to_str(guid) #uuid.UUID(guid)
 

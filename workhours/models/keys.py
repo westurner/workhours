@@ -12,9 +12,9 @@ KEYCHARS_INT = string.digits
 KEYCHARS_HEX = string.hexdigits
 
 KEYCHARS = (
-    'abcdefghjkmnpqrstuvwxyz'
+    'abcdfghjkmnpqrstuvwxyz'
     '23456789'
-    'ABCDEFGHJKMNPQRSTUVWXY')
+    'ABDGHJKMNPRSWXY')
 
 KEYCHARS_LEN = len(KEYCHARS)
 
@@ -166,19 +166,42 @@ class TestEncoding(unittest.TestCase):
         self.log.debug(idfromslug)
 
 
+import uuid
 def genkey():
     """
     mainfunc
     """
-    pass
+    id = uuid.uuid4()
+    encoded = encode(id.int)
+    return encoded
 
+def deckey(encoded_uuid):
+    encoded_uuid = encoded_uuid.strip()
+    decoded = decode(encoded_uuid)
 
+    output_uuid = uuid.UUID(int=decoded)
+    #import ipdb
+    #ipdb.set_trace()
+    return str(output_uuid)
 
 def main():
     import optparse
     import logging
 
     prs = optparse.OptionParser(usage="./%prog : args")
+
+    prs.add_option('-n', '--number',
+                    dest='n_keys',
+                    action='store',
+                    help="Create n new keys (default: 1)",
+                    type=int,
+                    default=1)
+
+    prs.add_option('-d', '--decode',
+                    dest='decode',
+                    action='store',
+                    default=None,
+                    help="Decode key(s) from file ('-' for stdin)")
 
     prs.add_option('-v', '--verbose',
                     dest='verbose',
@@ -205,7 +228,22 @@ def main():
         retval=unittest.main()
         # exit(retval)
 
-    genkey()
+    if opts.decode:
+        _file = None
+        import sys
+        if opts.decode == '-':
+            _file = sys.stdin
+        else:
+            import codecs
+            _file = codecs.open(opts.decode, 'r', encoding='utf-8')
+        for line in _file:
+            try:
+                print(deckey(line))
+            except:
+                print(line.rstrip(), file=sys.stderr)
+    else: # generate
+        for n in xrange(opts.n_keys):
+            print( genkey() )
 
 if __name__ == "__main__":
     main()

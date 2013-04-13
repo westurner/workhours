@@ -1,12 +1,11 @@
 #from pyramid.renderers import render
 #from pyramid.decorator import reify
 #from pyramid.response import Response
-from pyramid_restler.model import SQLAlchemyORMContext
+from workhours.models.context import WorkhoursORMContext
 #from pyramid_restler.view import RESTfulView
 #from workhours.future import OrderedDict
 
 from workhours.models import Place
-from workhours.models.json import DefaultJSONEncoder
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy.sql import func
@@ -15,8 +14,7 @@ import logging
 
 log = logging.getLogger('workhours.places.models')
 
-class PlacesContextFactory(SQLAlchemyORMContext):
-    json_encoder = DefaultJSONEncoder
+class PlacesContextFactory(WorkhoursORMContext):
     entity = Place
     default_fields = ('_id','url','netloc','eventcount','title')
 

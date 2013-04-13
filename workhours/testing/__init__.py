@@ -32,15 +32,10 @@ from fixture import SQLAlchemyFixture, NamedDataStyle
 from workhours import models
 from workhours.models.sql import _initialize_sql_test, create_tables, drop_tables, get_test_engine
 
-
-
-
-
-
 import os
 def initialize_db(*args, **kwargs):
     engine = get_test_engine()
-    meta = _initialize_sql_test(engine=engine)
+    meta = _initialize_sql_test(engine=engine, Base=models.Base)
     dbfixture = SQLAlchemyFixture(
                     env=models,
                     style=NamedDataStyle(),
@@ -59,15 +54,11 @@ class PyramidFixtureTestCase(unittest.TestCase):
         self.setUp_fixtures()
         self.session = self.meta.Session()
         self.request = self._new_request()
-        #transaction.begin()
-
-        #import ipdb
-        #ipdb.set_trace()
 
     def setUp_fixtures(self):
         if not self.fixtures:
             raise Exception('no fixtures specified')
-        log.debug('setup fixtures: %s', self.fixtures)
+        log.debug('setup fixtures: %s', [fx.__name__ for fx in self.fixtures])
         self.data = self.dbfixture.data(*self.fixtures)
         self.data.setup()
 
