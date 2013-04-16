@@ -360,6 +360,8 @@ def main(*args):
         from workhours.models.sql import open_db
         from workhours.models.sql.tables import setup_mappers
         from workhours.models import Base
+        if opts.sqldb_url is None:
+            raise Exception("--db url must be specified")
         meta = open_db(
                 opts.sqldb_url,
                 setup_mappers=setup_mappers,
