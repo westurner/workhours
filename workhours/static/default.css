@@ -581,3 +581,15 @@ tbody tr:nth-child(even) td, tbody tr.even td {
 tbody tr:nth-child(odd) td, tbody tr.odd td {
     background: #fefefe !important;
 }
+
+a {
+    text-decoration: none !important;
+}
+
+a:focus, a:hover {
+    text-decoration: underline !important; 
+}
+
+div#content a:focus, div#content a:hover {
+    color:#4070a0  !important;
+}
