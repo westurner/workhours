@@ -1,7 +1,7 @@
 # workhours setup.py file
 from setuptools import setup, find_packages
 import os.path as osp
-version = '0.5'
+version = '0.4.01'
 
 def rel_path(path_):
     return osp.join(osp.dirname(osp.abspath(__file__)), path_)
