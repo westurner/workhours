@@ -85,9 +85,8 @@ Each source is copied into a filestore at ``fs.uri specified as either
 and read into a SQL database wrapped by SQLAlchemy specified either by
 
 * Config: ``eventsdb.uri`` in the ``local.ini`` configuration file
-* CLI: ``--db <sqlite:///:memory:>``
+* CLI: ``--db sqlite:///example.db``
 
-- TODO: add file:///
 - TODO: es indexing
 
 
@@ -198,7 +197,7 @@ Reports webapp
 Events database
 -----------------
 * TODO: handle potentially frequently changing events.db files when
-* TODO: or, manage two databases and two sets of models (see)
+* TODO: or, manage n databases and n sets of models (see)
 
 sqlalchemy
 ~~~~~~~~~~~
