@@ -1,0 +1,70 @@
+# HG changeset patch
+# Parent 2c5859d7897ead5a2141a52556c1218f0d58a521
+TODO: Special casing for _id attribute that begins in an underscore
+
+diff --git a/fixture/dataset/dataset.py b/fixture/dataset/dataset.py
+--- a/fixture/dataset/dataset.py
++++ b/fixture/dataset/dataset.py
+@@ -16,7 +16,7 @@
+     for all internally used attributes, use the inner class Meta.
+     On instances, use self.meta instead.
+     """
+-    _reserved_attr = ('meta', 'Meta', 'ref', 'get')
++    _reserved_attr = ('meta', 'Meta', 'ref', 'get', '__class__', '__doc__', '_dataset', '_setdata', '_store_datasets', '_dataset_to_key', '_setdataset')
+     class Meta:
+         data = None
+         keys = None
+@@ -42,7 +42,7 @@
+         """Attributes are always fetched first from self.meta.data[name] if possible"""
+         # it is necessary to completely override __getattr__
+         # so that class attributes don't interfer
+-        if name.startswith('_') or name in self._reserved_attr:
++        if name == '_reserved_attr' or name.startswith('__') or name in self._reserved_attr:
+             return object.__getattribute__(self, name)
+         try:
+             return self.meta.data[name]
+@@ -241,7 +241,7 @@
+             new_base = types.ClassType(
+                             base_c.__name__, base_c.__bases__, 
+                             dict([(k, getattr(base_c, k)) for k in dir(base_c) \
+-                                    if not k.startswith('_') and \
++                                    if not (k.startswith('_') and k != '_id') and \
+                                     k not in names_to_uninherit]))
+             new_bases[base_pos] = new_base
+         if new_bases:
+@@ -263,7 +263,7 @@
+     """
+     a DataSet row, values accessible by attibute or key.
+     """
+-    _reserved_attr = ('columns',)
++    _reserved_attr = ('columns','_dataset', '_key')
+     
+     def __init__(self, dataset):
+         object.__setattr__(self, '_dataset', dataset)
+@@ -280,7 +280,7 @@
+         # let's look for it in the stored object.
+         # an example of this would be an ID, which was
+         # created only after load
+-        if name.startswith('_'):
++        if name.startswith('_') and name != '_id':
+             return object.__getattribute__(self, name)
+         
+         obj = self._dataset.meta._stored_objects.get_object(self._key)
+@@ -292,7 +292,7 @@
+         in alphabetical order
+         """
+         for k in dir(self):
+-            if k.startswith('_') or k in self._reserved_attr:
++            if (k.startswith('_') and k != '_id') or k in self._reserved_attr:
+                 continue
+             yield k
+ 
+@@ -529,7 +529,7 @@
+                 
+         def public_dir(obj):
+             for name in dir(obj):
+-                if name.startswith("_"):
++                if (name.startswith("_") and name != '_id'):
+                     continue
+                 yield name
+         
