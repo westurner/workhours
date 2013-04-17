@@ -18,7 +18,7 @@ def to_dataframes(*args, **kwargs):
 
     query = kwargs.get('query')
     if query is None:
-        query = (Event.date, Event.title, Event.url)
+        query = (Event.date, Event.source, Event.title, Event.url, Event.source_id)
         query = s.query(*query)
         log.debug('default query: %r' % query)
         log.debug('default query: %s' % query)
@@ -26,11 +26,17 @@ def to_dataframes(*args, **kwargs):
         log.debug('query: %r' % query)
         log.debug('query: %s' % query)
 
-    column_names = kwargs.get('column_names', ('date','title','url'))
-    log.debug('column_names: %r' % column_names)
+    column_names = kwargs.get('column_names',
+            ('date',
+             'source',
+             'title',
+             'url',
+             'source_id',
+             ))
+    #log.debug('column_names: %r' % column_names)
 
     df = DataFrame.from_records(
-            query,
+            query.all(), # TODO
             columns=column_names,
             coerce_float=True)
     return df
