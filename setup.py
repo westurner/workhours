@@ -48,6 +48,7 @@ setup(name='workhours',
         'pyes',
 
         'pyramid',
+        'jinja2',
         'zope.sqlalchemy',
         'passlib'
         ],
