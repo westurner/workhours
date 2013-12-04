@@ -10,7 +10,7 @@ from pyutmp import UtmpFile
 
 to_datetime = lambda x: datetime.datetime.fromtimestamp(x)
 
-def parse_wtmp(filename):
+def parse_wtmp(uri=None):
     """
     Parse a wtmp file into event tuples
 
@@ -20,6 +20,7 @@ def parse_wtmp(filename):
     :returns: generator of (datetime, eventstr) tuples
 
     """
+    filename = uri
     for u in UtmpFile(filename):
         d = u.__dict__.copy()
         dt = to_datetime(d.pop('ut_time'))
@@ -34,7 +35,7 @@ def parse_wtmp(filename):
         yield (dt, logstr)
 
 
-def parse_wtmp_glob(glob_pattern):
+def parse_wtmp_glob(uri=None):
     """
     Parse one or more wtmp files into event tuples
 
@@ -44,6 +45,7 @@ def parse_wtmp_glob(glob_pattern):
     :returns: generator of (datetime, eventstr) tuples
 
     """
+    glob_pattern = uri
     tmpfilename = None
     try:
         tmp_hndl, tmpfilename = tempfile.mkstemp()
