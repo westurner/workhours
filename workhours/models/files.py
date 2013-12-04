@@ -2,6 +2,7 @@ import tempfile
 import shutil
 import os
 import codecs
+import glob
 
 class TempDir(object):
     def __init__(self,
@@ -33,7 +34,13 @@ class TempDir(object):
                 (self.format_path(filename, dest_path)
                     .replace(self.path,'')))
 
-        shutil.copy2(filename, dest_path)
+        if '*' in filename:
+            import glob
+            filenames = glob.glob(filename)
+        else:
+            filenames = [filename]
+        for filename in filenames:
+            shutil.copy2(filename, dest_path)
         return dest_path
 
     def format_path(self, path, source):

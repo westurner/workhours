@@ -4,7 +4,10 @@ from __future__ import print_function
 """
 to_dataframes
 """
-from pandas import DataFrame
+try:
+    from pandas import DataFrame
+except ImportError:
+    print("FAILED TO IMPORT PANDAS")
 from workhours.models import DBSession, Event
 
 import logging

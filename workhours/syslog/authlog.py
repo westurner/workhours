@@ -19,7 +19,7 @@ def parse_authlog_yearless_date(datestr, year):
     datestr = "%d %s" % (year, datestr)
     return datetime.datetime.strptime(datestr, "%Y %b %d %H:%M:%S")
 
-def parse_authlog(filename, year=None):
+def parse_authlog(uri=None, year=None):
     """
     Parse an auth.log file into event tuples
 
@@ -40,6 +40,7 @@ def parse_authlog(filename, year=None):
         May 14 16:54:11 cdl gnome-screensaver-dialog: gkr-pam: unlocked login keyring
 
     """
+    filename = uri
     if not year:
         year = datetime.datetime.now().year
 
@@ -52,7 +53,7 @@ def parse_authlog(filename, year=None):
 
             yield (dt, u"%s :: %s :: %s" % (hostname, process, rest))
 
-def parse_authlog_glob(glob_pattern):
+def parse_authlog_glob(uri=None):
     """
     Parse an auth.log file
 
@@ -62,6 +63,7 @@ def parse_authlog_glob(glob_pattern):
     :returns: generator of (datetime, eventstr) tuples
 
     """
+    glob_pattern = uri
     tmpfilename = None
     try:
         tmp_hndl, tmpfilename = tempfile.mkstemp()

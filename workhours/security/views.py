@@ -6,8 +6,8 @@ from pyramid.renderers import render
 from pyramid.httpexceptions import HTTPFound
 from pyramid.security import authenticated_userid, remember, forget
 
-from pyramid_simpleform.form import Form
-from pyramid_simpleform.renderers import FormRenderer
+import pyramid_simpleform
+from pyramid_simpleform import Form
 
 # i178n
 #from pyramid.i18n import TranslationStringFactory
@@ -79,7 +79,7 @@ def user_add(request):
     login_form = login_form_view(request)
 
     return {
-        'form': FormRenderer(form),
+        'form': form.render(),
         'login_form': login_form,
         'title': 'create an account',
     }
@@ -125,7 +125,7 @@ def login_view(request):
     #return HTTPFound(location=came_from)
     return {
         'title': not user and 'log in' or 'logged in',
-        'form': FormRenderer(form),
+        'form': form.render(),
         'loggedin': authenticated_userid(request),
         '_full': True }
 
@@ -140,10 +140,11 @@ def logout_view(request):
 
 def login_form_view(request):
     logged_in = authenticated_userid(request)
+    form = Form(request, schema=LoginSchema)
     return render('workhours:security/templates/_login.jinja2',
             {'loggedin': logged_in,
              '_partial': True,
-             'form': FormRenderer(Form(request, schema=LoginSchema))},
+             'form': form.render()},
             request)
 
 
