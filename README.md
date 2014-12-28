@@ -1,3 +1,0 @@
-# workhours
-
-A cool project
