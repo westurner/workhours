@@ -13,11 +13,15 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import MetaData, DateTime, Table, Column, Integer, Unicode, UnicodeText
 from sqlalchemy.orm import mapper, relation, object_session, column_property, synonym, clear_mappers
 
+from sqlalchemy_utils.types.password import PasswordType
+
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 
 from workhours.models.sql.guid import GUID
+from uuid import uuid4
 
 from workhours.models import User
+from workhours.models import Command
 from workhours.models import TaskQueue
 from workhours.models import TaskSource
 from workhours.models import Task
@@ -25,6 +29,7 @@ from workhours.models import Place
 from workhours.models import Event
 from workhours.models import ReportType
 from workhours.models import Report
+
 
 _MAPPED = False
 def setup_mappers(meta=None, engine=None):
@@ -50,13 +55,32 @@ def setup_mappers(meta=None, engine=None):
     users_tbl = Table('users', meta,
         Column('id', GUID(), index=True, primary_key=True, ),
             Column('username', Unicode(32), index=True, unique=True),
-            Column('name', Unicode(128)),
-            Column('email', Unicode(128)),
-            Column('passphrase_', Unicode(128)),
+            Column('first_name', Unicode(1024)),
+            Column('last_name', Unicode(1024)),
+            Column('email', Unicode(1024)),
+            Column('password', PasswordType(schemes=['pbkdf2_sha512', ]), nullable=True),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(User, users_tbl, properties={
-#        'passphrase': synonym("passphrase_")
+#        'passphrase': synonym("password")
     })
+
+    commands_tbl = Table('commands', meta,
+        Column('id', GUID(), index=True, primary_key=True, ),
+            Column('expire_on', DateTime, nullable=False),
+            Column('command_id', Unicode(36), default=lambda : str(uuid4()), unique=True),
+            Column('command_type', Unicode(1024)),
+            Column('command_date', UnicodeText),
+            Column('identity', Unicode(1024)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
+    )
+    mapper(Command, commands_tbl, properties={
+    })
+
 
     queues_tbl = Table('queues', meta,
         Column('id', GUID(), primary_key=True, nullable=False),
@@ -67,7 +91,10 @@ def setup_mappers(meta=None, engine=None):
                 onupdate=datetime.datetime.now),
 
             Column('host', UnicodeText()), # default=$(hostname)
-            Column('user', UnicodeText())  # default=$(whoami)
+            Column('user', UnicodeText()), # default=$(whoami)
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(TaskQueue, queues_tbl)
 
@@ -82,7 +109,10 @@ def setup_mappers(meta=None, engine=None):
                 onupdate=datetime.datetime.now),
 
             Column('host', UnicodeText()), # default=$(hostname)
-            Column('user', UnicodeText())  # default=$(whoami)
+            Column('user', UnicodeText()), # default=$(whoami)
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(TaskSource, tasksources_tbl, properties={
         'queue': relation(TaskQueue, backref='sources')
@@ -98,6 +128,9 @@ def setup_mappers(meta=None, engine=None):
             Column('statemsg', Unicode()),
             Column('date', DateTime(), index=True,
                 onupdate=datetime.datetime.now,),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(Task, tasks_tbl, properties={
         'source': relation(TaskSource, backref='tasks'),
@@ -116,6 +149,9 @@ def setup_mappers(meta=None, engine=None):
 
             Column('eventcount', Integer()),
             Column('meta', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(Place, places_tbl)
 
@@ -139,6 +175,9 @@ def setup_mappers(meta=None, engine=None):
             Column('task_id', GUID(),
                 ForeignKey(tasks_tbl.c.id), nullable=False),
 
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
+
             # TODO: sync
             # UniqueConstraint('date','url','task_id',
             #    name='uix_event_date_url_taskid'),
@@ -155,7 +194,10 @@ def setup_mappers(meta=None, engine=None):
     report_types_tbl = Table('report_types', meta,
         Column('id', GUID(), primary_key=True, nullable=False),
             Column('label', Unicode(), index=True),
-            Column('data', MutationDict.as_mutable(JSONEncodedDict))
+            Column('data', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
 
     mapper(ReportType, report_types_tbl)
@@ -165,7 +207,11 @@ def setup_mappers(meta=None, engine=None):
             Column('report_type_id', GUID(),
                 ForeignKey(report_types_tbl.c.id), nullable=False),
             Column('title', Unicode(), nullable=True),
-            Column('data', MutationDict.as_mutable(JSONEncodedDict)))
+            Column('data', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
+            )
 
     mapper(Report, reports_tbl, properties={
         'report_type': relation(ReportType, backref='reports'),

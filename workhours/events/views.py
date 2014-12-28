@@ -121,7 +121,7 @@ class EventsRESTfulView(RESTfulView):
         # a model instance
         if isinstance(value, Event): #hasattr(value, '__iter__'):
             value = (value,)
-            title = u"Event: %s" % Event._id
+            title = u"Event: %s" % Event.id
             template = 'events/templates/_event.jinja2'
         else:
             template = 'events/templates/_events_table.jinja2'

@@ -1,6 +1,6 @@
 {% extends "models/templates/_datatable.jinja2" %}
 {% block datatable_columns %}[
-{   "mDataProp": "_id",
+{   "mDataProp": "id",
     "sWidth": "1px",
     "bVisible": false,
     "aTargets": [0]
@@ -9,7 +9,7 @@
     "sWidth": "20px",
     "aTargets": [1],
     "fnRender": function (obj) {
-        return ("<a href=\"/api/events/" + obj.aData._id + "\">" + obj.aData.date + "</a>"); /* TODO: escape */
+        return ("<a href=\"/api/events/" + obj.aData.id + "\">" + obj.aData.date + "</a>"); /* TODO: escape */
     }
 },
 {   "mDataProp": "source",
