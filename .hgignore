@@ -19,3 +19,5 @@ whtmp*
 local/
 *.log
 *.db
+SOURCES
+tmpfs
