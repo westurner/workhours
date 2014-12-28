@@ -3,7 +3,7 @@ import unittest
 from pyramid import testing
 
 from workhours.models.sql import _initialize_sql_test
-from workhours import _register_routes, _register_common_templates
+from workhours import configure_test_app
 
 
 class ViewTests(unittest.TestCase):
@@ -20,29 +20,25 @@ class ViewTests(unittest.TestCase):
 
     def test_about_view(self):
         from workhours.site.views.about import about_view
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = testing.DummyRequest()
         about_view(request)
 
     def test_main_view(self):
         from workhours.site.views.main import main_view
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = testing.DummyRequest()
         main_view(request)
 
     def test_http404_view(self):
         from workhours.site.views.errors import http404
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = testing.DummyRequest()
         http404(request)
 
     def test_toolbar_view(self):
         from workhours.site.views.blocks import toolbar_view
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = testing.DummyRequest()
         toolbar_view(request)
 

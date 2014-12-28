@@ -67,7 +67,9 @@ class ESSession(pyes.es.ES):
             mappings = self.mappings
 
         for index in indexes:
-            self.create_index_if_missing(index)
+            import warnings
+            warnings.warn(index)
+            #TODO: self.create_index_if_missing(index)
 
         for key, mapping in mappings.iteritems():
             self.put_mapping(key, {'properties': mapping,}, indices=[])

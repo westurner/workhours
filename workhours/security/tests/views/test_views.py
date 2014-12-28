@@ -2,8 +2,7 @@ from __future__ import print_function
 import unittest
 from pyramid import testing
 
-from workhours import _register_routes
-from workhours import _register_common_templates
+from workhours import configure_test_app
 from workhours.models.sql import _initialize_sql_test
 
 from workhours import testing
@@ -17,16 +16,14 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
 
     def test_registration_nosubmit(self):
         from workhours.security.views import user_add
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         result = user_add(request)
         self.assertTrue('form' in result)
 
     def test_registration_submit_empty(self):
         from workhours.security.views import user_add
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         result = user_add(request)
         self.assertTrue('form' in result)
@@ -50,8 +47,7 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
     def test_registration_submit_schema_succeed(self):
         from workhours.models import User
         from workhours.security.views import user_add
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
 
         test_user = {
@@ -101,17 +97,16 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
     def test_user_view(self):
         from workhours.security.views import user_view
         self.config.testing_securitypolicy(self.TEST_USERNAME)
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         request.matchdict = {'username': self.TEST_USERNAME}
         result = user_view(request)
         self.assertEqual(result['user'].username, self.TEST_USERNAME)
-        self.assertTrue(result['user']._id)
+        self.assertTrue(result['user'].id)
 
     def test_login_view_submit_fail(self):
         from workhours.security.views import login_view
-        _register_routes(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         request.POST = {
             'loginform.submitted': u'Login',
@@ -125,7 +120,7 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
 
     def test_login_view_submit_success(self):
         from workhours.security.views import login_view
-        _register_routes(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         _post = {
             'loginform.submitted': u'Login',
@@ -140,7 +135,7 @@ class SecurityViewTests(testing.PyramidFixtureTestCase):
 
     def test_logout_view(self):
         from workhours.security.views import logout_view
-        _register_routes(self.config)
+        configure_test_app(self.config)
         request = self._new_request()
         logout_view(request)
         messages = request.session.peek_flash()

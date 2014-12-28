@@ -1,7 +1,7 @@
 import unittest
 from pyramid import testing
 from workhours.models.sql import _initialize_sql_test
-from workhours import _register_routes, _register_common_templates
+from workhours import configure_test_app
 
 from workhours.models.html.datatables import datatables_view
 
@@ -24,8 +24,7 @@ class Test_datatables(unittest.TestCase):
 
     def test_about_view(self):
         #from workhours.site.views.about import about_view
-        _register_routes(self.config)
-        _register_common_templates(self.config)
+        configure_test_app(self.config)
         request = self._get_test_request()
         datatables_view(request)
 
