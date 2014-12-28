@@ -27,8 +27,8 @@ __ALL__ = [
 
 
 class _Base(object):
-    _fields = ('_id',)
-    _key_fields = ('_id',)
+    _fields = ('id',)
+    _key_fields = ('id',)
 
     def getattrs(self, *attrs):
         if attrs:
@@ -41,27 +41,6 @@ class _Base(object):
         return (s.query(
                     *(getattr(cls,attr) for attr in attrs) )
                 .order_by( getattr(cls,order_by)) )
-
-    def get_id(self, _id=None):
-        """
-        on instantia
-        """
-        return self.id #self.keyfunc()
-
-
-    @hybrid_property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def _set_id(self, id):
-        if self._id is not None:
-            raise Exception()
-        self._id = id
-
-    @id.expression
-    def _id_expression(self):
-        return Base._id
 
 
     @classmethod
@@ -101,7 +80,7 @@ class User(_Base):
     Application's user model.
     """
     _fields = (
-        '_id',
+        'id',
         'username',
         'name',
         'email',
@@ -184,7 +163,7 @@ class TaskQueue(_Base):
     TODO: really more of a
     """
     _fields = (
-        '_id',
+        'id',
         'type',
         'label',
         'uri',
@@ -217,7 +196,7 @@ class TaskSource(_Base):
     TODO: really more of a
     """
     _fields = (
-        '_id',
+        'id',
         'type',
         'label',
         'url',
@@ -246,9 +225,10 @@ class TaskSource(_Base):
         self.user = user
         self.id = _id
 
+
 class Task(_Base):
     _fields = (
-        '_id',
+        'id',
         'source_id',
         'args',
         'date',
@@ -256,7 +236,7 @@ class Task(_Base):
         'statemsg',
     )
     _key_fields = (
-        '_id'
+        'id'
         #'queue_id',
     )
     def __init__(self,
@@ -279,7 +259,7 @@ class Task(_Base):
         self.id = _id
 
     def __unicode__(self):
-        return u', '.join( (str(self._id), str(self.queue_id),
+        return u', '.join( (str(self.id), str(self.queue_id),
             str(self.date),
                 ))
 
@@ -287,7 +267,7 @@ class Task(_Base):
 class Event(_Base):
     _pyes_version = 0
     _pyes_schema = {
-        '_id': {
+        'id': {
             'boost': 1.0,
             'index': 'analyzed',
             'store':'yes',
@@ -344,7 +324,7 @@ class Event(_Base):
 
     }
     _fields = (
-        '_id',
+        'id',
         'date',
         'url',
         'title',
@@ -374,7 +354,7 @@ class Event(_Base):
         Create a new event with a new _id attribute
         """
         self.id = _id
-        log.debug('new event: (%r, %r, %r, %r)' % (self._id, source, date, url))
+        log.debug('new event: (%r, %r, %r, %r)' % (self.id, source, date, url))
         self.source = source
         self.date = date
         self.url = url
@@ -393,7 +373,7 @@ class Event(_Base):
         # TODO
         _kwargs = {}
         _kwargs['task_id'] = kwargs.get('task_id')
-        _kwargs['_id'] = cls._new_id()
+        _kwargs['id'] = cls._new_id()
         _kwargs['source'] = kwargs.get('source')
         _kwargs['source_id'] = kwargs['source_id']
 
@@ -450,7 +430,7 @@ class Event(_Base):
 class Place(_Base):
     _pyes_version = 0
     _pyes_schema = {
-        '_id': {
+        'id': {
             'boost': 1.0,
             'index': 'analyzed',
             'store':'yes',
@@ -476,7 +456,7 @@ class Place(_Base):
         },
     }
     _fields = (
-        '_id',
+        'id',
         'url',
         'eventcount',
 
@@ -536,7 +516,7 @@ class Place(_Base):
 
 class ReportType(_Base):
     _fields = (
-        '_id',
+        'id',
         'label',
         'data',
     )
@@ -558,7 +538,7 @@ class ReportType(_Base):
 
 class Report(_Base):
     _fields = (
-        '_id',
+        'id',
         'report_type_id',
         'title',
         'data',

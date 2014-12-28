@@ -34,7 +34,7 @@ class EventsContextTests(PyramidFixtureTestCase):
         self.failIfEqual(results, None)
 
     def test_get_member(self):
-        obj = self.context.get_member(data.EventData.one._id)
+        obj = self.context.get_member(data.EventData.one.id)
         self.assertIsNotNone(obj)
 
         #fails:
@@ -51,7 +51,7 @@ class EventsContextTests(PyramidFixtureTestCase):
     #    self.context.update_member(-1, {})
 
     def test_delete_member(self):
-        id = data.EventData.one._id
+        id = data.EventData.one.id
         obj = self.context.get_member(id)
         self.assertIsNotNone(obj)
         self.context.delete_member(id)
@@ -67,7 +67,7 @@ class EventsContextTests(PyramidFixtureTestCase):
     #        self.context.get_member_id_as_string({'n': "10"}))
 
     def test_to_json(self):
-        obj = self.context.get_member(data.EventData.one._id)
+        obj = self.context.get_member(data.EventData.one.id)
         self.assertIsNotNone(obj)
 
         output = self.context.to_json(obj)
@@ -80,7 +80,7 @@ class EventsContextTests(PyramidFixtureTestCase):
     def test_wrap_json_obj(self):
         #obj = ['one','two','three']
         #outp = dict(results=obj, result_count=len(obj))
-        ID = data.EventData.one._id
+        ID = data.EventData.one.id
         obj = [self.context.get_member(ID)]
         self.assertTrue(obj)
         outp = dict(
@@ -92,7 +92,7 @@ class EventsContextTests(PyramidFixtureTestCase):
         self.assertEqual(self.context.wrap_json_obj(obj), outp)
 
     def test_member_to_dict(self):
-        ID = data.EventData.one._id
+        ID = data.EventData.one.id
         obj = self.context.get_member(ID)
         self.assertIsNotNone(obj)
         self.assertEqual(
@@ -103,7 +103,7 @@ class EventsContextTests(PyramidFixtureTestCase):
         # self.context.member_to_dict(member, fields=['one'])
 
     def test_default_fields(self):
-        expected = ('_id', 'date', 'source', 'url', 'title',
+        expected = ('id', 'date', 'source', 'url', 'title',
                     'place_id', 'source_id', 'task_id', 'meta')
         fields = self.context.default_fields
         self.assertEqual(expected, fields)

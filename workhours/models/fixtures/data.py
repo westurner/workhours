@@ -11,7 +11,7 @@ class DataSet(_DataSet):
 
 class UserData(DataSet):
     class one:
-        _id = 'c94f2784-8d42-469a-a5c6-3aaa2934f703'
+        id = 'c94f2784-8d42-469a-a5c6-3aaa2934f703'
         username = 'testfixture_username'
         name = 'name'
         email = 'example@localhost'
@@ -23,7 +23,7 @@ class UserData(DataSet):
 
 class TaskQueueData(DataSet):
     class one:
-        _id = 'c37e32d9-79db-4dfd-a19d-4a8b12416da8'
+        id = 'c37e32d9-79db-4dfd-a19d-4a8b12416da8'
         type = 'test.bookmarks'
         label = 'label'
         uri = 'uri' # TODO
@@ -33,8 +33,8 @@ class TaskQueueData(DataSet):
 
 class TaskSourceData(DataSet):
     class one:
-        _id = 'ab9cfd6a-3d47-49fd-85dc-225c91e1836a'
-        queue_id = TaskQueueData.one._id
+        id = 'ab9cfd6a-3d47-49fd-85dc-225c91e1836a'
+        queue_id = TaskQueueData.one.id
         type = TaskQueueData.one.type
         date = datetime.datetime.now()
         url = TaskQueueData.one.uri
@@ -45,8 +45,8 @@ class TaskSourceData(DataSet):
 
 class TaskData(DataSet):
     class one:
-        _id = '873e32d9-79db-4dfd-a19d-4a8b12416da8'
-        queue_id = TaskQueueData.one._id
+        id = '873e32d9-79db-4dfd-a19d-4a8b12416da8'
+        queue_id = TaskQueueData.one.id
         args = {}
         date = datetime.datetime.now() # TODO
         state = 'state'
@@ -55,7 +55,7 @@ class TaskData(DataSet):
 
 class PlaceData(DataSet):
     class one:
-        _id = '123e32d9-79db-4dfd-a19d-4a8b12416da8'
+        id = '123e32d9-79db-4dfd-a19d-4a8b12416da8'
         url = 'http://example.org/test'
         eventcount = 1
         meta = {}
@@ -69,29 +69,29 @@ class PlaceData(DataSet):
 
 class EventData(DataSet):
     class one:
-        _id = '456e32d9-79db-4dfd-a19d-4a8b12416da8'
+        id = '456e32d9-79db-4dfd-a19d-4a8b12416da8'
         #source = 'firefox.bookmarks'
         date = datetime.datetime.now() # TODO
         url = 'http://example.org/test'
         title = 'title'
         meta = {}
-        place_id = PlaceData.one._id
-        task_id = TaskData.one._id
+        place_id = PlaceData.one.id
+        task_id = TaskData.one.id
         source = TaskSourceData.one.type
-        source_id = TaskSourceData.one._id
+        source_id = TaskSourceData.one.id
 
 
 class ReportTypeData(DataSet):
     class one:
-        _id = '001e32d9-79db-4dfd-a19d-4a8b12416da8'
+        id = '001e32d9-79db-4dfd-a19d-4a8b12416da8'
         label = 'label'
         data = {}
 
 
 class ReportData(DataSet):
     class one:
-        _id = 'abce32d9-79db-4dfd-a19d-4a8b12416da8'
-        report_type_id = ReportTypeData.one._id
+        id = 'abce32d9-79db-4dfd-a19d-4a8b12416da8'
+        report_type_id = ReportTypeData.one.id
         title = 'title'
         data = {}
 

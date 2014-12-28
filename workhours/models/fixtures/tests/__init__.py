@@ -22,10 +22,10 @@ class TestFixtureLoad(PyramidFixtureTestCase):
                 if key.startswith('_'):
                     continue
                 try:
-                    result = s.query(model).filter(model._id==row._id).one()
+                    result = s.query(model).filter(model.id==row.id).one()
                 except Exception as e:
                     log.error( (fixture, model, key, row) )
                     raise
                 self.assertIsNotNone(result)
-                self.assertEqual(result._id, row._id)
+                self.assertEqual(result.id, row.id)
 

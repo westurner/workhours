@@ -16,25 +16,6 @@ from workhours.models.files import initialize_fs
 import logging
 log = logging.getLogger('workhours')
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
-
-    log.debug(settings)
-
-    session_factory = UnencryptedCookieSessionFactoryConfig('secret')
-
-    authn_policy = AuthTktAuthenticationPolicy('s0secret')
-    authz_policy = ACLAuthorizationPolicy()
-
-    settings.setdefault('jinja2.i18n.domain', 'workhours')
-
-    config = configure_app(settings,
-            authn_policy,
-            authz_policy,
-            session_factory)
-
-    return config.make_wsgi_app()
 
 
 def _connect_sqldb(request):
@@ -118,25 +99,6 @@ def string_response_adapter(s):
     return response
 
 
-def configure_app(settings, authn_policy, authz_policy, session_factory):
-    config = Configurator(
-        settings=settings,
-        root_factory='workhours.models.RootFactory',
-        authentication_policy=authn_policy,
-        authorization_policy=authz_policy,
-        session_factory=session_factory,
-    )
-    config.add_translation_dirs('locale/')
-
-    config.add_response_adapter(string_response_adapter, basestring)
-
-    _register_common_templates(config)
-    config.add_subscriber('workhours.security.csrf.csrf_validation',
-                          'pyramid.events.NewRequest')
-
-    config.scan()
-    _register_routes(config)
-    return config
 
 import os
 from pyramid.response import FileResponse
@@ -146,7 +108,8 @@ def favicon_view(request):
     icon = os.path.join(here, 'static', 'favicon.ico')
     return FileResponse(icon, request=request)
 
-def _register_routes(config):
+
+def configure_routes(config):
     config.add_static_view('static', 'workhours:static')
     config.add_route('favicon', '/favicon.ico')
     config.add_view('workhours.favicon_view', name='favicon')
@@ -200,17 +163,28 @@ def _register_routes(config):
     config.include('pyramid_debugtoolbar')
 
 
-from .site.templatefilters import skipautoescape, jsonify, jsonify_indent
 
-def _register_common_templates(config):
+def configure_renderers(config):
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
+
+def configure_jinja2(config):
+    from .site.templatefilters import skipautoescape, jsonify, jsonify_indent
     config.include('pyramid_jinja2')
+    #config.add_jinja2_renderer('.jinja2')
+    #config.add_jinja2_search_path('templates', name='.jinja2')
+
     env = config.get_jinja2_environment()
-    env.filters['skipautoescape'] = skipautoescape
-    env.filters['jsonify'] = jsonify
-    env.filters['jsonify_indent'] = jsonify_indent
-    env.extensions
+    if env is not None:
+        # env.extensions
+        env.filters['skipautoescape'] = skipautoescape
+        env.filters['jsonify'] = jsonify
+        env.filters['jsonify_indent'] = jsonify_indent
+    else:
+        logging.error('get_jinja2_environment() -> None')
+
+
+def configure_auth_views(config):
 
     config.add_view('workhours.site.views.errors.http404',
             renderer='workhours:templates/http404.jinja2',
@@ -222,8 +196,66 @@ def _register_common_templates(config):
 
     config.testing_add_renderer('templates/login.jinja2')
     config.testing_add_renderer('templates/toolbar.jinja2')
+
+
+def configure_app_views(config):
     #config.testing_add_renderer('templates/cloud.jinja2')
     #config.testing_add_renderer('templates/latest.jinja2')
     #config.testing_add_renderer('templates/sparql_query.jinja2')
+    return config
 
 
+def configure_test_app(config):
+    configure_renderers(config)
+    configure_jinja2(config)
+    configure_auth_views(config)
+    configure_app_views(config)
+    configure_routes(config)
+    return config
+
+
+def configure_app(settings, authn_policy, authz_policy, session_factory):
+    config = Configurator(
+        settings=settings,
+        root_factory='workhours.models.RootFactory',
+        authentication_policy=authn_policy,
+        authorization_policy=authz_policy,
+        session_factory=session_factory,
+    )
+    config.add_translation_dirs('locale/')
+
+    config.add_response_adapter(string_response_adapter, basestring)
+
+    configure_test_app(config)
+
+    config.add_subscriber('workhours.security.csrf.csrf_validation',
+                          'pyramid.events.NewRequest')
+
+    config.scan()
+    configure_routes(config)
+
+    return config
+
+
+def main(global_config, **settings):
+    """ This function returns a Workhours Pyramid WSGI application.
+    """
+
+    log.debug(settings)
+
+    session_factory = UnencryptedCookieSessionFactoryConfig('secret')
+
+    authn_policy = AuthTktAuthenticationPolicy('s0secret')
+    authz_policy = ACLAuthorizationPolicy()
+
+    settings.setdefault('jinja2.i18n.domain', 'workhours')
+
+    config = configure_app(
+        settings,
+        authn_policy,
+        authz_policy,
+        session_factory)
+
+    return config.make_wsgi_app()
+
+app = main
