@@ -15,7 +15,7 @@ from sqlalchemy.orm import clear_mappers, configure_mappers
 import logging
 log = logging.getLogger('workhours.models.sql')
 
-DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
+DBSession = scoped_session(sessionmaker()) # extension=ZopeTransactionExtension()))
 Base = declarative_base()
 
 #engine = None
@@ -81,7 +81,7 @@ def initialize_sql(engine, setup_mappers, create_tables_on_init=False, Base=None
             Base.metadata = meta #.bind = engine
         meta.Session = scoped_session(
                         sessionmaker(
-                            extension=ZopeTransactionExtension(),
+                            #extension=ZopeTransactionExtension(),
                             bind=engine))
         #meta.Session.configure(bind=engine)
         #sessionmaker(bind=engine)

@@ -13,11 +13,15 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import MetaData, DateTime, Table, Column, Integer, Unicode, UnicodeText
 from sqlalchemy.orm import mapper, relation, object_session, column_property, synonym, clear_mappers
 
+from sqlalchemy_utils.types.password import PasswordType
+
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 
 from workhours.models.sql.guid import GUID
+from uuid import uuid4
 
 from workhours.models import User
+from workhours.models import Command
 from workhours.models import TaskQueue
 from workhours.models import TaskSource
 from workhours.models import Task
@@ -25,6 +29,7 @@ from workhours.models import Place
 from workhours.models import Event
 from workhours.models import ReportType
 from workhours.models import Report
+
 
 _MAPPED = False
 def setup_mappers(meta=None, engine=None):
@@ -48,18 +53,37 @@ def setup_mappers(meta=None, engine=None):
         meta.bind = engine
 
     users_tbl = Table('users', meta,
-        Column('_id', GUID(), index=True, primary_key=True, ),
+        Column('id', GUID(), index=True, primary_key=True, ),
             Column('username', Unicode(32), index=True, unique=True),
-            Column('name', Unicode(128)),
-            Column('email', Unicode(128)),
-            Column('passphrase_', Unicode(128)),
+            Column('first_name', Unicode(1024)),
+            Column('last_name', Unicode(1024)),
+            Column('email', Unicode(1024)),
+            Column('password', PasswordType(schemes=['pbkdf2_sha512', ]), nullable=True),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(User, users_tbl, properties={
-#        'passphrase': synonym("passphrase_")
+#        'passphrase': synonym("password")
     })
 
+    commands_tbl = Table('commands', meta,
+        Column('id', GUID(), index=True, primary_key=True, ),
+            Column('expire_on', DateTime, nullable=False),
+            Column('command_id', Unicode(36), default=lambda : str(uuid4()), unique=True),
+            Column('command_type', Unicode(1024)),
+            Column('command_date', UnicodeText),
+            Column('identity', Unicode(1024)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
+    )
+    mapper(Command, commands_tbl, properties={
+    })
+
+
     queues_tbl = Table('queues', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('id', GUID(), primary_key=True, nullable=False),
             Column('type', Unicode(length=255), index=True, unique=True),
             Column('uri', UnicodeText()),
             Column('label', UnicodeText()),
@@ -67,14 +91,17 @@ def setup_mappers(meta=None, engine=None):
                 onupdate=datetime.datetime.now),
 
             Column('host', UnicodeText()), # default=$(hostname)
-            Column('user', UnicodeText())  # default=$(whoami)
+            Column('user', UnicodeText()), # default=$(whoami)
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(TaskQueue, queues_tbl)
 
 
     tasksources_tbl = Table('tasksources', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
-            Column('queue_id', GUID(), ForeignKey(queues_tbl.c._id), index=True),
+        Column('id', GUID(), primary_key=True, nullable=False),
+            Column('queue_id', GUID(), ForeignKey(queues_tbl.c.id), index=True),
             Column('type', Unicode(length=255), index=True), # taskqueue.type # TODO
             Column('url', UnicodeText()),
             Column('label', UnicodeText()),
@@ -82,29 +109,35 @@ def setup_mappers(meta=None, engine=None):
                 onupdate=datetime.datetime.now),
 
             Column('host', UnicodeText()), # default=$(hostname)
-            Column('user', UnicodeText())  # default=$(whoami)
+            Column('user', UnicodeText()), # default=$(whoami)
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(TaskSource, tasksources_tbl, properties={
         'queue': relation(TaskQueue, backref='sources')
         })
 
     tasks_tbl = Table('tasks', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('id', GUID(), primary_key=True, nullable=False),
             Column('source_id', GUID(),
-                ForeignKey(tasksources_tbl.c._id), index=True),
+                ForeignKey(tasksources_tbl.c.id), index=True),
             Column('args', MutationDict.as_mutable(JSONEncodedDict)),
             Column('label', UnicodeText()),
             Column('state', Unicode(), index=True, nullable=True), # TODO: ENUM: celery
             Column('statemsg', Unicode()),
             Column('date', DateTime(), index=True,
                 onupdate=datetime.datetime.now,),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(Task, tasks_tbl, properties={
         'source': relation(TaskSource, backref='tasks'),
     })
 
     places_tbl = Table('places', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('id', GUID(), primary_key=True, nullable=False),
             Column('url', UnicodeText(), index=True),
 
             Column('scheme', Unicode()),
@@ -116,13 +149,16 @@ def setup_mappers(meta=None, engine=None):
 
             Column('eventcount', Integer()),
             Column('meta', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
     mapper(Place, places_tbl)
 
     # TODO: tags
 
     events_tbl = Table('events', meta,
-        Column('_id', GUID(), primary_key=True), # TODO, nullable=False),
+        Column('id', GUID(), primary_key=True), # TODO, nullable=False),
             Column('source', Unicode(), index=True),
             Column('date', DateTime(), index=True),
             Column('url', UnicodeText()),
@@ -133,11 +169,14 @@ def setup_mappers(meta=None, engine=None):
             Column('user', UnicodeText()),
 
             Column('place_id', GUID(),
-                ForeignKey(places_tbl.c._id), nullable=True),
+                ForeignKey(places_tbl.c.id), nullable=True),
             Column('source_id', GUID(),
-                ForeignKey(tasksources_tbl.c._id), nullable=False),
+                ForeignKey(tasksources_tbl.c.id), nullable=False),
             Column('task_id', GUID(),
-                ForeignKey(tasks_tbl.c._id), nullable=False),
+                ForeignKey(tasks_tbl.c.id), nullable=False),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
 
             # TODO: sync
             # UniqueConstraint('date','url','task_id',
@@ -153,19 +192,26 @@ def setup_mappers(meta=None, engine=None):
     })
 
     report_types_tbl = Table('report_types', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('id', GUID(), primary_key=True, nullable=False),
             Column('label', Unicode(), index=True),
-            Column('data', MutationDict.as_mutable(JSONEncodedDict))
+            Column('data', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
     )
 
     mapper(ReportType, report_types_tbl)
 
     reports_tbl = Table('reports', meta,
-        Column('_id', GUID(), primary_key=True, nullable=False),
+        Column('id', GUID(), primary_key=True, nullable=False),
             Column('report_type_id', GUID(),
-                ForeignKey(report_types_tbl.c._id), nullable=False),
+                ForeignKey(report_types_tbl.c.id), nullable=False),
             Column('title', Unicode(), nullable=True),
-            Column('data', MutationDict.as_mutable(JSONEncodedDict)))
+            Column('data', MutationDict.as_mutable(JSONEncodedDict)),
+
+            Column('created_on', DateTime, default=datetime.datetime.now),
+            Column('updated_on', DateTime, onupdate=datetime.datetime.now),
+            )
 
     mapper(Report, reports_tbl, properties={
         'report_type': relation(ReportType, backref='reports'),

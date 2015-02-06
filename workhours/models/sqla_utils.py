@@ -73,6 +73,8 @@ def clear_mappers(mapped_classes):
     Remove any existing WebKit mappings
     """
     from sqlalchemy import orm
+    if not hasattr(orm.mapperlib, '_COMPILE_MUTEX'):
+        return
     orm.mapperlib._COMPILE_MUTEX.acquire()
     try:
         for mapper in list(orm._mapper_registry):

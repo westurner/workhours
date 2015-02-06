@@ -45,7 +45,7 @@ from sqlalchemy import sql
 def build_query(request, model=models.Event):
     #read_params(request.urlstr)
 
-    s = request.db_session()
+    s = request.db_session
     query = s.query(model)
 
     # TODO sanitize for SQL

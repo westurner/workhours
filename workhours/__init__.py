@@ -1,41 +1,60 @@
+#!/usr/bin/env python
+"""
+workhours
+
+- ``workhours.main`` WSGI app factory entrypoint
+- ``workhours.configure_test_app`` (testing setup)
+
+"""
+
 from pyramid.config import Configurator
-from pyramid.authentication import AuthTktAuthenticationPolicy
-from pyramid.authorization import ACLAuthorizationPolicy
-from pyramid.session import UnencryptedCookieSessionFactoryConfig
+from pyramid import authentication, authorization
 from pyramid.renderers import JSONP
 from pyramid.events import subscriber
 from pyramid.events import NewRequest, ApplicationCreated
 
 from sqlalchemy import engine_from_config
-import workhours.models
-from workhours.models.sql import initialize_sql
-from workhours.models.es import initialize_esdb
-from workhours.models.files import initialize_fs
+from sqlalchemy.orm import sessionmaker
+from .resource import APIRoot
+from .security import get_principals
+from .models import User
+from ConfigParser import ConfigParser
+
+
+from .models.sql import initialize_sql
+from .models.es import initialize_esdb
+from .models.files import initialize_fs
 #from .models.rdf import initialize_rdflib
 
 import logging
-log = logging.getLogger('workhours')
+log = logging.getLogger(__name__)
 
-def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
+def db(request):
+    """every request will have a session associated with it. and will
+    automatically rollback if there's any exception in dealing with
+    the request
     """
+    maker = request.registry.dbmaker
+    session = maker()
 
-    log.debug(settings)
+    def cleanup(request):
+        if request.exception is not None:
+            session.rollback()
+        else:
+            session.commit()
+        session.close()
 
-    session_factory = UnencryptedCookieSessionFactoryConfig('secret')
+    request.add_finished_callback(cleanup)
 
-    authn_policy = AuthTktAuthenticationPolicy('s0secret')
-    authz_policy = ACLAuthorizationPolicy()
+    return session
 
-    settings.setdefault('jinja2.i18n.domain', 'workhours')
+def authenticated_user(request):
+    def x():
+        return request.db.query(User).filter_by(id=request.authenticated_userid).first()
+    return x
 
-    config = configure_app(settings,
-            authn_policy,
-            authz_policy,
-            session_factory)
-
-    return config.make_wsgi_app()
-
+def config_static(config):
+    config.add_static_view('static', 'static', cache_max_age=3600)
 
 def _connect_sqldb(request):
     #conn = request.registry.dbsession() #
@@ -118,25 +137,45 @@ def string_response_adapter(s):
     return response
 
 
-def configure_app(settings, authn_policy, authz_policy, session_factory):
-    config = Configurator(
-        settings=settings,
-        root_factory='workhours.models.RootFactory',
-        authentication_policy=authn_policy,
-        authorization_policy=authz_policy,
-        session_factory=session_factory,
-    )
-    config.add_translation_dirs('locale/')
+def config_jinja2(config):
+    config.include('pyramid_jinja2')
+    config.add_jinja2_renderer('.html')
+    config.add_jinja2_search_path('templates', name='.html')
 
-    config.add_response_adapter(string_response_adapter, basestring)
+    from .site.templatefilters import skipautoescape, jsonify, jsonify_indent
+    config.commit()
+    env = config.get_jinja2_environment()
+    env.filters['skipautoescape'] = skipautoescape
+    env.filters['jsonify'] = jsonify
+    env.filters['jsonify_indent'] = jsonify_indent
 
-    _register_common_templates(config)
-    config.add_subscriber('workhours.security.csrf.csrf_validation',
-                          'pyramid.events.NewRequest')
 
-    config.scan()
-    _register_routes(config)
-    return config
+def config_debugtoolber(config):
+    config.include('pyramid_debugtoolbar')
+
+
+def config_mailer(config):
+    config.include('pyramid_marrowmailer')
+    config.include('pyramid_tm')
+
+
+def config_db(config, settings, prefix="sqlalchemy."):
+    # configure database with variables sqlalchemy.*
+    engine = engine_from_config(settings, prefix=prefix)
+    config.registry.dbmaker = sessionmaker(bind=engine)
+
+    # add db session to request
+    config.add_request_method(db, reify=True)
+
+    ## workhours
+    config.add_request_method(_connect_sqldb,
+                              'db_session',
+                              property=True,
+                              reify=True)
+    config.add_request_method(_connect_esdb,
+                              'es_session',
+                              property=True,
+                              reify=True)
 
 import os
 from pyramid.response import FileResponse
@@ -146,22 +185,22 @@ def favicon_view(request):
     icon = os.path.join(here, 'static', 'favicon.ico')
     return FileResponse(icon, request=request)
 
-def _register_routes(config):
-    config.add_static_view('static', 'workhours:static')
+
+def config_routes(config):
+    ## Site Routes
+    config.add_route('about', '/about')
+    config.add_route('home', '/home')
+    config.add_route('main', '/')
     config.add_route('favicon', '/favicon.ico')
     config.add_view('workhours.favicon_view', name='favicon')
 
     config.include('deform_jinja2')
 
     ## Security Routes
-    config.add_route('register', '/register')
-    config.add_route('login', '/login')
-    config.add_route('logout', '/logout')
-    config.add_route('user', '/user')
-
-    ## Site Routes
-    config.add_route('about', '/about')
-    config.add_route('main', '/')
+    #config.add_route('register', '/register')
+    #config.add_route('login', '/login')
+    #config.add_route('logout', '/logout')
+    #config.add_route('user', '/user')
 
     ## API Routes
     config.include('pyramid_restler')
@@ -197,21 +236,12 @@ def _register_routes(config):
 
     #config.add_route('sparql_query', '/sparql')
     #config.add_route('deniz', '/browse')
-    config.include('pyramid_debugtoolbar')
+
+    config.add_route("api", '/api/*traverse', factory=APIRoot)
+    config.scan()
 
 
-from .site.templatefilters import skipautoescape, jsonify, jsonify_indent
-
-def _register_common_templates(config):
-    config.add_renderer('jsonp', JSONP(param_name='callback'))
-
-    config.include('pyramid_jinja2')
-    env = config.get_jinja2_environment()
-    env.filters['skipautoescape'] = skipautoescape
-    env.filters['jsonify'] = jsonify
-    env.filters['jsonify_indent'] = jsonify_indent
-    env.extensions
-
+def config_error_pages(config):
     config.add_view('workhours.site.views.errors.http404',
             renderer='workhours:templates/http404.jinja2',
             context='pyramid.exceptions.NotFound')
@@ -220,10 +250,80 @@ def _register_common_templates(config):
             renderer='workhours:templates/http403.jinja2',
             context='pyramid.exceptions.Forbidden')
 
-    config.testing_add_renderer('templates/login.jinja2')
-    config.testing_add_renderer('templates/toolbar.jinja2')
-    #config.testing_add_renderer('templates/cloud.jinja2')
-    #config.testing_add_renderer('templates/latest.jinja2')
-    #config.testing_add_renderer('templates/sparql_query.jinja2')
 
 
+
+def config_renderers(config):
+    config.add_renderer('jsonp', JSONP(param_name='callback'))
+
+
+
+from pyramid.session import SignedCookieSessionFactory
+
+DEFAULT_AUTH_SECRET = "supersecret"
+DEFAULT_COOKIE_SECRET = "crazysecret"
+
+def config_auth_policy(config, settings):
+    policy = authentication.AuthTktAuthenticationPolicy(
+        settings.get('auth_secret', DEFAULT_AUTH_SECRET),
+        get_principals,
+        cookie_name="workhours_auth",
+        hashalg="sha512",)
+    config.set_authorization_policy(authorization.ACLAuthorizationPolicy())
+    config.set_authentication_policy(policy)
+
+    my_session_factory = SignedCookieSessionFactory(
+        settings.get('auth_secret', DEFAULT_COOKIE_SECRET))
+    config.set_session_factory(my_session_factory)
+
+
+def config_secrets(settings):
+    if "secrets" in settings:
+        try:
+            config = ConfigParser()
+            config.read(settings["secrets"])
+            settings.update(config.items("secrets"))
+        except:
+            log.warn("secrets were specificed in the configuration but could not be read\n\n%s" % settings.get("secrets", ""), exc_info=1)
+
+
+def config_settings(settings):
+    if settings is None:
+        raise Exception()
+        #settings = config.registry.settings
+        settings = {
+            'sqlalchemy.url': 'sqlite:///',
+            'mail.transport.use': 'logging',
+        }
+    settings.setdefault('jinja2.i18n.domain', 'workhours')
+    return settings
+
+
+def config_app(config, settings=None, debug=False):
+    settings = config_settings(settings)
+    settings = config.registry.settings
+    print(settings)
+    config_static(config)
+    config_jinja2(config)
+    config_error_pages(config)
+    config_db(config, settings)
+    config_routes(config)
+    config_auth_policy(config, settings)
+    config_mailer(config)
+    config.add_request_method(authenticated_user, reify=True)
+    if debug:
+        config_debugtoolber(config)
+
+
+def configure_test_app(config, settings=None, debug=True):
+    if settings is None:
+        from workhours.testing import test_settings
+        settings = test_settings
+    return config_app(config, settings=settings, debug=debug)
+
+
+def main(global_config, **settings):
+    config_secrets(settings)
+    config = Configurator(settings=settings)
+    config_app(config, settings=settings, debug=True)
+    return config.make_wsgi_app()
