@@ -154,7 +154,7 @@ def main():
     import sys
     import os
     if len(sys.argv) < 2:
-        filename = os.path.join(os.environ['HOME'], '.usrlog')
+        filename = os.path.join(os.environ['HOME'], '-usrlog.log')
     else:
         filename = sys.argv[1]
     for pair in parse_sessionlog(filename):
