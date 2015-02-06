@@ -67,15 +67,23 @@ class ESSession(pyes.es.ES):
             mappings = self.mappings
 
         for index in indexes:
-            import warnings
-            warnings.warn(index)
-            #TODO: self.create_index_if_missing(index)
+            self.create_index_if_missing(index)
 
         for key, mapping in mappings.iteritems():
             self.put_mapping(key, {'properties': mapping,}, indices=[])
 
         if refresh:
             self.refresh_indexes(indexes)
+
+    def create_index_if_missing(self, index):
+        logging.error("Should be creating an index")
+
+    def put_mapping(*args, **kwargs):
+        logging.error("put_mapping: *args **kwargs: %r %r" % (args, kwargs))
+
+    def index_stats(*args, **kwargs):
+        logging.error("index_stats: *args **kwargs: %r %r" % (args, kwargs))
+        return {'_all': {'indices': {'_TESTINGTODO': 'xyz'}}}
 
 
     def put(self, obj, index=None, type=None, version=None, **kwargs):

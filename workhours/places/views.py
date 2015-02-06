@@ -25,7 +25,7 @@ class PlacesRESTfulView(RESTfulView):
         ('xml', (('application/xml',), 'utf-8')),
     ))
 
-    fields = ['_id','url','netloc','eventcount','title']
+    fields = ['id','url','netloc','eventcount','title']
 
     def get_collection(self):
         kwargs = self.request.params.get('$$', {})
