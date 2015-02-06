@@ -5,11 +5,11 @@ import transaction
 
 class ReportTypeContext(SQLAlchemyORMContext):
     entity = ReportType
-    default_fields = ('_id',)
+    default_fields = ('id',)
 
 class ReportContext(SQLAlchemyORMContext):
     entity = Report
-    default_fields = ('_id','report_type_id','title','data')
+    default_fields = ('id','report_type_id','title','data')
 
     _report_label = 'ReportContext'
 
@@ -43,7 +43,7 @@ class ReportContext(SQLAlchemyORMContext):
         s = self.request.db_session()
         collection = list(self.generate_report())
         rtype = self._create_report_type()
-        r = Report(rtype._id, self._report_type,{})
+        r = Report(rtype.id, self._report_type,{})
         r.data['results'] = collection
         s.add(r)
         return r

@@ -19,3 +19,6 @@ whtmp*
 local/
 *.log
 *.db
+SOURCES
+tmpfs
+secret_settings.ini

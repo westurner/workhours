@@ -73,8 +73,6 @@ class _Base(object):
             raise
 
 
-from workhours.models.passphrase import hash_passphrase
-
 class User(_Base):
     """
     Application's user model.
@@ -82,9 +80,10 @@ class User(_Base):
     _fields = (
         'id',
         'username',
-        'name',
+        'first_name',
+        'last_name',
         'email',
-        'passphrase_',
+        'password_',
     )
     _key_fields = (
         'username',
@@ -93,69 +92,41 @@ class User(_Base):
 
     def __init__(self,
                     username=None,
-                    passphrase=None,
-                    passphrase_=None,
-                    name=None,
+                    password=None,
+                    first_name=None,
+                    last_name=None,
                     email=None,
-                    _id=None,
+                    id=None,
                     ):
         self.username = username
-        self.name = name
+        self.first_name = first_name
+        self.last_name = last_name
         self.email = email
-        self.id = _id #self.get_id(_id)
-        if self.passphrase is not None:
-            self.passphrase = passphrase
-
-
-        self.passphrase_ = passphrase_
-        #if not _passphrase:
-        #    self.passphrase = passphrase # self.set_passphrase(passphrase)
+        self.id = id #self.get_id(_id)
+        self.password = password
 
 
     @classmethod
     def get_by_username(cls, username):
         return DBSession.query(cls).filter(cls.username==username).one()
 
-
-    @hybrid_property
-    def passphrase(self):
-        return self.passphrase_
-
-    @passphrase.setter
-    def set_passphrase(self, passphrase):
-        if self.username is None: # test fixture setattr magic
-            #log.debug('username is None')
-            return
-
-        log.error('set_passphrase: (%r,%r)' % (username, passphrase)) # TODO
-        hashed_passphrase = self._hash_passphrase(passphrase)
-        log.error('%r' % hashed_passphrase)
-        self.passphrase_ = hashed_passphrase
-        # self._passphrase_last_updated = TODO
-
     @classmethod
-    def check_login(cls, username, passphrase):
+    def check_login(cls, username, password):
         try:
             user = cls.get_by_username(username)
-            return user and user._check_passphrase(passphrase)
+            return user and user._check_password(password)
         except Exception as e:
             return False
 
-    def _hash_passphrase(self, passphrase):
-        salt = self.username # + {...}
-        if passphrase is None:
-            return None
-        return hash_passphrase(salt, passphrase)
-
-    def _check_passphrase(self, passphrase):
-        if self.passphrase_ is None:
-            return False
-        _hashed_passphrase = self._hash_passphrase(passphrase)
-        if _hashed_passphrase is None:
-            return False
-        return self.passphrase_ == _hashed_passphrase
-
-
+class Command(_Base):
+    _fields = (
+        'id',
+        'expire_on',
+        'command_id',
+        'command_type',
+        'command_date',
+        'identity',)
+    pass
 
 
 class TaskQueue(_Base):
@@ -168,7 +139,9 @@ class TaskQueue(_Base):
         'label',
         'uri',
         'host',
-        'user',)
+        'user',
+    )
+
     _key_fields = (
         'type',
         'uri',
@@ -181,14 +154,14 @@ class TaskQueue(_Base):
                     uri=None,
                     host=None,
                     user=None,
-                    _id=None,
+                    id=None,
                     ):
         self.type = type
         self.label = label
         self.uri = uri
         self.host = host
         self.user = user
-        self.id = _id
+        self.id = id
 
 
 class TaskSource(_Base):
@@ -201,7 +174,9 @@ class TaskSource(_Base):
         'label',
         'url',
         'host',
-        'user',)
+        'user',
+        'queue_id',
+    )
     _key_fields = (
         'type',
         'uri',
@@ -215,7 +190,7 @@ class TaskSource(_Base):
                     url=None,
                     host=None,
                     user=None,
-                    _id=None,
+                    id=None,
                     ):
         self.queue_id = queue_id
         self.type = type # queue.type
@@ -223,7 +198,7 @@ class TaskSource(_Base):
         self.url = url
         self.host = host
         self.user = user
-        self.id = _id
+        self.id = id
 
 
 class Task(_Base):
@@ -245,7 +220,7 @@ class Task(_Base):
                     date=None,
                     state=None,
                     statemsg=None,
-                    _id=None,
+                    id=None,
                     ):
 
         self.source_id = source_id
@@ -256,7 +231,7 @@ class Task(_Base):
         self.date = date or datetime.datetime.now()
         self.state = state
         self.statemsg = statemsg
-        self.id = _id
+        self.id = id
 
     def __unicode__(self):
         return u', '.join( (str(self.id), str(self.queue_id),
@@ -347,13 +322,13 @@ class Event(_Base):
                         source=None,
                         source_id=None,
                         task_id=None,
-                        _id=None,
+                        id=None,
                         **kwargs
                         ):
         """
         Create a new event with a new _id attribute
         """
-        self.id = _id
+        self.id = id
         log.debug('new event: (%r, %r, %r, %r)' % (self.id, source, date, url))
         self.source = source
         self.date = date
@@ -475,7 +450,7 @@ class Place(_Base):
                     url=None,
                     eventcount=1,
                     meta=None,
-                    _id=None,
+                    id=None,
                     ):
         self.url = url
         self.eventcount = eventcount
@@ -484,7 +459,7 @@ class Place(_Base):
             self.meta.update(meta)
         if self.url is not None:
             self.parse_from(self.url)
-        self.id = _id
+        self.id = id
 
     def parse_from(self, url):
         urlp = urlparse.urlparse(url)
@@ -502,7 +477,7 @@ class Place(_Base):
             session.flush()
         else:
             try:
-                obj = cls(url, *args, _id=cls._new_id(), **kwargs)
+                obj = cls(url, *args, id=cls._new_id(), **kwargs)
                 session.add(obj)
             except Exception:
                 raise
@@ -526,14 +501,14 @@ class ReportType(_Base):
     )
     def __init__(self,
                     label=None,
-                    _id=None,
+                    id=None,
                     data=None,
                     ):
         self.label = label
         self.data = MutationDict()
         if data:
             self.data.update(data)
-        self.id = _id
+        self.id = id
 
 
 class Report(_Base):
@@ -552,14 +527,14 @@ class Report(_Base):
                     report_type_id=None,
                     title=None,
                     data=None,
-                    _id=None,
+                    id=None,
                     ):
         self.report_type_id = report_type_id
         self.title = title
         self.data = MutationDict()
         if data:
             self.data.update(data)
-        self.id = _id
+        self.id = id
 
 
 #all_models = [

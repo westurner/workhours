@@ -183,9 +183,11 @@ def main(*args):
     if not opts.quiet:
         #datestr = datetime.datetime.now().strftime('%y-%m-%d-%H%M.%S')
         if opts.config_file:
-            logging.config.fileConfig(opts.config_file)
+            logging.config.fileConfig(opts.config_file,)
         else:
-            logging.basicConfig()
+            logging.basicConfig(
+                format="%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s"
+            )
 
         logging.addLevelName(3, 'TRACE')
 
@@ -200,7 +202,7 @@ def main(*args):
     if opts.run_tests:
         sys.argv = [sys.argv[0]] + args
         import unittest
-        ret=unittest.main()
+        ret = unittest.main()
         return ret
         #exit(unittest.main())
 
@@ -251,7 +253,7 @@ def main(*args):
 
         # append queues from config to opts
         for source in read_queues_from_config(_config):
-            #logging.debug( (queue_name, key, path) )
+            log.debug("Adding queue %r %r" % (source.type, source) )
             if source.type not in opts._queues:
                 opts._queues[source.type] = []
             opts._queues[source.type].append( source )
@@ -273,14 +275,14 @@ def main(*args):
                     "queue type %r not supported: %r" % (_type, _path))
             if _type not in opts._queues:
                 opts._queues[_type] = []
-            opts._queues[_type].append(
-                ConfigTaskSource(
+            task_src = ConfigTaskSource(
                     type=_type,
                     label=None, # TODO
                     url=os.path.expanduser(_path),
                     host='localhost', # TODO
                     user='user',
-                ))
+            )
+            opts._queues[_type].append(task_src)
 
     if opts.list_source_types:
         for queue_name in QUEUES:
@@ -304,15 +306,15 @@ def main(*args):
     if opts.parse or opts.reports:
         from workhours.models.files import initialize_fs
         if opts.fs_url is None:
-            print("Must specify a fs url", file=sys.stderr)
-            return -3
-            #exit(0)
-        opts._filestore = initialize_fs( os.path.expanduser(opts.fs_url) )
+            prs.error("Must specify a fs url")
+            # return -3
+        opts._filestore = initialize_fs(os.path.expanduser(opts.fs_url))
 
 
     if opts.parse:
         if not opts._queues:
-            raise Exception()
+            prs.error("--parse specified without any queues (see -c and/or -s)")
+            # raise Exception()
         if any(x[0] for x in opts._queues.iteritems()):
             from workhours.tasks.events import events_table_worker
             for result in events_table_worker(
@@ -323,6 +325,7 @@ def main(*args):
                 pass
 
     def _do_events_report(opts):
+        log.debug("_do_events_report")
         from workhours.reports.events import dump_events_table
         csv_path = opts._filestore.add_path('events.csv', None)
         for line in dump_events_table(opts.sqldb_url):
@@ -331,6 +334,7 @@ def main(*args):
     from workhours.reports.gaps import create_gap_csv
     from workhours import models
     def _do_gap_report(opts):
+        log.debug("_do_gap_report")
         opts.csv_path = reportsdir.add_path('gaps.csv', None)
         create_gap_csv(models.Event, opts.csv_path, opts.gaptime)
 
