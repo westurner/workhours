@@ -20,7 +20,7 @@ log = logging.getLogger('.events.models')
 
 class EventsContextFactory(WorkhoursORMContext):
     entity = Event
-    default_fields = ('_id','date','source','url','title',
+    default_fields = ('id','date','source','url','title',
                       'place_id', 'source_id', 'task_id', 'meta')
     eagerload = ('task.queue',)
 
@@ -115,7 +115,7 @@ class EventsContextFactory(WorkhoursORMContext):
             self
             .request
             .db_session
-            .query(func.count(self.entity._id)).one())
+            .query(func.count(self.entity.id)).one())
 
     def wrap_json_obj(self, obj):
         result_count=len(obj)

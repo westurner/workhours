@@ -80,7 +80,7 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
 
             queue = TaskQueue.get_or_create(
                         TaskQueue.type, queue_type,
-                        _id=TaskQueue._new_id(),
+                        id=TaskQueue._new_id(),
                         type=queue_type,
                         #uri=sources[0].url, # TODO)
                         host='localhost', # TODO
@@ -90,13 +90,13 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
 
             for source in sources:
                 source = TaskSource(
-                        _id=TaskSource._new_id(),
-                        queue_id=queue._id,
+                        id=TaskSource._new_id(),
+                        queue_id=queue.id,
                         **source._asdict()
                 )
                 s.add(source)
 
-            #s.commit()
+            s.commit()
             transaction.commit()
         except Exception, e:
             log.exception(e)
@@ -118,7 +118,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
     s.expire_on_commit = False
 
     # lookup queue
-    queue = s.query(TaskQueue).filter(TaskQueue._id==queue_id).one()
+    queue = s.query(TaskQueue).filter(TaskQueue.id==queue_id).one()
     queue_type = queue.type
 
     parser_parse, get_fileset = QUEUES[queue.type]
@@ -132,8 +132,8 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
 
         s = meta.Session()
         task = Task(
-                    _id=Task._new_id(),
-                    source_id=source._id,
+                    id=Task._new_id(),
+                    source_id=source.id,
                     #args=argset._asdict(),
                     args=source._asdict()
                     )
@@ -141,10 +141,10 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
         s.add(task)
         transaction.commit()
 
-        _log = logging.getLogger('workhours.tasks.%s.%s' % (queue.type, task._id))
+        _log = logging.getLogger('workhours.tasks.%s.%s' % (queue.type, task.id))
 
-        #transaction.commit() # get task._id
-        task_dirname = '%s_%s' % (task._id, queue.type)
+        #transaction.commit() # get task.id
+        task_dirname = '%s_%s' % (task.id, queue.type)
 
         task_dir = filestore.mkdir(task_dirname)
 
@@ -164,21 +164,21 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
                 try:
                     event = Event.from_uhm(
                         parser_event,
-                        _id=Event._new_id(),
-                        task_id=task._id,
+                        id=Event._new_id(),
+                        task_id=task.id,
                         #source=queue_type,
                         source=source.type,
                         #source=task.args['type'],
-                        source_id=source._id
+                        source_id=source.id
                     )
                     if event.url and '://' in event.url[:10]:
                         place = Place.get_or_create(event.url, session=s)
-                        event.place_id = place._id
+                        event.place_id = place.id
                     s.add(event)
                     #transaction.commit()
 
                     # TODO:
-                    #s.flush() # get event._id
+                    #s.flush() # get event.id
                     # sunburnt.index(event + **addl_attrs)
                     # pyes.insert( **event.to_dict() )
                     yield event
@@ -189,7 +189,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
                     s.flush()
                     raise
 
-            #s.commit()
+            s.commit()
             transaction.commit()
         except Exception, e:
             #log.error("ERROR Parsing: %s" % queue)
@@ -200,7 +200,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
             raise
             pass # TOOD
         finally:
-            #s.close()
+            s.close()
             pass
 
 def events_table_worker(eventsdb_uri, task_queues, filestore):
@@ -216,7 +216,7 @@ def events_table_worker(eventsdb_uri, task_queues, filestore):
     for queue in task_queues:
         try:
             log.info('parsing event source: %r ' % (queue.type))
-            for event in parse_event_source(eventsdb_uri, queue._id, filestore_uri=filestore):
+            for event in parse_event_source(eventsdb_uri, queue.id, filestore_uri=filestore):
                 yield event
         except Exception, e:
             raise
