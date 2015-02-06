@@ -1,0 +1,3 @@
+nose
+#nose-progressive
+pyramid_debugtoolbar

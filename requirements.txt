@@ -1,34 +1,42 @@
 # Workhours PIP requirements file
 
--r /srv/repos/etc/requirements-appservers.txt
 
--r /srv/repos/etc/requirements-paste.txt
-
--r /srv/repos/etc/requirements-pyramid.txt
-
--r /srv/repos/etc/requirements-pyramidsqlalchemy.txt
-
-file:///srv/repos/src/passlib
-
-file:///srv/repos/src/formencode
-file:///srv/repos/src/webhelpers
-file:///srv/repos/src/pyiso8601
-file:///srv/repos/src/colander
-file:///srv/repos/src/peppercorn
-
-file:///srv/repos/src/deform
-file:///srv/repos/src/deform_jinja2
-file:///srv/repos/src/pyramid_deform
-
-file:///srv/repos/src/pyramid_simpleform
-
--r /srv/repos/etc/requirements-celery.txt
-file:///srv/repos/src/pyramid_celery
-
-file:///srv/repos/src/pyramid_restler
 
 # collector requirements
-file:///srv/repos/etc/requirements-sqlalchemy.txt
-file:///srv/repos/src/pytz-2011n
-file:///srv/repos/src/beautifulsoup-3.2
-file:///srv/repos/src/pyutmp
+# file:///srv/repos/etc/requirements-sqlalchemy.txt
+pytz
+beautifulsoup
+pyutmp
+sqlalchemy
+
+# Webapp + SQLAlchemy
+# -r /srv/repos/etc/requirements-appservers.txt
+# -r /srv/repos/etc/requirements-paste.txt
+
+waitress
+pyramid
+
+# -r /srv/repos/etc/requirements-pyramidsqlalchemy.txt
+
+passlib
+
+pyramid_jinja2
+
+formencode
+webhelpers
+iso8601
+colander
+peppercorn
+
+deform
+deform_jinja2
+pyramid_deform
+
+pyramid_simpleform
+
+celery
+# -r /srv/repos/etc/requirements-celery.txt
+pyramid_celery
+
+pyramid_restler
+
