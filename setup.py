@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 import os
 import os.path as osp
-version = '0.4.01'
+version = '0.5.01'
 
 def rel_path(path_):
     return osp.join(osp.dirname(osp.abspath(__file__)), path_)
@@ -65,6 +65,6 @@ setup(name='workhours',
         ]
     },
       install_requires=requires,
-      tests_require=requires + ['nose', 'fixture'],
+      #tests_require=requires + ['nose', 'fixture'],
       test_suite="test",
       )
