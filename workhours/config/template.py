@@ -4,7 +4,9 @@ from __future__ import print_function
 """
 workhours_config_template
 """
-
+import sys
+import logging
+log = logging.getLogger()
 
 class ConfigTemplate(object):
 
@@ -47,7 +49,8 @@ class Test_workhours_config_template(unittest.TestCase):
         c.write_to(path)
         self.assertTrue(output)
 
-    def test_template
+    def test_template(self):
+        # TODO
         pass
 
 
