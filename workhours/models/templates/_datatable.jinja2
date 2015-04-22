@@ -3,21 +3,34 @@
 {% endif %}
 {% block extracss %}
     <link rel="stylesheet"
-        href="{{ request.static_url("workhours:static/datatable/css/demo_table.css") }}"
+        href="{{ request.static_url("workhours:static/DataTables/media/css/demo_table.css") }}"
         media="screen,projection"
         type="text/css"
         />
 {% endblock extracss %}
 {% block extrajs %}
 <script type="text/javascript" language="javascript" 
-    src="{{ request.static_url("workhours:static/datatable/js/jquery.js")}}"></script>
+    src="{{ request.static_url("workhours:static/DataTables/media/js/jquery.js")}}"></script>
 <script type="text/javascript" language="javascript" 
-    src="{{ request.static_url("workhours:static/datatable/js/jquery.dataTables.js")}}"></script>
+    src="{{ request.static_url("workhours:static/DataTables/media/js/jquery.dataTables.js")}}"></script>
     <script type="text/javascript" language="javascript">
 
 
  $(document).ready(function() {
-    $('#{{ table_id }}').dataTable({
+    $('#{{ table_id }}').datatable({
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": /api/{{ table_id }}.json,
+
+        },
+        "paging": true,
+        "ordering": true,
+        "columns": {%- block datatable_columns -%}
+           {{ fields_json|skipautoescape }}
+{%- endblock datatable_columns -%}
+
+    {#
              "bSort": true,
              "bPaginate": true,
              "bLengthChange": true,
@@ -52,6 +65,7 @@
              /*"sDom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>',*/
 
              /*"bJQueryUI": true,*/
+#}
     });
 }); 
 </script>

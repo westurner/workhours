@@ -16,8 +16,9 @@ from workhours.future import OrderedDict
 log = logging.getLogger('.events.views')
 from pprint import pformat
 
+
 class EventsRESTfulView(RESTfulView):
-    #def render_to_response(self, member):
+    # def render_to_response(self, member):
     #    raise Exception(member)
     context = EventsContextFactory
     _entity_name = 'event'
@@ -89,7 +90,7 @@ class EventsRESTfulView(RESTfulView):
         raise HTTPBadRequest('XML renderer not implemented.')
 
     @reify
-    def fields(self): # TODO
+    def fields(self):  # TODO
         fields = self.request.params.get('$fields', None)
         if fields is not None:
             fields = json.loads(fields)
@@ -105,7 +106,7 @@ class EventsRESTfulView(RESTfulView):
         return HTTPNotFound(self.context)
 
     def render_json(self, value):
-        renderer=self._renderers['json']
+        renderer = self._renderers['json']
         response_data = dict(
             body=self.context.to_json(value, self.fields, self.wrap),
             charset=renderer[1],
@@ -114,12 +115,12 @@ class EventsRESTfulView(RESTfulView):
         return response_data
 
     def render_html(self, value):
-        renderer=self._renderers['html']
-        title='api : events'
+        renderer = self._renderers['html']
+        title = 'api : events'
         fields = self.context.default_fields
 
         # a model instance
-        if isinstance(value, Event): #hasattr(value, '__iter__'):
+        if isinstance(value, Event):  # hasattr(value, '__iter__'):
             value = (value,)
             title = u"Event: %s" % Event.id
             template = 'events/templates/_event.jinja2'
@@ -130,18 +131,19 @@ class EventsRESTfulView(RESTfulView):
 
         # an iterable
         return dict(
-            body=render(template,
+            body=render(
+                template,
                 dict(
                     value=value,
                     fields=fields,
                     table_id=self._entity_name_plural,
                     title=title,
                     wrap=self.wrap,
-                    js_links=("workhours:static/datatable/js/jquery.dataTables.min.js",),
-                    fields_json=Markup(json.dumps(fieldsdict))
-                ),
+                    js_links=(
+                        "workhours:static/DataTables/media/js/jquery.dataTables.min.js",
+                        ),
+                    fields_json=Markup(
+                        json.dumps(fieldsdict))),
                 self.request),
             charset=renderer[1],
-            content_type=renderer[0][0]
-        )
-
+            content_type=renderer[0][0])
