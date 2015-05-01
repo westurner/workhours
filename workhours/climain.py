@@ -295,7 +295,7 @@ def main(*args):
         log.debug("sql.url: %r", opts.sqldb_url)
         log.debug("fs.url: %r", opts.fs_url)
         log.debug("es.url: %r", opts.esdb_url)
-        #log.debug("queues:\n%s", json.dumps(opts._queues, indent=2))
+        log.debug("queues:\n%s", json.dumps(opts._queues, indent=2))
 
     debug_conf(opts)
 
