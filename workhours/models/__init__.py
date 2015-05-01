@@ -326,7 +326,7 @@ class Event(_Base):
                         **kwargs
                         ):
         """
-        Create a new event with a new _id attribute
+        Create a new event with a new id attribute
         """
         self.id = id
         log.debug('new event: (%r, %r, %r, %r)' % (self.id, source, date, url))
@@ -353,6 +353,8 @@ class Event(_Base):
         _kwargs['source_id'] = kwargs['source_id']
 
         try:
+            if not obj:
+                _obj = obj
             if isinstance(obj, dict):
                 _kwargs.update(obj)
                 _obj = cls(**_kwargs)
@@ -362,13 +364,13 @@ class Event(_Base):
             elif hasattr(obj, '__iter__'):
                 _obj = cls(*obj[:3], **_kwargs) # TODO
             else:
-                raise
-        except Exception, e:
+                raise Exception((repr(obj), type(obj)))
+        except Exception as e:
+            log.exception(e)
             log.error({'obj': obj,
                         'type': type(obj),
                         'dir': dir(obj)
                         })
-            log.exception(e)
             raise
 
         return _obj
@@ -555,10 +557,12 @@ ALL_MODELS = (
     Report,
 )
 
+## Import these into .models
+
 from workhours.models.sql import open_db
 from workhours.models.sql import Session
 from workhours.models.sql import Base
-from workhours.models.sql import DBSession # primary database session
+from workhours.models.sql import DBSession  # primary database session
 from workhours.models.sql import initialize_sql
 
 from pyramid.security import Everyone
