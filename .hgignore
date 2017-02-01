@@ -23,5 +23,5 @@ SOURCES
 tmpfs
 secret_settings.ini
 
-.rope-project/
+.ropeproject/
 
