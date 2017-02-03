@@ -9,15 +9,22 @@
         />
 {% endblock extracss %}
 {% block extrajs %}
+<!--
 <script type="text/javascript" language="javascript" 
     src="{{ request.static_url("workhours:static/datatable/js/jquery.js")}}"></script>
 <script type="text/javascript" language="javascript" 
     src="{{ request.static_url("workhours:static/datatable/js/jquery.dataTables.js")}}"></script>
-    <script type="text/javascript" language="javascript">
+-->
+<script type="text/javascript" language="javascript"
+    src="https://code.jquery.com/jquery-1.12.4.min.js">
+</script>
 
+<script type="text/javascript" language="javascript"
+    src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.js"></script>
 
+<script type="text/javascript">
  $(document).ready(function() {
-    $('#{{ table_id }}').dataTable({
+    $('#{{ table_id }}').DataTable({
              "bSort": true,
              "bPaginate": true,
              "bLengthChange": true,
