@@ -17,25 +17,64 @@ with open(os.path.join(here, 'CHANGES.rst')) as f:
     CHANGES = f.read()
 
 requires = [
-    'pytz',
-    'BeautifulSoup',
-    'pyutmp',
-    'pyes',
+ 'BeautifulSoup',
+ 'alembic',
+ 'celery',
+ 'colander',
+ 'deform',
+ 'deform-jinja2',
+ 'fixture',
+ 'formencode',
+ 'html2text',
+ 'iso8601',
+ 'passlib',
+ 'peppercorn',
+ 'pyes',
+ 'pyparsing',
+ 'pyramid',
+ 'pyramid-celery',
+ 'pyramid-debugtoolbar',
+ 'pyramid-deform',
+ 'pyramid-jinja2',
+ 'pyramid-restler',
+ 'pyramid-simpleform',
+ 'pyramid-sqlalchemy',
+ 'pyramid_jinja2',
+ 'pyramid_marrowmailer',
+ 'pyramid_tm',
+ 'pytz',
+ 'pyutmp',
+ 'sqlalchemy',
+ 'sqlalchemy-utils',
+ 'waitress',
+ 'webhelpers',
+]
 
+try:
+    from collections import OrderedDict
+    requiresdict = OrderedDict()
+    for name in requires:
+        # TODO: parse (name, (ver, constraints))
+        requiresdict.setdefault(name, ['setup.py:requires'])
 
-    'pyramid',
-    'waitress',
-    'sqlalchemy',
-    'alembic',
-    'pyramid_jinja2',
-    'passlib',
-    'colander',
-    'pyramid_marrowmailer',
-    'html2text',
-    'pyramid_tm',
-     #'zope.sqlalchemy',
-    'sqlalchemy-utils',
-    ]
+    import pip.req
+    requirementstxtfiles = ['requirements.txt',]
+    rtxtdict = OrderedDict.fromkeys(requirementstxtfiles)
+    for rtxtpath in rtxtdict:
+        requirements = rtxtdict[rtxtpath] = list(
+            pip.req.parse_requirements(
+                rtxtpath, session='1'))
+        for req in requirements:
+            reqsrcs = requiresdict.setdefault(req.name, list)
+            reqsrcs.append(rtxtpath)
+    #import pprint
+    #pprint.pprint(requiresdict.items())
+    #raise Exception(requiresdict)
+    requires = requiresdict.keys()
+
+except ImportError:
+    import warnings
+    warnings.warn("Pip not found; skipping loading requirements files: %r" % requirementstxtfiles)
 
 setup(name='workhours',
     version=version,
