@@ -39,3 +39,4 @@ pyramid_celery
 
 # debugging
 pyramid_debugtoolbar
+pyparsing
