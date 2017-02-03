@@ -61,7 +61,7 @@ class ReportView(RESTfulView):
                         js_links="datatable/js/jquery.dataTables.min.js",
                         fields_json=Markup(
                             json.dumps(
-                                [dict(mDataProp=f) for f in self.fields]))
+                                [dict(mData=f) for f in self.fields]))
                     ),
                     self.request),
 
