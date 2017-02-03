@@ -126,7 +126,7 @@ class EventsRESTfulView(RESTfulView):
         else:
             template = 'events/templates/_events_table.jinja2'
 
-        fieldsdict = [dict(mDataProp=f) for f in fields]
+        fieldsdict = [dict(mData=f) for f in fields]
 
         # an iterable
         return dict(

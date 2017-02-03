@@ -1,22 +1,22 @@
 {% extends "models/templates/_datatable.jinja2" %}
 {% block datatable_columns %}[
-{   "mDataProp": "id",
+{   "mData": "id",
     "sWidth": "1px",
     "bVisible": false,
     "aTargets": [0]
 },
-{   "mDataProp": "date",
+{   "mData": "date",
     "sWidth": "20px",
     "aTargets": [1],
     "fnRender": function (obj) {
         return ("<a href=\"/api/events/" + obj.aData.id + "\">" + obj.aData.date + "</a>"); /* TODO: escape */
     }
 },
-{   "mDataProp": "source",
+{   "mData": "source",
     "sWidth": "20px",
     "aTargets": [2]
 },
-{   "mDataProp": "url",
+{   "mData": "url",
     "aTargets": [3],
     "fnRender": function (obj) {
         return (
@@ -25,10 +25,30 @@
             + obj.aData.url + "</a>");
     }
 },
-{ "mDataProp": "title",
-  "bVisible": false, 
+{ "mData": "title",
+  "bVisible": false,
   "sWidth": "0px",
   "aTargets": [4]
+},
+{ "mData": "place_id",
+  "bVisible": false,
+  "sWidth": "0px",
+  "aTargets": [5]
+},
+{ "mData": "source_id",
+  "bVisible": false,
+  "sWidth": "0px",
+  "aTargets": [6]
+},
+{ "mData": "task_id",
+  "bVisible": false,
+  "sWidth": "0px",
+  "aTargets": [7]
+},
+{ "mData": "meta",
+  "bVisible": false,
+  "sWidth": "0px",
+  "aTargets": [8]
 }
 ]{% endblock datatable_columns %}
 
