@@ -1,9 +1,10 @@
-#from pyramid.renderers import render
-#from pyramid.decorator import reify
-#from pyramid.response import Response
+# from pyramid.renderers import render
+# from pyramid.decorator import reify
+# from pyramid.response import Response
 from workhours.models.context import WorkhoursORMContext
-#from pyramid_restler.view import RESTfulView
-#from workhours.future import OrderedDict
+
+# from pyramid_restler.view import RESTfulView
+# from workhours.future import OrderedDict
 
 from workhours.models import Place
 import sqlalchemy
@@ -12,15 +13,22 @@ from sqlalchemy.sql import func
 
 import logging
 
-log = logging.getLogger('workhours.places.models')
+log = logging.getLogger("workhours.places.models")
+
 
 class PlacesContextFactory(WorkhoursORMContext):
     entity = Place
-    default_fields = ('_id','url','netloc','eventcount','title')
+    default_fields = ("_id", "url", "netloc", "eventcount", "title")
 
-    def get_collection(self, distinct=False, order_by=None, limit=None,
-                       offset=None, filters=None,
-                       **kwargs):
+    def get_collection(
+        self,
+        distinct=False,
+        order_by=None,
+        limit=None,
+        offset=None,
+        filters=None,
+        **kwargs
+    ):
         """Get the entire collection or a subset of it.
 
         By default, this will fetch all records for :attr:`entity`. Various
@@ -54,13 +62,13 @@ class PlacesContextFactory(WorkhoursORMContext):
         q.options(orm.joinedload(self.entity.events))
 
         # Apply "global" (i.e., every request) filters
-        if hasattr(self, 'filters'):
+        if hasattr(self, "filters"):
             for f in self.filters:
                 q = q.filter(f)
 
         for k, v in list((filters or {}).items()):
-            #v = self.convert_param(k, v)
-            filter_method = getattr(self.entity, '{0}_filter'.format(k), None)
+            # v = self.convert_param(k, v)
+            filter_method = getattr(self.entity, "{0}_filter".format(k), None)
             if filter_method is not None:
                 # Prefer a method that returns something that can be passed
                 # into `Query.filter()`.
@@ -70,22 +78,22 @@ class PlacesContextFactory(WorkhoursORMContext):
 
         if distinct:
             q = q.distinct()
-        search = kwargs.get('search')
-        if search is not None and search is not '':
-            if '%' not in search:
-                search = '%%%s%%' % search
+        search = kwargs.get("search")
+        if search is not None and search is not "":
+            if "%" not in search:
+                search = "%%%s%%" % search
             q = q.filter(
-                        ( self.entity.url.like(search) )
-                    |   ( self.entity.netloc.like(search) )
+                (self.entity.url.like(search))
+                | (self.entity.netloc.like(search))
             )
         if order_by is not None:
-            if isinstance(order_by, int): # numeric?
+            if isinstance(order_by, int):  # numeric?
                 order_by = getattr(self.entity, self.default_fields[order_by])
             else:
                 raise AttributeError()
 
-            sort_dir = kwargs.get('sort_dir')
-            if sort_dir == 'desc':
+            sort_dir = kwargs.get("sort_dir")
+            if sort_dir == "desc":
                 order_by = sqlalchemy.desc(order_by)
 
             log.debug("ordering by: %s : %s" % (order_by, sort_dir))
@@ -107,25 +115,20 @@ class PlacesContextFactory(WorkhoursORMContext):
             return q.get(id)
         except Exception as e:
             log.debug("not an int: %r" % id)
-            if hasattr(id, '__contains__') and '://' in id:
+            if hasattr(id, "__contains__") and "://" in id:
                 return q.filter(self.entity.url == id).one()
             return q.get(id)
 
     def count(self):
         # TODO: ...
-        return (
-            self.request
-                .db_session
-                .query(
-                    func.count(self.entity._id)
-                ).one() )
+        return self.request.db_session.query(func.count(self.entity._id)).one()
 
     def wrap_json_obj(self, obj):
-        result_count=len(obj)
+        result_count = len(obj)
         total_count = self.count()[0]
         return dict(
             results=obj,
             result_count=result_count,
             iTotalRecords=total_count,
-            iTotalDisplayRecords=total_count, # TODO:
+            iTotalDisplayRecords=total_count,  # TODO:
         )

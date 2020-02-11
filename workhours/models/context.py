@@ -4,10 +4,12 @@ from pyramid.decorator import reify
 from pyramid_restler.interfaces import IContext
 from zope.interface import implementer
 
+
 def null(*args, **kwargs):
     return {}
 
-#@component.adapter(IRequest)
+
+# @component.adapter(IRequest)
 @implementer(IContext)
 class PlainContext(object):
     """
@@ -17,11 +19,14 @@ class PlainContext(object):
 
     json_encoder = json.DefaultJSONEncoder
 
-    def __init__(self, request,
-            get_member=None,
-            get_collection=None,
-            index_key=None,
-            default_fields=None):
+    def __init__(
+        self,
+        request,
+        get_member=None,
+        get_collection=None,
+        index_key=None,
+        default_fields=None,
+    ):
         """
         :param get_member: get_member method
         :param get_collection: get_collection method
@@ -33,11 +38,11 @@ class PlainContext(object):
         self.index_key = index_key
         self.default_fields = default_fields
 
-    #@reify
-    #def session(self):
+    # @reify
+    # def session(self):
     #    return self.session_factory()
 
-    #def session_factory(self):
+    # def session_factory(self):
     #    return self.request.db_session
 
     def get_collection(self, *args, **kwargs):
@@ -46,14 +51,14 @@ class PlainContext(object):
         SELECT * WHERE {parse(kwargs)}
         """
         # TODO: pagination
-        #kwargs.get('page')
-        #kwargs.get('per_page')
-        #resp {
+        # kwargs.get('page')
+        # kwargs.get('per_page')
+        # resp {
         #    'entries': self._get_collection(*args, **kwargs),
         #    'currentPage': currentPage,
         #    'perPage': perPage,
         #    'totalEntries': totalEntries,
-        #}
+        # }
         #
         return self._get_collection(*args, **kwargs)
 
@@ -61,20 +66,21 @@ class PlainContext(object):
         """
         SELECT * WHERE keyattr=key
         """
-        #return self.get_member(key)
-        #return self.fn(id) #get_number(int(n, 0))
+        # return self.get_member(key)
+        # return self.fn(id) #get_number(int(n, 0))
         return self._get_member(key)
 
     def create_member(self, data):
         raise NotImplementedError()
         # redirect
-        #member = self.entity(**data)
-        #self.session.add(member)
-        #self.session.commit()
-        #return member
+        # member = self.entity(**data)
+        # self.session.add(member)
+        # self.session.commit()
+        # return member
 
     def update_member(self, key, data):
         raise NotImplementedError()
+
     #    q = self.session.query(self.entity)
     #    member = q.get(key)
     #    if member is None:
@@ -86,6 +92,7 @@ class PlainContext(object):
 
     def delete_member(self, key):
         raise NotImplementedError()
+
     #    q = self.session.query(self.entity)
     #    member = q.get(key)
     #    if member is None:
@@ -114,7 +121,7 @@ class PlainContext(object):
         returned as-is.
 
         """
-        #obj = self.get_json_obj(value, fields, wrap)
+        # obj = self.get_json_obj(value, fields, wrap)
         return json.dumps(value, cls=self.json_encoder)
 
     def get_json_obj(self, value, fields, wrap):
@@ -130,45 +137,44 @@ class PlainContext(object):
 
     @classmethod
     def wrap_json_obj(cls, obj):
-        return dict(
-            results=obj,
-            result_count=len(obj),
-        )
+        return dict(results=obj, result_count=len(obj),)
 
     @classmethod
     def member_to_dict(cls, member, fields=None):
-        #if fields is None:
+        # if fields is None:
         #    fields = self.default_fields
         return member._asdict()
-        #dict((name, getattr(member, name)) for name in fields)
+        # dict((name, getattr(member, name)) for name in fields)
 
     @reify
     @classmethod
     def default_fields(cls):
         return self.fields
 
-        #class_attrs = dir(self.entity)
-        #for name in class_attrs:
-            #if name.startswith('_'):
-                #continue
-            #attr = getattr(self.entity, name)
-            #if isinstance(attr, property):
-                #fields.append(name)
-            #else:
-                #try:
-                    #clause_el = attr.__clause_element__()
-                #except AttributeError:
-                    #pass
-                #else:
-                    #if issubclass(clause_el.__class__, Column):
-                        #fields.append(name)
-        #fields = set(fields)
-        #return fields
+        # class_attrs = dir(self.entity)
+        # for name in class_attrs:
+        # if name.startswith('_'):
+        # continue
+        # attr = getattr(self.entity, name)
+        # if isinstance(attr, property):
+        # fields.append(name)
+        # else:
+        # try:
+        # clause_el = attr.__clause_element__()
+        # except AttributeError:
+        # pass
+        # else:
+        # if issubclass(clause_el.__class__, Column):
+        # fields.append(name)
+        # fields = set(fields)
+        # return fields
+
 
 from pyramid_restler.model import SQLAlchemyORMContext
+
+
 class WorkhoursORMContext(SQLAlchemyORMContext):
     entity = None
 
     json_encoder = json.DefaultJSONEncoder
-    default_fields = ('_id',)
-
+    default_fields = ("_id",)

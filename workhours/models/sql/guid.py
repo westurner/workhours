@@ -3,9 +3,11 @@ from sqlalchemy.types import TypeDecorator, CHAR
 import uuid
 
 import logging
-log = logging.getLogger('workhours.models.sql.guid')
 
-NAMESPACE = 'workhours' # TODO
+log = logging.getLogger("workhours.models.sql.guid")
+
+NAMESPACE = "workhours"  # TODO
+
 
 class GUID(TypeDecorator):
     """Platform-independent GUID type.
@@ -14,10 +16,11 @@ class GUID(TypeDecorator):
     CHAR(32), storing as stringified hex values.
 
     """
+
     impl = CHAR
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return dialect.type_descriptor(UUID())
         else:
             return dialect.type_descriptor(CHAR(36))
@@ -27,7 +30,7 @@ class GUID(TypeDecorator):
         Receive a bound parameter value to be converted
         for TypeEngine and DBAPI.execute
         """
-        if dialect.name == 'postgresql':
+        if dialect.name == "postgresql":
             return str(value)
         else:
 
@@ -54,9 +57,9 @@ class GUID(TypeDecorator):
             guid = uuid.uuid4()
         else:
             guid = uuid.uuid5(namespace, value)
-        log.log(3,'guid: %r' % guid)
-        return GUID.to_str(guid) #uuid.UUID(guid)
+        log.log(3, "guid: %r" % guid)
+        return GUID.to_str(guid)  # uuid.UUID(guid)
 
     @classmethod
     def to_str(cls, value):
-        return str(value) #"%.32x" % value
+        return str(value)  # "%.32x" % value

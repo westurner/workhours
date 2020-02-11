@@ -3,6 +3,7 @@ import subprocess
 import os
 import tempfile
 
+
 def parse_authlog_yearless_date(datestr, year):
     """
     Augment an auth.log-style yearless date with a year
@@ -14,10 +15,11 @@ def parse_authlog_yearless_date(datestr, year):
 
     :returns: datetime
     """
-    if datestr[0:3] == 'Jan':
+    if datestr[0:3] == "Jan":
         raise Exception("careful")
     datestr = "%d %s" % (year, datestr)
     return datetime.datetime.strptime(datestr, "%Y %b %d %H:%M:%S")
+
 
 def parse_authlog(uri=None, year=None):
     """
@@ -44,14 +46,15 @@ def parse_authlog(uri=None, year=None):
     if not year:
         year = datetime.datetime.now().year
 
-    with open(filename, 'r+') as f:
+    with open(filename, "r+") as f:
         for line in f:
             datestr, rest = line[0:15], line[16:]
             dt = parse_authlog_yearless_date(datestr, year)
-            hostname, rest = rest.split(' ',1)
-            process, rest = map(str.strip, rest.split(':',1))
+            hostname, rest = rest.split(" ", 1)
+            process, rest = map(str.strip, rest.split(":", 1))
 
             yield (dt, u"%s :: %s :: %s" % (hostname, process, rest))
+
 
 def parse_authlog_glob(uri=None):
     """
@@ -69,7 +72,10 @@ def parse_authlog_glob(uri=None):
         tmp_hndl, tmpfilename = tempfile.mkstemp()
 
         # Gunzip if necessary and cat into tmpfile
-        subprocess.call("zcat -f %s | grep -v CRON > %s" % (glob_pattern, tmpfilename), shell=True)
+        subprocess.call(
+            "zcat -f %s | grep -v CRON > %s" % (glob_pattern, tmpfilename),
+            shell=True,
+        )
         for u in parse_authlog(tmpfilename):
             yield u
 
@@ -77,10 +83,12 @@ def parse_authlog_glob(uri=None):
         if tmpfilename:
             os.remove(tmpfilename)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     import sys
+
     if len(sys.argv) < 2:
-        fileglob = '/var/log/auth*'
+        fileglob = "/var/log/auth*"
     else:
         fileglob = sys.argv[1]
     for u in parse_auth_log(fileglob):

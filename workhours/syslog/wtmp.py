@@ -10,6 +10,7 @@ from pyutmp import UtmpFile
 
 to_datetime = lambda x: datetime.datetime.fromtimestamp(x)
 
+
 def parse_wtmp(uri=None):
     """
     Parse a wtmp file into event tuples
@@ -23,14 +24,15 @@ def parse_wtmp(uri=None):
     filename = uri
     for u in UtmpFile(filename):
         d = u.__dict__.copy()
-        dt = to_datetime(d.pop('ut_time'))
-        type = d.pop('ut_type')
-        user = d.pop('ut_user')
+        dt = to_datetime(d.pop("ut_time"))
+        type = d.pop("ut_type")
+        user = d.pop("ut_user")
 
         logstr = u"%s(%s) %s" % (
             user,
             type,
-            ', '.join('%s: %r' % (k, d[k]) for k in sorted(d.keys()) if d[k]))
+            ", ".join("%s: %r" % (k, d[k]) for k in sorted(d.keys()) if d[k]),
+        )
 
         yield (dt, logstr)
 
@@ -51,7 +53,9 @@ def parse_wtmp_glob(uri=None):
         tmp_hndl, tmpfilename = tempfile.mkstemp()
 
         # Gunzip if necessary and cat into tmpfile
-        subprocess.call("zcat -f %s > %s" % (glob_pattern, tmpfilename), shell=True)
+        subprocess.call(
+            "zcat -f %s > %s" % (glob_pattern, tmpfilename), shell=True
+        )
         for u in parse_wtmp(tmpfilename):
             yield u
 
@@ -60,10 +64,11 @@ def parse_wtmp_glob(uri=None):
             os.remove(tmpfilename)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
+
     if len(sys.argv) < 2:
-        fileglob = '/var/log/wtmp*'
+        fileglob = "/var/log/wtmp*"
     else:
         fileglob = sys.argv[1]
     for u in parse_wtmp_glob(fileglob):

@@ -4,8 +4,9 @@ from pyramid.httpexceptions import HTTPBadRequest
 from pyramid_restler.view import RESTfulView
 
 
-def add_restful_routes(self, name, factory, view=RESTfulView,
-                       route_kw=None, view_kw=None):
+def add_restful_routes(
+    self, name, factory, view=RESTfulView, route_kw=None, view_kw=None
+):
     """Add a set of RESTful routes for an entity.
 
     URL patterns for an entity are mapped to a set of views encapsulated in
@@ -34,42 +35,49 @@ def add_restful_routes(self, name, factory, view=RESTfulView,
     """
     route_kw = {} if route_kw is None else route_kw
     view_kw = {} if view_kw is None else view_kw
-    view_kw.setdefault('http_cache', 0)
+    view_kw.setdefault("http_cache", 0)
 
     subs = dict(
         name=name,
-        slug=name.replace('_', '-'),
-        id='{id:.*}',
-        renderer='{renderer}'
-        )
+        slug=name.replace("_", "-"),
+        id="{id:.*}",
+        renderer="{renderer}",
+    )
 
     def add_route(name, pattern, attr, method):
         name = name.format(**subs)
         pattern = pattern.format(**subs)
         self.add_route(
-            name, pattern, factory=factory,
-            request_method=method, **route_kw)
+            name, pattern, factory=factory, request_method=method, **route_kw
+        )
         self.add_view(
-            view=view, attr=attr, route_name=name,
-            request_method=method, **view_kw)
+            view=view,
+            attr=attr,
+            route_name=name,
+            request_method=method,
+            **view_kw
+        )
 
     # Get collection
     add_route(
-        'get_{name}_collection_rendered', '/{slug}.{renderer}',
-        'get_collection', 'GET')
-    add_route(
-        'get_{name}_collection', '/{slug}', 'get_collection', 'GET')
+        "get_{name}_collection_rendered",
+        "/{slug}.{renderer}",
+        "get_collection",
+        "GET",
+    )
+    add_route("get_{name}_collection", "/{slug}", "get_collection", "GET")
 
     # Get member
     add_route(
-            'get_{name}_rendered', '/{slug}/{id}/.{renderer}', 'get_member', 'GET')
-    add_route('get_{name}', '/{slug}/{id}', 'get_member', 'GET')
+        "get_{name}_rendered", "/{slug}/{id}/.{renderer}", "get_member", "GET"
+    )
+    add_route("get_{name}", "/{slug}/{id}", "get_member", "GET")
 
     # Create member
-    add_route('create_{name}', '/{slug}', 'create_member', 'POST')
+    add_route("create_{name}", "/{slug}", "create_member", "POST")
 
     # Update member
-    add_route('update_{name}', '/{slug}/{id}', 'update_member', 'PUT')
+    add_route("update_{name}", "/{slug}/{id}", "update_member", "PUT")
 
     # Delete member
-    add_route('delete_{name}', '/{slug}/{id}', 'delete_member', 'DELETE')
+    add_route("delete_{name}", "/{slug}/{id}", "delete_member", "DELETE")

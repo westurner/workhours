@@ -12,15 +12,15 @@ from BeautifulSoup import BeautifulSoup
 
 import workhours.models.json as json
 
-#import sys
-#sys.stdout = codecs.getwriter('UTF-8')(sys.stdout)
+# import sys
+# sys.stdout = codecs.getwriter('UTF-8')(sys.stdout)
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
 
 ##
 # Tests
-test_input_html="""<!DOCTYPE NETSCAPE-Bookmark-file-1>
+test_input_html = """<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <!-- This is a simplified delicious HTML bookmark export -->
 <TITLE>Bookmarks</TITLE>
@@ -31,26 +31,31 @@ test_input_html="""<!DOCTYPE NETSCAPE-Bookmark-file-1>
 </DL><p><!-- s.e.r.v.e.r.yahoo.net uncompressed/chunked Thu Dec 16 01:50:52 UTC 2010 -->
 """
 
-test_output_expected=[
-    {"url":     "http://web.mit.edu/newsoffice/2010/max-flow-speedup-0927.html",
-        "title":   "First improvement of fundamental algorithm in 10 years",
-        "tags":    ["graph", "network", "algorithms", "sweet"],
-        #"date":   1285972779,
-        "date":    datetime.datetime(2010, 10, 1, 17, 39, 39),
+test_output_expected = [
+    {
+        "url": "http://web.mit.edu/newsoffice/2010/max-flow-speedup-0927.html",
+        "title": "First improvement of fundamental algorithm in 10 years",
+        "tags": ["graph", "network", "algorithms", "sweet"],
+        # "date":   1285972779,
+        "date": datetime.datetime(2010, 10, 1, 17, 39, 39),
         "private": 0,
-        "comment": None},
-    {"url":     "http://en.wikipedia.org/wiki/ANTLR",
-        "title":   "ANTLR - Wikipedia, the free encyclopedia",
-        "tags":    ["wikipedia", "code"],
-        #"date":   1276760483,
-        "date":    datetime.datetime(2010, 6, 17, 2, 41, 23),
+        "comment": None,
+    },
+    {
+        "url": "http://en.wikipedia.org/wiki/ANTLR",
+        "title": "ANTLR - Wikipedia, the free encyclopedia",
+        "tags": ["wikipedia", "code"],
+        # "date":   1276760483,
+        "date": datetime.datetime(2010, 6, 17, 2, 41, 23),
         "private": 0,
         "comment": "&quot;These actions are written in the programming "
-                   "language that the recognizer is being generated in.&quot;",
-    }
+        "language that the recognizer is being generated in.&quot;",
+    },
 ]
 
 import unittest
+
+
 class TestIt(unittest.TestCase):
     def test_it(self):
         output = [x for x in extract_delicious_bookmarks(test_input_html)]
@@ -62,12 +67,12 @@ def extract_delicious_bookmarks(htmlstr):
     Extract and iterate over bookmarks
     """
     s = htmlstr
-    footer_comment = s[ s.rfind("</DL><p><!--")+12 : s.rfind("-->") ].strip()
+    footer_comment = s[s.rfind("</DL><p><!--") + 12 : s.rfind("-->")].strip()
 
     export_datestr = footer_comment.split(" uncompressed/chunked ")[1].strip()
     log.info("Exported date: %s" % export_datestr)
 
-    bs = BeautifulSoup(htmlstr, fromEncoding='utf-8')
+    bs = BeautifulSoup(htmlstr, fromEncoding="utf-8")
 
     link_tag_count = len(bs.findAll("a"))
     log.info("Found %r <a> tags" % link_tag_count)
@@ -81,31 +86,39 @@ def extract_delicious_bookmarks(htmlstr):
         linknode = dt.findChild("a")
         nextnode = dt.findNextSibling()
 
-        if nextnode and nextnode.name == 'dd':
+        if nextnode and nextnode.name == "dd":
             comment = nextnode.text
             comment_count = comment_count + 1
 
         yield map_bookmark_node(linknode, comment=comment)
 
-    log.info("Exported %d bookmarks (%d with comments)" % (link_count,comment_count))
+    log.info(
+        "Exported %d bookmarks (%d with comments)"
+        % (link_count, comment_count)
+    )
     assert link_tag_count == link_count
 
 
-OVERWRITABLE_ATTRS={'comment':True}
+OVERWRITABLE_ATTRS = {"comment": True}
+
+
 def map_bookmark_node(link_node, **kwargs):
     l = link_node
-    #print sorted(dir(l)) #type(l.text), l.text
+    # print sorted(dir(l)) #type(l.text), l.text
 
     try:
         r = {
-            'url': l['href'],
-            'title': l.encodeContents("UTF-8"),
-            'tags': "tags" in l and [t for t in l['tags'].split(',')
-                                            if t
-                                                and not t.startswith("for:") ]
-                                      or [],
-            'date': datetime.datetime.fromtimestamp(int(l['add_date'])),
-            'private': l['private'] == '1',
+            "url": l["href"],
+            "title": l.encodeContents("UTF-8"),
+            "tags": "tags" in l
+            and [
+                t
+                for t in l["tags"].split(",")
+                if t and not t.startswith("for:")
+            ]
+            or [],
+            "date": datetime.datetime.fromtimestamp(int(l["add_date"])),
+            "private": l["private"] == "1",
         }
     except Exception as e:
         log.error("EXCEPTION:")
@@ -126,40 +139,45 @@ def convert_bookmarks_html_to_json(sourcefile_path, output_path):
     dest_file = codecs.open(output_path, "w")
 
     json.dump(
-        [x for x in extract_delicious_bookmarks(htmlstr)],
-        dest_file,
-        indent=4)
+        [x for x in extract_delicious_bookmarks(htmlstr)], dest_file, indent=4
+    )
 
     log.info("Converted %s -> %s." % (sourcefile_path, output_path))
 
 
 def parse_delicious_bookmarks(uri=None):
-    with codecs.open(uri, 'rb', encoding='utf-8') as f:
+    with codecs.open(uri, "rb", encoding="utf-8") as f:
         for node in extract_delicious_bookmarks(
-                        f.read().encode('ascii','replace')):
+            f.read().encode("ascii", "replace")
+        ):
             yield node
 
 
 def main():
     import optparse
+
     logging.basicConfig()
 
-    prs = optparse.OptionParser(
-                    usage="%prog -c <bookmarks.html>")
-    prs.add_option("-t","--tests",action="store_true",
-                   help="Run tests")
+    prs = optparse.OptionParser(usage="%prog -c <bookmarks.html>")
+    prs.add_option("-t", "--tests", action="store_true", help="Run tests")
 
-    prs.add_option("-c","--convert",action="store",
-                   help="Delicious Bookmarks HTML File")
+    prs.add_option(
+        "-c", "--convert", action="store", help="Delicious Bookmarks HTML File"
+    )
 
-    prs.add_option("-o","--output",action="store",
-                   default="bookmarks.json",
-                   help="Destination JSON file (default: ./bookmarks.json)")
+    prs.add_option(
+        "-o",
+        "--output",
+        action="store",
+        default="bookmarks.json",
+        help="Destination JSON file (default: ./bookmarks.json)",
+    )
 
     (opts, args) = prs.parse_args()
 
     if opts.tests:
         import sys
+
         sys.argv.remove("-t")
         unittest.main()
         exit()
@@ -171,5 +189,5 @@ def main():
         print(prs.print_help())
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()

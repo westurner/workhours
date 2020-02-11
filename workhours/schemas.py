@@ -10,8 +10,8 @@ class LoginSchema(colander.MappingSchema):
 
 
 class RegisterSchema(colander.MappingSchema):
-    email = colander.SchemaNode(colander.String(), 
-                                validator=colander.Email())
+    email = colander.SchemaNode(colander.String(), validator=colander.Email())
+
 
 class ActivateSchema(RegisterSchema):
     command_id = colander.SchemaNode(colander.String())

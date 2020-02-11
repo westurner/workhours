@@ -6,10 +6,11 @@ workhours_config_template
 """
 import sys
 import logging
+
 log = logging.getLogger()
 
-class ConfigTemplate(object):
 
+class ConfigTemplate(object):
     def generate(self, source_types=None, exclude=None):
         """
         run shell commands for source types
@@ -21,11 +22,10 @@ class ConfigTemplate(object):
             StringIO: Templated config template
         """
 
-
     def write(self, path):
         templateio = self.generate()
         try:
-            with codecs.open(path, encoding='utf-8') as f:
+            with codecs.open(path, encoding="utf-8") as f:
                 # TODO: dotfiles: vim: ctrl-a beginning of line (like .bashrc)
                 f.write(templateio)
         except Exception as e:
@@ -43,6 +43,8 @@ def workhours_config_template(path="workhours.ini"):
 
 
 import unittest
+
+
 class Test_workhours_config_template(unittest.TestCase):
     def test_workhours_config_template(self):
         c = ConfigTemplate()
@@ -61,15 +63,15 @@ def main(*args):
 
     prs = optparse.OptionParser(usage="%prog: [args]")
 
-    prs.add_option('-v', '--verbose',
-                    dest='verbose',
-                    action='store_true',)
-    prs.add_option('-q', '--quiet',
-                    dest='quiet',
-                    action='store_true',)
-    prs.add_option('-t', '--test',
-                    dest='run_tests',
-                    action='store_true',)
+    prs.add_option(
+        "-v", "--verbose", dest="verbose", action="store_true",
+    )
+    prs.add_option(
+        "-q", "--quiet", dest="quiet", action="store_true",
+    )
+    prs.add_option(
+        "-t", "--test", dest="run_tests", action="store_true",
+    )
 
     args = args and list(args) or sys.argv[1:]
     (opts, args) = prs.parse_args(args)
@@ -83,10 +85,12 @@ def main(*args):
     if opts.run_tests:
         sys.argv = [sys.argv[0]] + args
         import unittest
+
         sys.exit(unittest.main())
 
     output = workhours_config_template()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

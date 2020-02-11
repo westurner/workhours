@@ -1,6 +1,6 @@
-
 import logging
-log = logging.getLogger('workhours.models.es')
+
+log = logging.getLogger("workhours.models.es")
 
 import pyes
 import pyes.es
@@ -14,17 +14,21 @@ MAPPINGS = OrderedDict()
 
 import sys
 
+
 def initialize_esdb(url, *args, **kwargs):
-    log.debug('initialize_esdb:(%r, %r , %r)' % (url, args, kwargs))
-    return ESSession(url,
-            encoder=json.DefaultJSONEncoder,
-            #decoder=json.DefaultJSONDecoder,
-            #dump_curl=sys.stdout) # TODO
-            )
+    log.debug("initialize_esdb:(%r, %r , %r)" % (url, args, kwargs))
+    return ESSession(
+        url,
+        encoder=json.DefaultJSONEncoder,
+        # decoder=json.DefaultJSONDecoder,
+        # dump_curl=sys.stdout) # TODO
+    )
+
 
 class ESSession(pyes.es.ES):
     indexes = []
     mappings = []
+
     def __init__(self, *args, **kwargs):
         super(ESSession, self).__init__(*args, **kwargs)
 
@@ -40,22 +44,22 @@ class ESSession(pyes.es.ES):
         mappings = OrderedDict()
         for model in models:
             log.debug(repr(model))
-            if hasattr(model, '_pyes_schema'):
-                _index  = getattr(model, '_pyes_index',
-                                    model.__class__.__name__) # TODO: naming prefix
-                _type   = getattr(model, '_pyes_type',
-                                    model.__class__.__name__)
+            if hasattr(model, "_pyes_schema"):
+                _index = getattr(
+                    model, "_pyes_index", model.__class__.__name__
+                )  # TODO: naming prefix
+                _type = getattr(model, "_pyes_type", model.__class__.__name__)
                 indexes.append(_index)
                 mappings[_type] = model._pyes_schema
-                #yield (
+                # yield (
                 #    model,
                 #    model._pyes_schema,
                 #    getattr(model, '_pyes_version'),
-                #)
+                # )
         return indexes, mappings
 
     def get_indexes(self):
-        return list(self.index_stats()['_all']['indices'].keys())
+        return list(self.index_stats()["_all"]["indices"].keys())
 
     def refresh_indexes(self, indexes=INDEXES):
         return self.refresh(indexes)
@@ -70,7 +74,7 @@ class ESSession(pyes.es.ES):
             self.create_index_if_missing(index)
 
         for key, mapping in mappings.items():
-            self.put_mapping(key, {'properties': mapping,}, indices=[])
+            self.put_mapping(key, {"properties": mapping,}, indices=[])
 
         if refresh:
             self.refresh_indexes(indexes)
@@ -83,65 +87,68 @@ class ESSession(pyes.es.ES):
 
     def index_stats(*args, **kwargs):
         logging.error("index_stats: *args **kwargs: %r %r" % (args, kwargs))
-        return {'_all': {'indices': {'_TESTINGTODO': 'xyz'}}}
-
+        return {"_all": {"indices": {"_TESTINGTODO": "xyz"}}}
 
     def put(self, obj, index=None, type=None, version=None, **kwargs):
 
         if index is None:
-            index = getattr(obj, '_pyes_index', obj.__class__.__name__)
+            index = getattr(obj, "_pyes_index", obj.__class__.__name__)
 
         if type is None:
-            type = getattr(obj, '_pyes_type', obj.__class__.__name__)
+            type = getattr(obj, "_pyes_type", obj.__class__.__name__)
 
         if version is None:
-            version = getattr(obj, '_pyes_version', 1)
+            version = getattr(obj, "_pyes_version", 1)
 
         # TODO: ESJSONEncoder
         _obj = None
-        if hasattr(obj, '_asdict'): # TODO: json?
+        if hasattr(obj, "_asdict"):  # TODO: json?
             _obj = obj._asdict()
-        elif hasattr(obj, '_fields'):
-            _obj = {f:getattr(obj,f) for f in _fields}
+        elif hasattr(obj, "_fields"):
+            _obj = {f: getattr(obj, f) for f in _fields}
         else:
-            _obj = obj # TODO
+            _obj = obj  # TODO
 
-        return self.index(_obj ,
-                            index,
-                            type,
-                            #version=version,
-                            **kwargs)
-
+        return self.index(
+            _obj,
+            index,
+            type,
+            # version=version,
+            **kwargs
+        )
 
     def put_all(self, objects, index=None, type=None, version=None, **kwargs):
 
         if version is None:
             version = 1
 
-        return self.index(objects,
-                            index,
-                            type,
-                            bulk=True,
-                            #version=version,
-                            **kwargs)
-
-   #def index(self,
-                  #doc,
-                  #index,
-                  #doc_type,
-                  #id=None,
-                  #parent=None,
-                  #force_insert=False,
-                  #op_type=None,
-                  #bulk=False,
-                  #version=None,
-                  #querystring_args=None):
-      ## ... pyes.es.ES
+        return self.index(
+            objects,
+            index,
+            type,
+            bulk=True,
+            # version=version,
+            **kwargs
+        )
 
 
+# def index(self,
+# doc,
+# index,
+# doc_type,
+# id=None,
+# parent=None,
+# force_insert=False,
+# op_type=None,
+# bulk=False,
+# version=None,
+# querystring_args=None):
+## ... pyes.es.ES
 
 
 import urllib.request, urllib.parse, urllib.error
+
+
 def setup_couchdb_river(conn, kwargs):
     """
 
@@ -152,17 +159,13 @@ def setup_couchdb_river(conn, kwargs):
     http://code/docs/pyes/guide/reference/river/couchdb.html
 
     """
-    db = kwargs.get('db')
-    host = kwargs.get('host','localhost')
-    port = kwargs.get('port', 5984)
+    db = kwargs.get("db")
+    host = kwargs.get("host", "localhost")
+    port = kwargs.get("port", 5984)
 
     river = {
         "type": "couchdb",
-        "couchdb": {
-            "host": host,
-            "port": port,
-            "db": db,
-        },
+        "couchdb": {"host": host, "port": port, "db": db,},
         "index": {
             "index": db,
             "type": db,
@@ -173,7 +176,7 @@ def setup_couchdb_river(conn, kwargs):
 
     conn.create_river(river, river_name=db)
 
-    #req = Request(
+    # req = Request(
     #     urllib.join(esdb_url, '_river/%s/_meta' % river_name))
-    #resp = req.put(river)
-    return resp # TODO
+    # resp = req.put(river)
+    return resp  # TODO

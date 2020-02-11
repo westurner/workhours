@@ -1,11 +1,12 @@
-#from pyramid.renderers import render
-#from pyramid.decorator import reify
-#from pyramid.response import Response
+# from pyramid.renderers import render
+# from pyramid.decorator import reify
+# from pyramid.response import Response
 
 import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy.sql import func
-#from pyramid_restler.view import RESTfulView
+
+# from pyramid_restler.view import RESTfulView
 from workhours.future import OrderedDict
 
 from workhours.models import Event, Task, TaskQueue
@@ -14,19 +15,34 @@ from workhours.models.context import WorkhoursORMContext
 
 import logging
 
-log = logging.getLogger('.events.models')
-
+log = logging.getLogger(".events.models")
 
 
 class EventsContextFactory(WorkhoursORMContext):
     entity = Event
-    default_fields = ('id','date','source','url','title',
-                      'place_id', 'source_id', 'task_id', 'meta')
-    eagerload = ('task.queue',)
+    default_fields = (
+        "id",
+        "date",
+        "source",
+        "url",
+        "title",
+        "place_id",
+        "source_id",
+        "task_id",
+        "meta",
+    )
+    eagerload = ("task.queue",)
 
-    def get_collection(self, distinct=False, order_by=None, limit=None,
-                       offset=None, filters=None, eagerload=None,
-                       **kwargs):
+    def get_collection(
+        self,
+        distinct=False,
+        order_by=None,
+        limit=None,
+        offset=None,
+        filters=None,
+        eagerload=None,
+        **kwargs
+    ):
         """Get the entire collection or a subset of it.
 
         By default, this will fetch all records for :attr:`entity`. Various
@@ -58,17 +74,16 @@ class EventsContextFactory(WorkhoursORMContext):
 
         # XXX: Handle joined loads here?
         if eagerload is not None:
-            q.options(
-                orm.joinedload_all(*EventsContextFactory.eagerload))
+            q.options(orm.joinedload_all(*EventsContextFactory.eagerload))
 
         # Apply "global" (i.e., every request) filters
-        if hasattr(self, 'filters'):
+        if hasattr(self, "filters"):
             for f in self.filters:
                 q = q.filter(f)
 
         for k, v in list((filters or {}).items()):
-            #v = self.convert_param(k, v)
-            filter_method = getattr(self.entity, '{0}_filter'.format(k), None)
+            # v = self.convert_param(k, v)
+            filter_method = getattr(self.entity, "{0}_filter".format(k), None)
             if filter_method is not None:
                 # Prefer a method that returns something that can be passed
                 # into `Query.filter()`.
@@ -79,24 +94,24 @@ class EventsContextFactory(WorkhoursORMContext):
         if distinct:
             q = q.distinct()
 
-        search = kwargs.get('search')
-        if search is not None and search is not '':
-            if '%' not in search:
-                search = '%%%s%%' % search
+        search = kwargs.get("search")
+        if search is not None and search is not "":
+            if "%" not in search:
+                search = "%%%s%%" % search
             q = q.filter(
-                    ( Event.url.like(search) )
-                |   ( Event.title.like(search) )
-                |   ( Event.source.like(search) )
+                (Event.url.like(search))
+                | (Event.title.like(search))
+                | (Event.source.like(search))
             )
 
         if order_by is not None:
-            if isinstance(order_by, int): # numeric?
+            if isinstance(order_by, int):  # numeric?
                 order_by = getattr(self.entity, self.default_fields[order_by])
             else:
                 raise AttributeError()
 
-            sort_dir = kwargs.get('sort_dir')
-            if sort_dir == 'desc':
+            sort_dir = kwargs.get("sort_dir")
+            if sort_dir == "desc":
                 order_by = sqlalchemy.desc(order_by)
 
             log.debug("ordering by: %s : %s" % (order_by, sort_dir))
@@ -111,18 +126,14 @@ class EventsContextFactory(WorkhoursORMContext):
 
     def count(self):
         # TODO: ...
-        return (
-            self
-            .request
-            .db_session
-            .query(func.count(self.entity.id)).one())
+        return self.request.db_session.query(func.count(self.entity.id)).one()
 
     def wrap_json_obj(self, obj):
-        result_count=len(obj)
+        result_count = len(obj)
         total_count = self.count()
         return dict(
             results=obj,
             result_count=result_count,
             iTotalRecords=total_count,
-            iTotalDisplayRecords=total_count, # TODO:
+            iTotalDisplayRecords=total_count,  # TODO:
         )

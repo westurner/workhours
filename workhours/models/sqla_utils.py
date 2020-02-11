@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#encoding: utf-8
-#import collections
+# encoding: utf-8
+# import collections
 from sqlalchemy.ext.mutable import Mutable
+
 """
 SQLAlchemy utilities
 
@@ -18,6 +19,7 @@ SQLAlchemy utilities
 
 
 """
+
 
 class MutationDict(Mutable, dict):
     @classmethod
@@ -47,11 +49,14 @@ class MutationDict(Mutable, dict):
 
 
 from sqlalchemy.types import TypeDecorator, VARCHAR
+
 try:
     import simplejson
+
     json = simplejson
 except ImportError as e:
     from . import json
+
 
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."
@@ -68,12 +73,14 @@ class JSONEncodedDict(TypeDecorator):
             value = json.loads(value)
         return value
 
+
 def clear_mappers(mapped_classes):
     """
     Remove any existing WebKit mappings
     """
     from sqlalchemy import orm
-    if not hasattr(orm.mapperlib, '_COMPILE_MUTEX'):
+
+    if not hasattr(orm.mapperlib, "_COMPILE_MUTEX"):
         return
     orm.mapperlib._COMPILE_MUTEX.acquire()
     try:

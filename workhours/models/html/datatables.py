@@ -9,10 +9,11 @@ from pyramid.renderers import render
 
 import colander
 
+
 class SearchForm(colander.MappingSchema):
     iDisplayStart = colander.SchemaNode(colander.Integer())
     iDisplayLength = colander.SchemaNode(colander.Integer())
-    sSearch = colander.SchemaNode(colander.String()) #
+    sSearch = colander.SchemaNode(colander.String())  #
 
 
 # TODO
@@ -25,25 +26,30 @@ def _get_param(request, param, _type=str):
     except Exception as e:
         return None
 
+
 from workhours.future import OrderedDict
+
+
 def read_datatables_params(request):
     r = OrderedDict()
 
-    r['offset'] = _get_param(request, 'iDisplayStart', int)
-    r['limit'] = _get_param(request, 'iDisplayLength', int)
-    r['order_by'] = _get_param(request, 'iSortCol_0', int)
-    #if r['order_by']:
+    r["offset"] = _get_param(request, "iDisplayStart", int)
+    r["limit"] = _get_param(request, "iDisplayLength", int)
+    r["order_by"] = _get_param(request, "iSortCol_0", int)
+    # if r['order_by']:
     #    r['order_by'] = self.context.default_fields[r['order_by']]
-    r['sort_dir'] = _get_param(request, 'sSortDir_0', str)
+    r["sort_dir"] = _get_param(request, "sSortDir_0", str)
 
-    r['search'] = _get_param(request, 'sSearch', str) # TODO
-    return OrderedDict( (k,v) for (k,v) in r.items() if v is not None)
+    r["search"] = _get_param(request, "sSearch", str)  # TODO
+    return OrderedDict((k, v) for (k, v) in r.items() if v is not None)
 
 
 from workhours import models
 from sqlalchemy import sql
+
+
 def build_query(request, model=models.Event):
-    #read_params(request.urlstr)
+    # read_params(request.urlstr)
 
     s = request.db_session
     query = s.query(model)
@@ -51,47 +57,41 @@ def build_query(request, model=models.Event):
     # TODO sanitize for SQL
 
     # sort column: TODO support multiple columns
-    sortcol = _get_param(request, 'iSortCol_0', int)
+    sortcol = _get_param(request, "iSortCol_0", int)
     # TODO
     if sortcol:
         query = query.order_by(sortcol)
 
     # iDisplayStart = OFFSET
-    offset = _get_param(request, 'iDisplayStart', int)
+    offset = _get_param(request, "iDisplayStart", int)
     if offset:
         query = query.offset(offset)
 
     # iDisplayLength = -1 or LIMIT
-    limit = _get_param(request, 'iDisplayLength', int)
+    limit = _get_param(request, "iDisplayLength", int)
     if limit:
         query = query.limit(limit)
 
-
-
     # sSearch = LIKE
-    search = _get_param(request, 'sSearch', str)
+    search = _get_param(request, "sSearch", str)
     if search:
         query = query.filter(
-                    ( model.url.like(search) )
-                |   ( model.title.like(search) )
+            (model.url.like(search)) | (model.title.like(search))
         )
 
     return query
-    #bRegex = TODO
+    # bRegex = TODO
 
-    #sSearch_[i] = filter(like(cls._fields[i]))
-    #bRegex_[i] = # TODO
-
+    # sSearch_[i] = filter(like(cls._fields[i]))
+    # bRegex_[i] = # TODO
 
 
 def datatables_view(request):
     query = build_query(request)
     objects = query.all()
-    return render('models/templates/_table.jinja2',
-                    dict(value=objects),
-                    request)
-
-
+    return render(
+        "models/templates/_table.jinja2", dict(value=objects), request
+    )
 
 
 """

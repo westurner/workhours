@@ -4,17 +4,14 @@ import os
 import codecs
 import glob
 
+
 class TempDir(object):
-    def __init__(self,
-                path=None,
-                create=True,
-                dir='tmp',
-                prefix='whtmp-'):
+    def __init__(self, path=None, create=True, dir="tmp", prefix="whtmp-"):
         if not path:
             if create:
-                self.path = tempfile.mkdtemp(suffix='',prefix=prefix,dir=dir)
+                self.path = tempfile.mkdtemp(suffix="", prefix=prefix, dir=dir)
             else:
-                self.path = os.path.join(dir, 'whtmp')
+                self.path = os.path.join(dir, "whtmp")
         else:
             self.path = os.path.expanduser(path)
             if create:
@@ -27,15 +24,16 @@ class TempDir(object):
             dest = os.path.join(self.path, dest_path)
         else:
             dest = self.path
-        dest_path=os.path.join(dest, os.path.basename(filename))
+        dest_path = os.path.join(dest, os.path.basename(filename))
 
         with self.get_log() as f:
             f.writelines(
-                (self.format_path(filename, dest_path)
-                    .replace(self.path,'')))
+                (self.format_path(filename, dest_path).replace(self.path, ""))
+            )
 
-        if '*' in filename:
+        if "*" in filename:
             import glob
+
             filenames = glob.glob(filename)
         else:
             filenames = [filename]
@@ -44,14 +42,14 @@ class TempDir(object):
         return dest_path
 
     def format_path(self, path, source):
-        return '%s = %s' % (path, source)
+        return "%s = %s" % (path, source)
 
     def get_log(self):
         return codecs.open(
-                os.path.join(os.path.dirname(self.path), 'SOURCES'),
-                'w+',
-                encoding='utf-8',
-                )
+            os.path.join(os.path.dirname(self.path), "SOURCES"),
+            "w+",
+            encoding="utf-8",
+        )
 
     def mkdir(self, path):
 
@@ -67,11 +65,11 @@ class TempDir(object):
             f.writelines(self.format_path(path, source))
         return os.path.join(self.path, path)
 
-    #def __del__(self):
-        # if managed:
-        #     shutil.rmtree(self.path)
+    # def __del__(self):
+    # if managed:
+    #     shutil.rmtree(self.path)
     #    pass
+
 
 def initialize_fs(*args, **kwargs):
     return TempDir(*args, create=True, **kwargs)
-

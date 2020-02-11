@@ -4,7 +4,7 @@ resources for traversal
 from . import models as m
 from pyramid import security
 from pyramid.httpexceptions import HTTPUnauthorized
-from  datetime import datetime , timedelta
+from datetime import datetime, timedelta
 import uuid
 import contextlib
 from .mailers import send_email
@@ -14,7 +14,6 @@ from .mailers import send_email
 def cleanup_rec(rec, session):
     yield rec
     session.delete(rec)
-    
 
 
 class BaseResource(object):
@@ -31,7 +30,6 @@ class BaseResource(object):
         child = ChildClass(self._request, parent=self)
         self.__children__[child.__name__] = child
         return child
-
 
     def __getitem__(self, key):
         return self.__children__[str(key).lower()]
@@ -76,8 +74,9 @@ class UserContainer(BaseQuery):
             raise HTTPUnauthorized("login failed")
 
     def logout(self):
-        self._request.response.headerlist.extend(security.forget(self._request))
-
+        self._request.response.headerlist.extend(
+            security.forget(self._request)
+        )
 
     def register(self, email):
         cc = self._request.api_root["command"]
@@ -85,25 +84,35 @@ class UserContainer(BaseQuery):
         if not (result and result.expire_on > datetime.now()):
             result = cc.create_command(email, self.CMD_REGISTER)
 
-        activation_link = self._request.route_url("home",
-                                                  _anchor="/activate/%s" % result.command_id)
-        send_email(self._request.mailer, 
-                   email, 
-                   self._request.registry.settings['mail_sender'], 
-                   "Activate Your Account", 
-                   "activate.html", 
-                   activation_link=activation_link)
+        activation_link = self._request.route_url(
+            "home", _anchor="/activate/%s" % result.command_id
+        )
+        send_email(
+            self._request.mailer,
+            email,
+            self._request.registry.settings["mail_sender"],
+            "Activate Your Account",
+            "activate.html",
+            activation_link=activation_link,
+        )
 
     def activate(self, command_id=None, email=None, password=None):
         cmd = self._request.api_root["command"][command_id]
-        if cmd and cmd.identity == email and cmd.command_type == self.CMD_REGISTER:
+        if (
+            cmd
+            and cmd.identity == email
+            and cmd.command_type == self.CMD_REGISTER
+        ):
             with cleanup_rec(cmd, self._request.db) as cmd:
                 result = self.__model__(email=email, password=password)
                 self._request.db.add(result)
                 return result
         else:
-            msg = "Invalid %s Command for %s, %s" % \
-                  (self.CMD_REGISTER, command_id, email)
+            msg = "Invalid %s Command for %s, %s" % (
+                self.CMD_REGISTER,
+                command_id,
+                email,
+            )
             raise ValueError(msg)
 
     def request_reset(self, email):
@@ -112,26 +121,35 @@ class UserContainer(BaseQuery):
         if not (result and result.expire_on > datetime.now()):
             result = cc.create_command(email, self.CMD_RESET)
 
-        reset_link = self._request.route_url("home",
-                                             _anchor="/reset/%s" % result.command_id)
-        send_email(self._request.mailer, 
-                   email,
-                   self._request.registry.settings["mail_sender"],
-                   "Reset Your Password",
-                   "reset.html",
-                   reset_link=reset_link)
-        
+        reset_link = self._request.route_url(
+            "home", _anchor="/reset/%s" % result.command_id
+        )
+        send_email(
+            self._request.mailer,
+            email,
+            self._request.registry.settings["mail_sender"],
+            "Reset Your Password",
+            "reset.html",
+            reset_link=reset_link,
+        )
 
     def do_reset(self, command_id=None, email=None, password=None):
         cmd = self._request.api_root["command"][command_id]
-        if cmd and cmd.identity == email and cmd.command_type == self.CMD_RESET:
+        if (
+            cmd
+            and cmd.identity == email
+            and cmd.command_type == self.CMD_RESET
+        ):
             with cleanup_rec(cmd, self._request.db) as cmd:
-                user = self._request.db.query(self.__model__).filter_by(email=email).first()
+                user = (
+                    self._request.db.query(self.__model__)
+                    .filter_by(email=email)
+                    .first()
+                )
 
                 user.password = password
                 self._request.db.add(user)
                 return user
-
 
 
 class CommandContainer(BaseQuery):
@@ -139,33 +157,42 @@ class CommandContainer(BaseQuery):
     __name__ = "command"
 
     def __getitem__(self, key):
-        result = self.__qry__().filter_by(command_id=key).filter(
-            self.__model__.expire_on > datetime.now()
-        ).order_by(-self.__model__.created_on).first()
+        result = (
+            self.__qry__()
+            .filter_by(command_id=key)
+            .filter(self.__model__.expire_on > datetime.now())
+            .order_by(-self.__model__.created_on)
+            .first()
+        )
         if result:
             return result
         else:
-            raise KeyError("%s(%s) not found or expired" % \
-                           (self.__model__.__name__, key))
-
+            raise KeyError(
+                "%s(%s) not found or expired" % (self.__model__.__name__, key)
+            )
 
     def get_command(self, identity, command_type):
-        return self.__qry__().filter_by(identity=identity, 
-                                        command_type=command_type
-        ).order_by(-self.__model__.created_on
-        ).filter(self.__model__.expire_on < datetime.now()).first()
+        return (
+            self.__qry__()
+            .filter_by(identity=identity, command_type=command_type)
+            .order_by(-self.__model__.created_on)
+            .filter(self.__model__.expire_on < datetime.now())
+            .first()
+        )
 
     def create_command(self, identity, command_type, **command_args):
         expire_on = datetime.now() + timedelta(days=30)
-        result = self.__model__(identity=identity, 
-                                command_type=command_type, 
-                                command_id=str(uuid.uuid4()), 
-                                expire_on=expire_on,
-                                **command_args)
+        result = self.__model__(
+            identity=identity,
+            command_type=command_type,
+            command_id=str(uuid.uuid4()),
+            expire_on=expire_on,
+            **command_args
+        )
         self._request.db.add(result)
         return result
 
-        
+
 class APIRoot(BaseResource):
     def __init__(self, request):
         super(self.__class__, self).__init__(request)

@@ -15,4 +15,3 @@ def get_principals(user_id, request):
         return [u, security.Authenticated]
     else:
         return []
-

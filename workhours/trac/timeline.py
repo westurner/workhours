@@ -19,8 +19,9 @@ def parse_trac_date(date, time):
     :returns: datetime.datetime
     """
 
-    fullstr = '%s %s' % (date, time)
-    return datetime.datetime.strptime(fullstr, '%m/%d/%y %H:%M')
+    fullstr = "%s %s" % (date, time)
+    return datetime.datetime.strptime(fullstr, "%m/%d/%y %H:%M")
+
 
 def parse_trac_timeline(timeline_file, users):
     """
@@ -34,18 +35,22 @@ def parse_trac_timeline(timeline_file, users):
     :returns: Generator of event tuples (datetime, url)
     """
 
-    with codecs.open(path,'rb',encoding='UTF-8') as timeline_file:
+    with codecs.open(path, "rb", encoding="UTF-8") as timeline_file:
 
         b = BS(timeline_file)
-        days = [x for x in b.findAll('h2') if (x.text in ['Today','Yesterday'] or ':' in x.text)]
+        days = [
+            x
+            for x in b.findAll("h2")
+            if (x.text in ["Today", "Yesterday"] or ":" in x.text)
+        ]
         for day in days:
-            date = day.text.split(':')[0]
-            for event in day.findNext('dl').findAll('dt'):
-                authornode = event.findChild('span',{'class':'author'})
+            date = day.text.split(":")[0]
+            for event in day.findNext("dl").findAll("dt"):
+                authornode = event.findChild("span", {"class": "author"})
                 if authornode and authornode.text in users:
-                    time = event.findChild('span',{'class':'time'}).text
-                    link = event.findChild('a').get('href')
-                    yield (parse_trac_date(date, time), link,)
-
-
-
+                    time = event.findChild("span", {"class": "time"}).text
+                    link = event.findChild("a").get("href")
+                    yield (
+                        parse_trac_date(date, time),
+                        link,
+                    )

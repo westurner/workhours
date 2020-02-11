@@ -1,12 +1,16 @@
 # TODO: XXX
 import colander
 import jinja2
-def render_form(request,
-                form,
-                appstruct=colander.null,
-                submitted='submit',
-                success=None,
-                readonly=False):
+
+
+def render_form(
+    request,
+    form,
+    appstruct=colander.null,
+    submitted="submit",
+    success=None,
+    readonly=False,
+):
     captured = None
 
     if submitted in request.POST:
@@ -15,7 +19,7 @@ def render_form(request,
             # try to validate the submitted values
             controls = list(request.POST.items())
             captured = form.validate(controls)
-            if success: # TODO: XXX ???
+            if success:  # TODO: XXX ???
                 response = success()
                 if response is not None:
                     return response
@@ -29,26 +33,24 @@ def render_form(request,
         html = form.render(appstruct, readonly=readonly)
 
     # TODO
-    #if request.is_xhr:
+    # if request.is_xhr:
     #    return request.response.body = html
-    #code, start, end = self.get_code(2)
+    # code, start, end = self.get_code(2)
 
     reqts = form.get_widget_resources()
 
     # values passed to template for rendering
     return {
-        'form':jinja2.Markup(html),
-        'field': form,
-        'captured':repr(captured),
+        "form": jinja2.Markup(html),
+        "field": form,
+        "captured": repr(captured),
         #'code': code,
         #'start':start,
         #'end':end,
         #'demos':self.get_demos(),
-        'showmenu':True,
+        "showmenu": True,
         #'title':self.get_title(),
-        'css_links':reqts['css'],
-        'js_links':reqts['js'],
-        'title': 'Deform Form Demo', # TODO
-        }
-
-
+        "css_links": reqts["css"],
+        "js_links": reqts["js"],
+        "title": "Deform Form Demo",  # TODO
+    }

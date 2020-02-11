@@ -50,21 +50,23 @@ Find printf formatters
 from collections import namedtuple
 from datetime import datetime
 
-_FindEvent = namedtuple('FindEvent', ('date', 'size', 'user', 'type', 'url'))
+_FindEvent = namedtuple("FindEvent", ("date", "size", "user", "type", "url"))
 
-    # ('date', '%T@', 'time in fractional seconds since'),
-    # ('size', '%s', 'size in bites'),
-    # ('user', '%u', 'username'),
-    # ('type', '%Y', 'file type'),
-    # ('name', '%p', 'name')
+# ('date', '%T@', 'time in fractional seconds since'),
+# ('size', '%s', 'size in bites'),
+# ('user', '%u', 'username'),
+# ('type', '%Y', 'file type'),
+# ('name', '%p', 'name')
+
 
 class FindEvent(_FindEvent):
     def __str__(iterable):
-        return '\t'.join('%s' % attr for attr in iterable)
+        return "\t".join("%s" % attr for attr in iterable)
 
 
 import logging
-log = logging.getLogger('parse_find_printf') # TODO
+
+log = logging.getLogger("parse_find_printf")  # TODO
 
 
 def _parse_find_printf(printf_iter, output, log=log):
@@ -76,7 +78,7 @@ def _parse_find_printf(printf_iter, output, log=log):
 
     """
     for record in printf_iter:
-        date, size, user, type_, name = record[:-1].split('\t',4)
+        date, size, user, type_, name = record[:-1].split("\t", 4)
         try:
             date = float(date)
             date = datetime.fromtimestamp(date)
@@ -84,22 +86,26 @@ def _parse_find_printf(printf_iter, output, log=log):
             raise
         yield FindEvent(date, size, user, type_, name)
 
+
 def parse_find_printf(uri, *args, **kwargs):
     with open(args[0]) as f:
         return _parse_find_printf(f, *args, **kwargs)
 
 
 import unittest
+
+
 class Test_parse_find_printf(unittest.TestCase):
-    TEST_INPUT="""
+    TEST_INPUT = """
 1352793657.5742202430	s	d user /tmp
 1319767478.3939859440	s	d user /tmp/path
 1282865184.4291842300	s	f user ~/tildepath
 1282865184.4211835980	s	d user ./relpath
 1282865184.4211835981	s	f user ./relpath/1
 """
+
     def test_parse_find_printf(self):
-        for event in parse_find_printf(TEST_INPUT.split('\n')):
+        for event in parse_find_printf(TEST_INPUT.split("\n")):
             log.debug(event)
 
 
@@ -107,18 +113,20 @@ def main():
     import optparse
     import logging
 
-    prs = optparse.OptionParser(usage="./%prog",
-            description="Convert find printf on stdin to event tuples")
+    prs = optparse.OptionParser(
+        usage="./%prog",
+        description="Convert find printf on stdin to event tuples",
+    )
 
-    prs.add_option('-v', '--verbose',
-                    dest='verbose',
-                    action='store_true',)
-    prs.add_option('-q', '--quiet',
-                    dest='quiet',
-                    action='store_true',)
-    prs.add_option('-t', '--test',
-                    dest='run_tests',
-                    action='store_true',)
+    prs.add_option(
+        "-v", "--verbose", dest="verbose", action="store_true",
+    )
+    prs.add_option(
+        "-q", "--quiet", dest="quiet", action="store_true",
+    )
+    prs.add_option(
+        "-t", "--test", dest="run_tests", action="store_true",
+    )
 
     (opts, args) = prs.parse_args()
 
@@ -130,16 +138,17 @@ def main():
 
     if opts.run_tests:
         import sys
+
         sys.argv = [sys.argv[0]] + args
         import unittest
+
         exit(unittest.main())
 
     import sys
+
     for event in parse_find_printf(sys.stdin, sys.stdout):
         log.debug(event)
 
+
 if __name__ == "__main__":
     main()
-
-
-

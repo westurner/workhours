@@ -3,15 +3,17 @@ from pyramid_restler.model import SQLAlchemyORMContext
 from workhours.models import Report, ReportType
 import transaction
 
+
 class ReportTypeContext(SQLAlchemyORMContext):
     entity = ReportType
-    default_fields = ('id',)
+    default_fields = ("id",)
+
 
 class ReportContext(SQLAlchemyORMContext):
     entity = Report
-    default_fields = ('id','report_type_id','title','data')
+    default_fields = ("id", "report_type_id", "title", "data")
 
-    _report_label = 'ReportContext'
+    _report_label = "ReportContext"
 
     def member_to_dict(self, member, fields=None):
         if fields is None:
@@ -24,8 +26,9 @@ class ReportContext(SQLAlchemyORMContext):
         s = self.request.db_session()
         rtype = (
             s.query(ReportType)
-                .filter(ReportType.label==self._report_type)
-                .all() )
+            .filter(ReportType.label == self._report_type)
+            .all()
+        )
         rtype_len = len(rtype)
         if rtype_len == 0:
             rtype = ReportType(label=self._report_label)
@@ -43,8 +46,8 @@ class ReportContext(SQLAlchemyORMContext):
         s = self.request.db_session()
         collection = list(self.generate_report())
         rtype = self._create_report_type()
-        r = Report(rtype.id, self._report_type,{})
-        r.data['results'] = collection
+        r = Report(rtype.id, self._report_type, {})
+        r.data["results"] = collection
         s.add(r)
         return r
 

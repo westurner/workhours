@@ -6,16 +6,18 @@ from datetime import datetime
 import codecs
 import logging
 import subprocess
+
 """
 Grep Shell history logs
 """
 
-log = logging.getLogger('parse_sessionlog')
+log = logging.getLogger("parse_sessionlog")
+
 
 def get_local_timezone():
-    output = subprocess.check_output('date +%z')
+    output = subprocess.check_output("date +%z")
     if not output:
-        return ''
+        return ""
     return output
 
 
@@ -26,7 +28,7 @@ def parse_date_field(datestr):
     try:
         dt = datetime.strptime(datestr, "%m/%d/%y %H:%M.%S")
     except ValueError as e:
-        #log.exception(e)
+        # log.exception(e)
         try:
             dt = datetime.strptime(datestr, "%y-%m-%d %H:%M:%S")
         except ValueError as e:
@@ -35,7 +37,7 @@ def parse_date_field(datestr):
     return dt
 
 
-def parse_sessionlog_line_original(line, session_prefix=''):
+def parse_sessionlog_line_original(line, session_prefix=""):
     """
     Parse a line from a sessionlog file
 
@@ -58,33 +60,48 @@ def parse_sessionlog_line_original(line, session_prefix=''):
         keyvalue\tMM/DD/YY\t\s*\d+ command
 
     """
-    terms = [w.strip() for w in line.split(':', 1)]
-    session, rest = terms[0], len(terms) > 1 and terms[1:] or '' # TODO
-    #session, rest = map(str.strip, line.split(': ',1))
+    terms = [w.strip() for w in line.split(":", 1)]
+    session, rest = terms[0], len(terms) > 1 and terms[1:] or ""  # TODO
+    # session, rest = map(str.strip, line.split(': ',1))
     date = cmd = cmdstr = dt = None
     if rest:
-        rest_terms = [w.strip() for w in rest.split(':::',1)]
-        date, cmd = rest_terms[0], len(rest_terms) > 1 and ''.join(x.decode('utf8', errors='ignore') for x in rest_terms[1:])
+        rest_terms = [w.strip() for w in rest.split(":::", 1)]
+        date, cmd = (
+            rest_terms[0],
+            len(rest_terms) > 1
+            and "".join(
+                x.decode("utf8", errors="ignore") for x in rest_terms[1:]
+            ),
+        )
         dt = parse_date_field(date)
-        cmdstr = '%s ::: %s' % (session, cmd)
+        cmdstr = "%s ::: %s" % (session, cmd)
     return (dt, cmdstr, session)
 
 
 def build_pyparsing_pattern():
     from pyparsing import (
-        Word, White, Optional, ZeroOrMore, OneOrMore,
-        Or, Literal,
-        nums, alphanums, printables)
+        Word,
+        White,
+        Optional,
+        ZeroOrMore,
+        OneOrMore,
+        Or,
+        Literal,
+        nums,
+        alphanums,
+        printables,
+    )
 
-    unicodePrintables = ''.join(chr(c) for c in range(65536)
-                                        if not chr(c).isspace())
-    #urichars = alphanum + "-_/\:#?"
+    unicodePrintables = "".join(
+        chr(c) for c in range(65536) if not chr(c).isspace()
+    )
+    # urichars = alphanum + "-_/\:#?"
     urichars = unicodePrintables
 
-    tab = Literal('\t')
-    colon = Literal(':')
+    tab = Literal("\t")
+    colon = Literal(":")
     tab_or_colon = White() + Or(tab, colon) + White()
-    triplecolon = Literal(':::')
+    triplecolon = Literal(":::")
     tab_or_triple_colon = White() + Or(tab, triplecolon) + White()
 
     date = Word(nums + "-_/\.T")
@@ -100,23 +117,26 @@ def build_pyparsing_pattern():
         + date
         + tab_or_triple_colon
         + digit_or_other
-        + command)
+        + command
+    )
 
     return pattern
 
 
 PATTERN = build_pyparsing_pattern()
 
+
 def parse_sessionlog_line(line, session_prefix=None):
 
     from pprint import pformat as pp
+
     print(pp(dir(PATTERN)))
     tokens = PATTERN.parse_string(line)
     # TODO: Dict
     return tokens.asList()
 
 
-def parse_sessionlog(uri=None, session_prefix='', **kwargs):
+def parse_sessionlog(uri=None, session_prefix="", **kwargs):
     """
     Parse a .session_log file that looks something like::
 
@@ -137,7 +157,7 @@ def parse_sessionlog(uri=None, session_prefix='', **kwargs):
 
     """
 
-    with codecs.open(uri,'r+', encoding='utf-8') as f:
+    with codecs.open(uri, "r+", encoding="utf-8") as f:
         for line in filter(lambda x: bool(x.rstrip()), f):
             try:
                 yield parse_sessionlog_line(line, session_prefix)
@@ -147,21 +167,24 @@ def parse_sessionlog(uri=None, session_prefix='', **kwargs):
                 logging.error("Failed to parse: %r (%s)" % (line, e))
                 continue
 
+
 def main():
     """
     parse_sessionlog main() method
     """
     import sys
     import os
+
     if len(sys.argv) < 2:
-        filename = os.path.join(os.environ['HOME'], '-usrlog.log')
+        filename = os.path.join(os.environ["HOME"], "-usrlog.log")
     else:
         filename = sys.argv[1]
     for pair in parse_sessionlog(filename):
-        print(' : '.join(str(x) for x in pair))
+        print(" : ".join(str(x) for x in pair))
     return 0
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import sys
+
     sys.exit(main())
