@@ -55,7 +55,7 @@ class ESSession(pyes.es.ES):
         return indexes, mappings
 
     def get_indexes(self):
-        return self.index_stats()['_all']['indices'].keys()
+        return list(self.index_stats()['_all']['indices'].keys())
 
     def refresh_indexes(self, indexes=INDEXES):
         return self.refresh(indexes)
@@ -69,7 +69,7 @@ class ESSession(pyes.es.ES):
         for index in indexes:
             self.create_index_if_missing(index)
 
-        for key, mapping in mappings.iteritems():
+        for key, mapping in mappings.items():
             self.put_mapping(key, {'properties': mapping,}, indices=[])
 
         if refresh:
@@ -141,7 +141,7 @@ class ESSession(pyes.es.ES):
 
 
 
-import urllib
+import urllib.request, urllib.parse, urllib.error
 def setup_couchdb_river(conn, kwargs):
     """
 

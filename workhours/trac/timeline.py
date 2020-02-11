@@ -37,7 +37,7 @@ def parse_trac_timeline(timeline_file, users):
     with codecs.open(path,'rb',encoding='UTF-8') as timeline_file:
 
         b = BS(timeline_file)
-        days = filter(lambda x: (x.text in ['Today','Yesterday'] or ':' in x.text), b.findAll('h2'))
+        days = [x for x in b.findAll('h2') if (x.text in ['Today','Yesterday'] or ':' in x.text)]
         for day in days:
             date = day.text.split(':')[0]
             for event in day.findNext('dl').findAll('dt'):

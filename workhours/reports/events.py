@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 
 import datetime
 from workhours.models import Event
@@ -21,7 +21,7 @@ def dump_events_table(dburi, session=None, _output=sys.stdout):
         try:
             yield e._to_txt_row()
             #print( e._to_txt_row() , file=_output)
-        except UnicodeEncodeError, e:
+        except UnicodeEncodeError as e:
             log.error( "%s%s" % (type(e.object), e.encoding),
                     file=_output )
             log.error( e.object.encode('utf8','replace'),
@@ -90,7 +90,7 @@ def histogram(cls,
 
 def yearly_bins(start, end):
     onesec = datetime.timedelta(microseconds=-1)
-    for year in xrange(start.year, end.year+1):
+    for year in range(start.year, end.year+1):
         d1 = datetime.datetime(year,1,1)
         d2 = datetime.datetime(year+1,1,1)-onesec
         yield (year, d1, d2)
@@ -100,7 +100,7 @@ def weekly_bins(start, end):
     # TODO: start on a
     offset = datetime.timedelta(days=7)
     d1 = datetime.daterange(start.year, start.month, start.day)
-    for week in xrange(start.year, end.year+1):
+    for week in range(start.year, end.year+1):
          d2 = d1 + offset
          yield (start, d1, d2)
          d1 = d2
@@ -109,7 +109,7 @@ def weekly_bins(start, end):
 def daily_bins(start, end):
     offset = datetime.timedelta(days=1,microseconds=-1)
     d1 = datetime.datetime(start.year, start.month, start.day)
-    for n in xrange((end-start).days):
+    for n in range((end-start).days):
         d2 = d1 + offset
         yield (start, d1, d2)
         d1 = d2
@@ -117,7 +117,7 @@ def daily_bins(start, end):
 
 def hourly_bins(start, end):
     offset = datetime.timedelta(hours=1,microseconds=-1)
-    for diff in xrange((end-start).hours):
+    for diff in range((end-start).hours):
         d1 = datetime.datetime(start.year, start.month, start.day, start.hour)
         d2 = d1 + offset
         yield (start, d1, d2)
@@ -125,7 +125,7 @@ def hourly_bins(start, end):
 
 def minutely_bins(start, end, minutes):
     offset = datetime.timedelta(minutes=minutes)
-    for diff in xrange( ((end-start).days*60) / minutes):
+    for diff in range( ((end-start).days*60) / minutes):
         d1 = datetime.datetime(start.year, start.month, start.day, start.hour, start.minute)
         d2 = d1 + offset
         yield (start, d1, d2)

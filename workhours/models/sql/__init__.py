@@ -88,7 +88,7 @@ def initialize_sql(engine, setup_mappers, create_tables_on_init=False, Base=None
 
         assert meta is not None
         return meta
-    except Exception, e:
+    except Exception as e:
         log.error(engine)
         log.error(DBSession)
         log.exception(e)
@@ -100,7 +100,7 @@ def create_tables(meta):
     try:
         log.debug("CREATE all (%r)" % meta)
         meta.create_all()
-    except Exception, e:
+    except Exception as e:
         log.error(meta)
         log.exception(e)
         raise
@@ -122,7 +122,7 @@ def drop_tables(meta):
     try:
         log.debug('DROP all (%r)' % meta) # FIXME:
         return meta.drop_all()
-    except Exception, e:
+    except Exception as e:
         log.error(meta)
         log.exception(e)
         raise

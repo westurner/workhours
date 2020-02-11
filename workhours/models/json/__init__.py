@@ -18,7 +18,7 @@ class DefaultJSONEncoder(json.JSONEncoder):
         if hasattr(obj, '_asdict'):
             obj = obj._asdict()
         elif hasattr(obj, '_fields'): #isinstance(obj, named_tuple_types):
-            obj = dict((k, getattr(obj, k)) for k in obj.keys())
+            obj = dict((k, getattr(obj, k)) for k in list(obj.keys()))
         elif isinstance(obj, decimal.Decimal):
             obj = str(obj)
         elif isinstance(obj, datetime_types):

@@ -26,12 +26,12 @@ class EventsContextTests(PyramidFixtureTestCase):
 
     def test_context(self):
         self.assertTrue(self.context)
-        self.failIfEqual(self.context, None)
+        self.assertNotEqual(self.context, None)
         self.assertTrue(isinstance(self.context, SQLAlchemyORMContext))
 
     def test_get_collection(self):
         results = self.context.get_collection()
-        self.failIfEqual(results, None)
+        self.assertNotEqual(results, None)
 
     def test_get_member(self):
         obj = self.context.get_member(data.EventData.one.id)
@@ -39,7 +39,7 @@ class EventsContextTests(PyramidFixtureTestCase):
 
         #fails:
         for id in [None,'NONEXISTANT']:
-            self.failUnlessRaises(Exception,
+            self.assertRaises(Exception,
                 lambda id: self.context.get_member(id))
         # self.context.get_member(-1)
 

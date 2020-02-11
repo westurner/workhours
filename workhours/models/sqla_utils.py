@@ -50,8 +50,8 @@ from sqlalchemy.types import TypeDecorator, VARCHAR
 try:
     import simplejson
     json = simplejson
-except ImportError, e:
-    import json
+except ImportError as e:
+    from . import json
 
 class JSONEncodedDict(TypeDecorator):
     "Represents an immutable structure as a json-encoded string."

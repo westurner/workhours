@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #encoding: utf-8
-from __future__ import print_function
+
 """
 workhours event aggregation CLI
 """
@@ -48,7 +48,7 @@ class TestWorkhoursCLI(unittest.TestCase):
                 print('ret: %r' % ret)
                 print(argset)
                 self.assertFalse(ret, argset)
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 raise
 
@@ -59,7 +59,7 @@ import optparse
 from pprint import pformat
 from workhours.future import OrderedDict
 import workhours.models.json as json
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 def CommandlineOptionParser(*args,**kwargs):
     prs = optparse.OptionParser(
@@ -315,7 +315,7 @@ def main(*args):
         if not opts._queues:
             prs.error("--parse specified without any queues (see -c and/or -s)")
             # raise Exception()
-        if any(x[0] for x in opts._queues.iteritems()):
+        if any(x[0] for x in opts._queues.items()):
             from workhours.tasks.events import events_table_worker
             for result in events_table_worker(
                                 opts.sqldb_url,
@@ -345,7 +345,7 @@ def main(*args):
 
 
     if opts.list_report_types:
-        for k, v in REPORTS.iteritems():
+        for k, v in REPORTS.items():
             print("%s := %r" % (k, v))
         #exit(0)
 

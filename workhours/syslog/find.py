@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 """
 parse_find_printf
 
@@ -60,7 +60,7 @@ _FindEvent = namedtuple('FindEvent', ('date', 'size', 'user', 'type', 'url'))
 
 class FindEvent(_FindEvent):
     def __str__(iterable):
-        return u'\t'.join(u'%s' % attr for attr in iterable)
+        return '\t'.join('%s' % attr for attr in iterable)
 
 
 import logging
@@ -80,7 +80,7 @@ def _parse_find_printf(printf_iter, output, log=log):
         try:
             date = float(date)
             date = datetime.fromtimestamp(date)
-        except Exception, e:
+        except Exception as e:
             raise
         yield FindEvent(date, size, user, type_, name)
 

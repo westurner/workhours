@@ -4,7 +4,7 @@
 workhours core models
 """
 import datetime
-import urlparse
+import urllib.parse
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 from workhours.models.sql.guid import GUID
 from sqlalchemy.orm import object_session
@@ -234,7 +234,7 @@ class Task(_Base):
         self.id = id
 
     def __unicode__(self):
-        return u', '.join( (str(self.id), str(self.queue_id),
+        return ', '.join( (str(self.id), str(self.queue_id),
             str(self.date),
                 ))
 
@@ -252,13 +252,13 @@ class Event(_Base):
             'boost': 1.0,
             'index': 'analyzed',
             'store': 'yes',
-            'type': u'string',
+            'type': 'string',
             'term_vector':'with_positions_offsets'},
         'date': {
             'boost': 1.0,
             'index': 'analyzed',
             'store': 'yes',
-            'type': u'date',
+            'type': 'date',
         },
         'url': {
             'boost': 1.0,
@@ -363,7 +363,7 @@ class Event(_Base):
                 _obj = cls(*obj[:3], **_kwargs) # TODO
             else:
                 raise
-        except Exception, e:
+        except Exception as e:
             log.error({'obj': obj,
                         'type': type(obj),
                         'dir': dir(obj)
@@ -377,7 +377,7 @@ class Event(_Base):
         return (self.date, self.source, self.url)
 
     def _to_txt_row(self):
-        return u"%s\t%s\t%s" % (self.date, self.url, self.title and self.title or '')
+        return "%s\t%s\t%s" % (self.date, self.url, self.title and self.title or '')
 
     def __verbose(self):
         return ("%s/%s/%s\t%s\t%s\t%s" % (
@@ -393,7 +393,7 @@ class Event(_Base):
         return self._to_txt_row()
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self).encode('utf-8')
 
     #@property
     #def type(self):
@@ -415,7 +415,7 @@ class Place(_Base):
             'boost': 1.0,
             'index': 'analyzed',
             'store': 'yes',
-            'type': u'string',
+            'type': 'string',
             'term_vector':'with_positions_offsets'},
         'eventcount': {
             'boost': 1.0,
@@ -426,7 +426,7 @@ class Place(_Base):
             'boost': 1.0,
             'index': 'analyzed',
             'store': 'yes',
-            'type': u'string',
+            'type': 'string',
             'term_vector':'with_positions_offsets',
         },
     }
@@ -462,7 +462,7 @@ class Place(_Base):
         self.id = id
 
     def parse_from(self, url):
-        urlp = urlparse.urlparse(url)
+        urlp = urllib.parse.urlparse(url)
         for attr in ('scheme','port','netloc','path','query','fragment'):
             setattr(self, attr, getattr(urlp, attr))
         del urlp

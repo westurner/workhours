@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 
 import jinja2
 from jinja2 import Template

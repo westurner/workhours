@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 """
 Report writers for various formats
 """
 import csv
 import workhours.models.json as json
-import StringIO
+import io
 import functools
 
 def itemgetter_default(args, default=None):
@@ -18,7 +18,7 @@ def itemgetter_default(args, default=None):
     when the index does not exist
     """
     if args is None:
-        columns = xrange(len(line))
+        columns = range(len(line))
     else:
         columns = args
 
@@ -174,26 +174,26 @@ class ResultWriter_html(ResultWriter):
         if bool(attrs):
             self._output.write("<tr>")
             for col in attrs:
-                self._output.write(u"<th>%s</th>" % col)
+                self._output.write("<th>%s</th>" % col)
             self._output.write("</tr>")
 
     def _html_row(self, obj):
         yield '\n<tr>' # TODO: handle regular tuples
-        for attr,col in obj._asdict().iteritems(): # TODO: zip(_fields, ...)
+        for attr,col in obj._asdict().items(): # TODO: zip(_fields, ...)
             yield "<td%s>" % (
                     (attr is not None) and (' class="%s"' % attr) or '')
             if hasattr(col, '__iter__'):
                 for value in col:
-                    yield u'<span>%s</span>' % value
+                    yield '<span>%s</span>' % value
             else:
-                yield u'%s' % (
+                yield '%s' % (
                     col and hasattr(col, 'rstrip') and col.rstrip()
                     or str(col))  #TODO
             yield "</td>"
         yield "</tr>"
 
     def write(self, obj):
-        return self._output.write( u''.join(self._html_row(obj,)) )
+        return self._output.write( ''.join(self._html_row(obj,)) )
 
     def footer(self):
         self._output.write('</table>\n')
@@ -222,7 +222,7 @@ def write_iterable_to_output(
             continue # TODO
         try:
             output_func(result)
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             continue # TODO
 

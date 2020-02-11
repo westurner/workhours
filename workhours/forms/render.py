@@ -13,14 +13,14 @@ def render_form(request,
         # the request represents a form submission
         try:
             # try to validate the submitted values
-            controls = request.POST.items()
+            controls = list(request.POST.items())
             captured = form.validate(controls)
             if success: # TODO: XXX ???
                 response = success()
                 if response is not None:
                     return response
             html = form.render(captured)
-        except deform.ValidationFailure, e:
+        except deform.ValidationFailure as e:
             # the submitted values could not be validated
             html = e.render()
 

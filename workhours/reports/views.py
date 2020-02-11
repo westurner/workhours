@@ -36,7 +36,7 @@ class ReportView(RESTfulView):
             if rendererstr in self._renderers:
                 return rendererstr
             return 'to_404'
-        for rndrstr, (ct, charset) in self._renderers.iteritems():
+        for rndrstr, (ct, charset) in self._renderers.items():
             if request.accept.best_match(ct):
                 return rndrstr
         return 'to_404'

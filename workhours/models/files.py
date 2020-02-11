@@ -19,7 +19,7 @@ class TempDir(object):
             self.path = os.path.expanduser(path)
             if create:
                 if not os.path.exists(self.path):
-                    os.mkdir(self.path, 0700)
+                    os.mkdir(self.path, 0o700)
         return
 
     def copy_here(self, filename, dest_path=None):

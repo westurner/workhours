@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 """
 sequence_import
 
@@ -9,7 +9,7 @@ import a sequence of bookmarks/history visits,
 
 """
 
-from itertools import groupby, izip
+from itertools import groupby
 from operator import attrgetter
 from datetime import datetime, timedelta
 
@@ -25,14 +25,14 @@ def extend_timestamps(seq):
     for k,values in groupby(seq, attrgetter("date")):
         values = list(values)
         _len = len(values)
-        for item, offset in izip(values, xrange(0,_len)):
+        for item, offset in zip(values, range(0,_len)):
             newdate = item.date + timedelta(microseconds=offset) # TODO: microseconds?
             yield Item(newdate, item.url)
 
 def create_test_data():
     _now = datetime.now()
     events = [Item(_now, 'http://google.com'), Item(_now, 'http://yahoo.com')]
-    for n in xrange(3):
+    for n in range(3):
         events.append(Item(datetime.now(), n))
     _now = datetime.now()
     events.append(Item(_now, 'another set'))
@@ -55,7 +55,7 @@ class Test_sequence_import(unittest.TestCase):
     def test_extend_timestamps(self):
         eventseq = create_test_data()
         updated = list( extend_timestamps(eventseq) )
-        for orig, updated in izip(eventseq, updated):
+        for orig, updated in zip(eventseq, updated):
             print(orig, updated)
             print((str(orig.date), str(updated.date)))
 

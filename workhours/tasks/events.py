@@ -53,7 +53,7 @@ QUEUES=OrderedDict( (
 import os
 def check_queue_set(task_queues):
     errflag = False
-    for queuetype, tasks in task_queues.iteritems():
+    for queuetype, tasks in task_queues.items():
         for argset in tasks:
             if not os.path.exists(argset.url) and os.path.isfile(argset.url):
                 errflag = True
@@ -71,7 +71,7 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
     if not check_queue_set(task_queues):
         raise Exception()
 
-    for queue_type, sources in task_queues.iteritems():
+    for queue_type, sources in task_queues.items():
         #import ipdb
         #ipdb.set_trace()
         try:
@@ -98,7 +98,7 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
 
             s.commit()
             transaction.commit()
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             transaction.abort()
         finally:
@@ -183,7 +183,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
                     # pyes.insert( **event.to_dict() )
                     yield event
 
-                except Exception, e:
+                except Exception as e:
                     task.status = 'err'
                     task.statusmsg = str(e)
                     s.flush()
@@ -191,7 +191,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
 
             s.commit()
             transaction.commit()
-        except Exception, e:
+        except Exception as e:
             #log.error("ERROR Parsing: %s" % queue)
             #log.error(e)
             log.exception(e)
@@ -218,6 +218,6 @@ def events_table_worker(eventsdb_uri, task_queues, filestore):
             log.info('parsing event source: %r ' % (queue.type))
             for event in parse_event_source(eventsdb_uri, queue.id, filestore_uri=filestore):
                 yield event
-        except Exception, e:
+        except Exception as e:
             raise
             pass # TODO

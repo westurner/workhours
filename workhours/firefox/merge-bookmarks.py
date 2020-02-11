@@ -96,7 +96,7 @@ class BookMarksFormatter:
 		assert not attrs, "Unexpected DD attributes: %s!" % attrs
 		if not self.current:
 			# Comment for folder
-			sys.stderr.write('new_dd for folder: %s' % `self.h3`)
+			sys.stderr.write('new_dd for folder: %s' % repr(self.h3))
 			self.h3[1] = self.h3[1] + [('description', data)]
 		else:
 			assert not self.current[-1][2], "Unexpected DD: %s!" % data
@@ -338,7 +338,7 @@ def main():
 
 	try:
 		optlist, args = getopt.getopt(sys.argv[1:], OptUsage, OptLongUsage)
-	except getopt.error, val:
+	except getopt.error as val:
 		usage(val)
 
 	for opt,val in optlist:

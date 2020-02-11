@@ -18,7 +18,7 @@ class UserData(DataSet):
         #passphrase_ = '$pbkdf2-sha512$12000$NzQ2NTczNzQ2NjY5Nzg3NDc1NzI2NTVmNzU3MzY1NzI2ZTYxNmQ2NQ$BHqTZ4en1MZaCAOcCfF.nEVJEZu2tRxt8Xoigcdv85CYGoGBsum4Ao9oZ8Wra8hZkrIwcv7WUvW7i9PlN/3RmQ'
 
         passphrase_ = '$pbkdf2-sha512$12000$NzQ2NTczNzQ2NjY5Nzg3NDc1NzI2NTVmNzU3MzY1NzI2ZTYxNmQ2NQ$awknN.lgn4kJn2mrQnj11J9mDtIpJ0yEMJdHP0b4v5RtO3OLilONokO7M2Pu8/77fwu0mGDn0GV3wyp5czr1cQ'
-        passphrase = u'passphrase'
+        passphrase = 'passphrase'
 
 
 class TaskQueueData(DataSet):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf_8 -*-
-from __future__ import print_function
+
 """
 delhtml2json - Delicious HTML Export to JSON Converter
 
@@ -32,16 +32,16 @@ test_input_html="""<!DOCTYPE NETSCAPE-Bookmark-file-1>
 """
 
 test_output_expected=[
-    {"url":     u"http://web.mit.edu/newsoffice/2010/max-flow-speedup-0927.html",
-        "title":   u"First improvement of fundamental algorithm in 10 years",
-        "tags":    [u"graph", u"network", u"algorithms", u"sweet"],
+    {"url":     "http://web.mit.edu/newsoffice/2010/max-flow-speedup-0927.html",
+        "title":   "First improvement of fundamental algorithm in 10 years",
+        "tags":    ["graph", "network", "algorithms", "sweet"],
         #"date":   1285972779,
         "date":    datetime.datetime(2010, 10, 1, 17, 39, 39),
         "private": 0,
         "comment": None},
-    {"url":     u"http://en.wikipedia.org/wiki/ANTLR",
-        "title":   u"ANTLR - Wikipedia, the free encyclopedia",
-        "tags":    [u"wikipedia", u"code"],
+    {"url":     "http://en.wikipedia.org/wiki/ANTLR",
+        "title":   "ANTLR - Wikipedia, the free encyclopedia",
+        "tags":    ["wikipedia", "code"],
         #"date":   1276760483,
         "date":    datetime.datetime(2010, 6, 17, 2, 41, 23),
         "private": 0,
@@ -81,7 +81,7 @@ def extract_delicious_bookmarks(htmlstr):
         linknode = dt.findChild("a")
         nextnode = dt.findNextSibling()
 
-        if nextnode and nextnode.name == u'dd':
+        if nextnode and nextnode.name == 'dd':
             comment = nextnode.text
             comment_count = comment_count + 1
 
@@ -100,14 +100,14 @@ def map_bookmark_node(link_node, **kwargs):
         r = {
             'url': l['href'],
             'title': l.encodeContents("UTF-8"),
-            'tags': l.has_key("tags") and [t for t in l['tags'].split(',')
+            'tags': "tags" in l and [t for t in l['tags'].split(',')
                                             if t
                                                 and not t.startswith("for:") ]
                                       or [],
             'date': datetime.datetime.fromtimestamp(int(l['add_date'])),
-            'private': l['private'] == u'1',
+            'private': l['private'] == '1',
         }
-    except Exception, e:
+    except Exception as e:
         log.error("EXCEPTION:")
         log.error("parsing line" % l)
         log.exception(e)

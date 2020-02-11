@@ -97,7 +97,7 @@ class PlainContext(object):
     def get_member_key_as_string(self, member):
         """Return the proper string representation of the member"""
         key = member[self.index_key]
-        if isinstance(key, (int, basestring)):
+        if isinstance(key, (int, str)):
             return key
         else:
             return json.dumps(key, cls=self.json_encoder)

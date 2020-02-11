@@ -66,7 +66,7 @@ class EventsContextFactory(WorkhoursORMContext):
             for f in self.filters:
                 q = q.filter(f)
 
-        for k, v in (filters or {}).items():
+        for k, v in list((filters or {}).items()):
             #v = self.convert_param(k, v)
             filter_method = getattr(self.entity, '{0}_filter'.format(k), None)
             if filter_method is not None:
@@ -80,9 +80,9 @@ class EventsContextFactory(WorkhoursORMContext):
             q = q.distinct()
 
         search = kwargs.get('search')
-        if search is not None and search is not u'':
+        if search is not None and search is not '':
             if '%' not in search:
-                search = u'%%%s%%' % search
+                search = '%%%s%%' % search
             q = q.filter(
                     ( Event.url.like(search) )
                 |   ( Event.title.like(search) )

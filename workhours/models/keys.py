@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 """
 genkey
 """
@@ -242,7 +242,7 @@ def main():
             except:
                 print(line.rstrip(), file=sys.stderr)
     else: # generate
-        for n in xrange(opts.n_keys):
+        for n in range(opts.n_keys):
             print( genkey() )
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 import itertools
 import sqlalchemy
 from sqlalchemy import func
-from urlparse import urlparse
+from urllib.parse import urlparse
 from workhours.models import Place
 from workhours.reports.models import ReportContext
 from zope.interface import implements
@@ -42,16 +42,16 @@ class ProjectsContext(ReportContext):
 
         def filterfn(obj):
             if (len(obj[0]) >= 3):
-                if obj[0][0] in [u'github.com',u'bitbucket.org']:
+                if obj[0][0] in ['github.com','bitbucket.org']:
                     return obj[0][1] not in self.RESERVED_WORDS
-                elif obj[0][0] == u'code.google.com':
-                    return obj[0][1] in [u'r',u'p']
+                elif obj[0][0] == 'code.google.com':
+                    return obj[0][1] in ['r','p']
             return False
 
-        objects = itertools.imap(mapfn, query)
-        objects = itertools.ifilter(filterfn, objects)
+        objects = map(mapfn, query)
+        objects = filter(filterfn, objects)
 
-        for k,i in itertools.groupby(objects, lambda x: u'/'.join(x[0][0:3])):
+        for k,i in itertools.groupby(objects, lambda x: '/'.join(x[0][0:3])):
             urls = [ (v[1].url, v[1].eventcount or 1) for v in i]
             yield k, [x[0] for x in urls], sum(x[1] for x in urls)
 
@@ -71,12 +71,12 @@ class WikipediaPagesContext(ReportContext):
                 obj)
 
         def filterfn(obj):
-            return obj[0][0:1] and obj[0][1] == u'wiki'
+            return obj[0][0:1] and obj[0][1] == 'wiki'
 
-        objects = itertools.imap(mapfn, query.all())
-        objects = itertools.ifilter(filterfn, objects)
+        objects = map(mapfn, query.all())
+        objects = filter(filterfn, objects)
 
-        for k,objiter in itertools.groupby(objects, lambda x: u'/'.join(x[0])):
+        for k,objiter in itertools.groupby(objects, lambda x: '/'.join(x[0])):
             places = list(objiter)
             urls = [
                 (

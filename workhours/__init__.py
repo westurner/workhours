@@ -18,7 +18,7 @@ from sqlalchemy.orm import sessionmaker
 from .resource import APIRoot
 from .security import get_principals
 from .models import User
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 
 from .models.sql import initialize_sql
@@ -108,7 +108,7 @@ def _connect_fs(request):
 def _connect_rdflib(request):
     try:
         import rdflib
-    except ImportError, e:
+    except ImportError as e:
         log.error('import rdflib')
 
     rdf_url = request.registry.settings.get('rdflib.virtuoso_connstr')

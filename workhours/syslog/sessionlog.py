@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-from __future__ import print_function
+
 
 from datetime import datetime
-from itertools import ifilter
+
 import codecs
 import logging
 import subprocess
@@ -25,11 +25,11 @@ def parse_date_field(datestr):
     datestr = datestr.strip()
     try:
         dt = datetime.strptime(datestr, "%m/%d/%y %H:%M.%S")
-    except ValueError, e:
+    except ValueError as e:
         #log.exception(e)
         try:
             dt = datetime.strptime(datestr, "%y-%m-%d %H:%M:%S")
-        except ValueError, e:
+        except ValueError as e:
             logging.error("failed to parse: {}".format(datestr))
             pass
     return dt
@@ -64,9 +64,9 @@ def parse_sessionlog_line_original(line, session_prefix=''):
     date = cmd = cmdstr = dt = None
     if rest:
         rest_terms = [w.strip() for w in rest.split(':::',1)]
-        date, cmd = rest_terms[0], len(rest_terms) > 1 and u''.join(x.decode('utf8', errors='ignore') for x in rest_terms[1:])
+        date, cmd = rest_terms[0], len(rest_terms) > 1 and ''.join(x.decode('utf8', errors='ignore') for x in rest_terms[1:])
         dt = parse_date_field(date)
-        cmdstr = u'%s ::: %s' % (session, cmd)
+        cmdstr = '%s ::: %s' % (session, cmd)
     return (dt, cmdstr, session)
 
 
@@ -76,8 +76,8 @@ def build_pyparsing_pattern():
         Or, Literal,
         nums, alphanums, printables)
 
-    unicodePrintables = u''.join(unichr(c) for c in xrange(65536)
-                                        if not unichr(c).isspace())
+    unicodePrintables = ''.join(chr(c) for c in range(65536)
+                                        if not chr(c).isspace())
     #urichars = alphanum + "-_/\:#?"
     urichars = unicodePrintables
 
@@ -138,13 +138,13 @@ def parse_sessionlog(uri=None, session_prefix='', **kwargs):
     """
 
     with codecs.open(uri,'r+', encoding='utf-8') as f:
-        for line in ifilter(lambda x: bool(x.rstrip()), f):
+        for line in filter(lambda x: bool(x.rstrip()), f):
             try:
                 yield parse_sessionlog_line(line, session_prefix)
-            except Exception, e:
+            except Exception as e:
                 # log and drop unparsable (with this parser) lines
                 logging.exception(e)
-                logging.error(u"Failed to parse: %r (%s)" % (line, e))
+                logging.error("Failed to parse: %r (%s)" % (line, e))
                 continue
 
 def main():
@@ -158,7 +158,7 @@ def main():
     else:
         filename = sys.argv[1]
     for pair in parse_sessionlog(filename):
-        print(u' : '.join(str(x) for x in pair))
+        print(' : '.join(str(x) for x in pair))
     return 0
 
 

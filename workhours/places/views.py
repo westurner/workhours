@@ -58,7 +58,7 @@ class PlacesRESTfulView(RESTfulView):
             if rendererstr in self._renderers:
                 return rendererstr
             return 'to_404'
-        for rndrstr, (ct, charset) in self._renderers.iteritems():
+        for rndrstr, (ct, charset) in self._renderers.items():
             if request.accept.best_match(ct):
                 return rndrstr
         return 'to_404'
@@ -101,7 +101,7 @@ class PlacesRESTfulView(RESTfulView):
         # a model instance
         if isinstance(value, Place): #not hasattr(value, '__iter__'):
             value = [value]
-            title = u"Place: %s" % self.request.matchdict['id']
+            title = "Place: %s" % self.request.matchdict['id']
             template = 'places/templates/_place.jinja2'
         else:
             template = 'places/templates/_places_table.jinja2'

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # encoding: utf-8
-from __future__ import print_function
+
 """
 datatables
 """
@@ -22,7 +22,7 @@ def _get_param(request, param, _type=str):
         if value is None:
             return None
         return _type(value)
-    except Exception, e:
+    except Exception as e:
         return None
 
 from workhours.future import OrderedDict
@@ -36,8 +36,8 @@ def read_datatables_params(request):
     #    r['order_by'] = self.context.default_fields[r['order_by']]
     r['sort_dir'] = _get_param(request, 'sSortDir_0', str)
 
-    r['search'] = _get_param(request, 'sSearch', unicode) # TODO
-    return OrderedDict( (k,v) for (k,v) in r.iteritems() if v is not None)
+    r['search'] = _get_param(request, 'sSearch', str) # TODO
+    return OrderedDict( (k,v) for (k,v) in r.items() if v is not None)
 
 
 from workhours import models
@@ -69,7 +69,7 @@ def build_query(request, model=models.Event):
 
 
     # sSearch = LIKE
-    search = _get_param(request, 'sSearch', unicode)
+    search = _get_param(request, 'sSearch', str)
     if search:
         query = query.filter(
                     ( model.url.like(search) )

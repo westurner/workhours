@@ -18,7 +18,7 @@ class TestFixtureLoad(PyramidFixtureTestCase):
     def test_fixtures2(self):
         s = self.meta.Session()
         for fixture, model in zip(data.ALL_FIXTURES, models.ALL_MODELS):
-            for key, row in fixture.__dict__.iteritems():
+            for key, row in fixture.__dict__.items():
                 if key.startswith('_'):
                     continue
                 try:

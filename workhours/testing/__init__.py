@@ -101,7 +101,7 @@ class PyramidFixtureTestCase(unittest.TestCase):
     def tearDown(self):
         try:
             transaction.commit()
-        except Exception, e:
+        except Exception as e:
             transaction.abort()
             log.exception(e)
             pass

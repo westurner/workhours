@@ -70,7 +70,7 @@ try:
     #import pprint
     #pprint.pprint(requiresdict.items())
     #raise Exception(requiresdict)
-    requires = requiresdict.keys()
+    requires = list(requiresdict.keys())
 
 except ImportError:
     import warnings
