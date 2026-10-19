@@ -25,6 +25,8 @@ ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=${USER_UID}
 
+ENV PATH="/home/${USERNAME}/.local/bin:${PATH}"
+
 RUN if ! id -u ${USERNAME} >/dev/null 2>&1; then \
         groupadd --gid ${USER_GID} ${USERNAME} \
         && useradd --uid ${USER_UID} --gid ${USER_GID} -m -s /bin/bash ${USERNAME} \
@@ -34,7 +36,7 @@ RUN if ! id -u ${USERNAME} >/dev/null 2>&1; then \
 
 RUN python -m pip install --no-cache-dir --upgrade \
         pip \
-        setuptools \
+        'setuptools>=77,<80' \
         wheel \
         build \
         cython \
