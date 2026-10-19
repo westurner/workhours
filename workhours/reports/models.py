@@ -1,5 +1,4 @@
-from pyramid_restler.model import SQLAlchemyORMContext
-
+from workhours.models.context import SQLAlchemyORMContext
 from workhours.models import Report, ReportType
 import transaction
 

@@ -72,4 +72,4 @@ if __name__ == "__main__":
     else:
         fileglob = sys.argv[1]
     for u in parse_wtmp_glob(fileglob):
-        print u
+        print(u)

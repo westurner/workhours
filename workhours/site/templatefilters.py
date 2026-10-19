@@ -1,16 +1,17 @@
 from workhours.models.json import dumps
 
-from jinja2 import evalcontextfilter, Markup
+from jinja2 import pass_eval_context
+from markupsafe import Markup
 
 
-@evalcontextfilter
+@pass_eval_context
 def skipautoescape(eval_ctx, value):
     if eval_ctx.autoescape:
-        result = Markup(value)
-    return result
+        return Markup(value)
+    return value
 
 
-@evalcontextfilter
+@pass_eval_context
 def jsonify(eval_ctx, value):
     result = None
     if value:
@@ -20,7 +21,7 @@ def jsonify(eval_ctx, value):
     return result
 
 
-@evalcontextfilter
+@pass_eval_context
 def jsonify_indent(eval_ctx, value):
     result = None
     if value:

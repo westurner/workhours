@@ -1,7 +1,9 @@
 import workhours.models.json as json
 from collections.abc import Iterable
+import json as stdlib_json
 from pyramid.decorator import reify
 from pyramid_restler.interfaces import IContext
+from sqlalchemy import inspect as sa_inspect
 from zope.interface import implementer
 
 
@@ -170,7 +172,108 @@ class PlainContext:
         # return fields
 
 
-from pyramid_restler.model import SQLAlchemyORMContext
+@implementer(IContext)
+class SQLAlchemyORMContext:
+    json_encoder = json.DefaultJSONEncoder
+    entity = None
+
+    def __init__(self, request):
+        self.request = request
+
+    @reify
+    def session(self):
+        return self.session_factory()
+
+    def session_factory(self):
+        return self.request.db_session
+
+    def get_collection(
+        self, distinct=False, order_by=None, limit=None, offset=None, filters=None
+    ):
+        query = self.session.query(self.entity)
+        for filter_clause in getattr(self, "filters", ()):
+            query = query.filter(filter_clause)
+        for filter_name, value in (filters or {}).items():
+            filter_method = getattr(self.entity, f"{filter_name}_filter", None)
+            if filter_method is not None:
+                query = query.filter(filter_method(value))
+            else:
+                query = query.filter_by(**{filter_name: value})
+        if distinct:
+            query = query.distinct()
+        if order_by is not None:
+            query = query.order_by(*order_by)
+        if offset is not None:
+            query = query.offset(offset)
+        if limit is not None:
+            query = query.limit(limit)
+        return query.all()
+
+    def get_member(self, member_id):
+        if member_id is None:
+            raise ValueError("member id cannot be None")
+        return self.session.get(self.entity, member_id)
+
+    def create_member(self, data):
+        member = self.entity(**data)
+        self.session.add(member)
+        self.session.commit()
+        return member
+
+    def update_member(self, member_id, data):
+        member = self.get_member(member_id)
+        if member is None:
+            return None
+        for name, value in data.items():
+            setattr(member, name, value)
+        self.session.commit()
+        return member
+
+    def delete_member(self, member_id):
+        member = self.get_member(member_id)
+        if member is None:
+            return None
+        self.session.delete(member)
+        self.session.commit()
+        return member
+
+    def get_member_id(self, member):
+        identity = sa_inspect(member).identity
+        if identity is None:
+            return None
+        return identity[0] if len(identity) == 1 else identity
+
+    def get_member_id_as_string(self, member):
+        member_id = self.get_member_id(member)
+        if isinstance(member_id, str):
+            return member_id
+        return stdlib_json.dumps(member_id, cls=self.json_encoder)
+
+    def to_json(self, value, fields=None, wrap=True):
+        obj = self.get_json_obj(value, fields, wrap)
+        return stdlib_json.dumps(obj, cls=self.json_encoder)
+
+    def get_json_obj(self, value, fields=None, wrap=True):
+        if fields is None:
+            fields = self.default_fields
+        if not isinstance(value, Iterable):
+            value = [value]
+        obj = [self.member_to_dict(member, fields) for member in value]
+        if wrap:
+            obj = self.wrap_json_obj(obj)
+        return obj
+
+    def wrap_json_obj(self, obj):
+        return {"results": obj, "result_count": len(obj)}
+
+    def member_to_dict(self, member, fields=None):
+        if fields is None:
+            fields = self.default_fields
+        return {name: getattr(member, name) for name in fields}
+
+    @reify
+    def default_fields(self):
+        return tuple(sa_inspect(self.entity).column_attrs.keys())
 
 
 class WorkhoursORMContext(SQLAlchemyORMContext):

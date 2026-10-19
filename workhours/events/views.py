@@ -1,7 +1,7 @@
 import workhours.models.json as json
 import logging
 
-from jinja2 import Markup
+from markupsafe import Markup
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.renderers import render

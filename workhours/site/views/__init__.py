@@ -12,8 +12,6 @@ from pyramid.renderers import render
 from pyramid.httpexceptions import HTTPMovedPermanently
 from pyramid.httpexceptions import HTTPFound
 from pyramid.httpexceptions import HTTPNotFound
-from pyramid.security import authenticated_userid, remember, forget
-
 # i178n
 from pyramid.i18n import TranslationStringFactory
 

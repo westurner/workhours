@@ -1,6 +1,7 @@
 test_es_url = "http://localhost:9200/"
 
 import logging
+from unittest.mock import patch
 
 log = logging.getLogger("workhours.models.es.tests.TestESSession")
 
@@ -22,13 +23,16 @@ class TestESSession(unittest.TestCase):
         index = "test-index"
         obj_type = "test-type"
         obj = {"test": True, "one": "two"}
-        result = s.put(obj, index=index, type=obj_type)
+        result = {"ok": True, "_type": obj_type, "_id": "test-id", "_index": index}
+        with patch.object(s, "index", return_value=result) as index_request:
+            response = s.put(obj, index=index, type=obj_type)
         log.debug("result: %r" % result)
 
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["_type"], obj_type)
-        self.assertTrue(result.get("_id"))
-        self.assertEqual(result["_index"], index)
+        index_request.assert_called_once_with(obj, index, obj_type)
+        self.assertTrue(response["ok"])
+        self.assertEqual(response["_type"], obj_type)
+        self.assertTrue(response.get("_id"))
+        self.assertEqual(response["_index"], index)
 
     def test_es_initialize_db(self):
         from workhours.models.es import initialize_esdb

@@ -39,7 +39,6 @@ def json_wrap_output(f):
         cls=DefaultJSONEncoder,
         ensure_ascii=False,
         separators=(",", ":"),
-        encoding="utf-8",
     )
 
     @wraps(f)

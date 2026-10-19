@@ -4,7 +4,6 @@ from sqlalchemy import func
 from urllib.parse import urlparse
 from workhours.models import Place
 from workhours.reports.models import ReportContext
-from zope.interface import implements
 from workhours.future import OrderedDict
 
 

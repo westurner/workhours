@@ -1,7 +1,7 @@
 import workhours.models.json as json
 
 from workhours.future import OrderedDict
-from jinja2 import Markup
+from markupsafe import Markup
 from pyramid.renderers import render, render_to_response
 from pyramid.response import Response
 from pyramid.view import view_config

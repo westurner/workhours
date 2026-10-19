@@ -1,7 +1,7 @@
 import os.path
 from zope.interface import Attribute
 from zope.interface import Interface
-from zope.interface import implements
+from zope.interface import implementer
 
 
 class IDataSource(Interface):
@@ -29,8 +29,8 @@ class IDataSource(Interface):
         """
 
 
+@implementer(IDataSource)
 class DataSource:
-    implements(IDataSource)
 
     def __init__(self, name, *args, **kwargs):
         self.name = name

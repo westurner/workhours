@@ -75,16 +75,15 @@ class JSONEncodedDict(TypeDecorator):
 
 def clear_mappers(mapped_classes):
     """
-    Remove any existing WebKit mappings
+    Dispose registries for the supplied mapped classes.
     """
-    from sqlalchemy import orm
+    from sqlalchemy import inspect
 
-    if not hasattr(orm.mapperlib, "_COMPILE_MUTEX"):
-        return
-    orm.mapperlib._COMPILE_MUTEX.acquire()
-    try:
-        for mapper in list(orm._mapper_registry):
-            if str(mapper) in mapped_classes:
-                mapper.dispose()
-    finally:
-        orm.mapperlib._COMPILE_MUTEX.release()
+    registries = set()
+    for mapped_class in mapped_classes:
+        mapper = inspect(mapped_class, raiseerr=False)
+        if mapper is not None:
+            registries.add(mapper.registry)
+
+    for mapper_registry in registries:
+        mapper_registry.dispose()

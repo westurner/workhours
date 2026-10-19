@@ -545,9 +545,7 @@ from workhours.models.sql import Base
 from workhours.models.sql import DBSession  # primary database session
 from workhours.models.sql import initialize_sql
 
-from pyramid.security import Everyone
-from pyramid.security import Authenticated
-from pyramid.security import Allow
+from pyramid.authorization import Allow, Authenticated, Everyone
 
 from workhours.models.sql.tables import setup_mappers  # ... ?
 

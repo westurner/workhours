@@ -1,4 +1,5 @@
 import unittest
+import importlib
 from pyramid import testing
 
 import workhours
@@ -78,6 +79,15 @@ def initialize_db(*args, **kwargs):
 
 
 from workhours.models.fixtures import data
+
+
+def _install_fixture_sqlalchemy_compatibility():
+    mapper_module = importlib.import_module("sqlalchemy.orm.mapper")
+    if not hasattr(mapper_module, "class_mapper"):
+        mapper_module.class_mapper = sqlalchemy.orm.class_mapper
+
+
+_install_fixture_sqlalchemy_compatibility()
 
 
 class PyramidFixtureTestCase(unittest.TestCase):

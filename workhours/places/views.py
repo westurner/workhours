@@ -1,4 +1,4 @@
-from jinja2 import Markup
+from markupsafe import Markup
 from pprint import pformat
 from pyramid.decorator import reify
 from pyramid.exceptions import HTTPNotFound

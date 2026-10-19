@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import mapper, relationship, eagerload
+from sqlalchemy.orm import joinedload, registry, relationship
 from pytz import timezone
 from workhours.models.sql import open_db
 
@@ -34,7 +34,7 @@ def _datetime_to_epoch(dt):
 
     :returns: long
     """
-    return long(dt.strftime("%s")) * 1000000.0
+    return int(dt.strftime("%s")) * 1000000.0
 
 
 class Bookmark(object):
@@ -67,7 +67,7 @@ class Place(object):
     """
 
     def __repr__(self):
-        return unicode(self)
+        return str(self)
 
     def __unicode__(self):
         return str(self.__dict__)
@@ -115,6 +115,7 @@ def setup_mappers(meta=None, engine=None):
     :returns: SQLAlchemy meta
     """
     meta = meta or MetaData()
+    mapper_registry = registry(metadata=meta)
     # if meta.is_bound:
     #    return meta
 
@@ -129,18 +130,20 @@ def setup_mappers(meta=None, engine=None):
         "moz_historyvisits",
         meta,
         Column("place_id", Integer, ForeignKey("moz_places.id")),
-        useexisting=True,
+        extend_existing=True,
     )
     bookmarks = Table(
         "moz_bookmarks",
         meta,
         Column("fk", Integer, ForeignKey("moz_places.id")),
-        useexisting=True,
+        extend_existing=True,
     )
 
-    mapper(Place, places)
-    mapper(Visit, visits, properties={"place": relationship(Place)})
-    mapper(
+    mapper_registry.map_imperatively(Place, places)
+    mapper_registry.map_imperatively(
+        Visit, visits, properties={"place": relationship(Place)}
+    )
+    mapper_registry.map_imperatively(
         Bookmark,
         bookmarks,
         properties={
@@ -152,11 +155,7 @@ def setup_mappers(meta=None, engine=None):
     return meta
 
 
-MAPPED_CLASSES = [
-    "Mapper|Place|moz_places",
-    "Mapper|Visit|moz_historyvisits",
-    "Mapper|Bookmark|moz_bookmarks",
-]
+MAPPED_CLASSES = (Place, Visit, Bookmark)
 
 
 def _Session(uri):
@@ -166,7 +165,7 @@ def _Session(uri):
         destructive_recover=False,  # TODO: pragma-journal[...]
         munge_mappers=MAPPED_CLASSES,
     )
-    meta = setup_mappers(meta, meta.bind)
+    meta = setup_mappers(meta, meta.engine)
     return meta
     # .Session()
 
@@ -187,9 +186,9 @@ def parse_firefox_history(uri=None):
         destructive_recover=True,  # TODO: pragma-journal[...]
         munge_mappers=MAPPED_CLASSES,
     )
-    meta = setup_mappers(meta, meta.bind)
+    meta = setup_mappers(meta, meta.engine)
     s = meta.Session
-    for v in s.query(Visit).options(eagerload(Visit.place)):
+    for v in s.query(Visit).options(joinedload(Visit.place)):
         yield v
 
 
@@ -209,20 +208,20 @@ def parse_firefox_bookmarks(uri=None):
         destructive_recover=True,  # TODO: pragma-journal[...]
         munge_mappers=MAPPED_CLASSES,
     )
-    meta = setup_mappers(meta, meta.bind)
+    meta = setup_mappers(meta, meta.engine)
     s = meta.Session
 
-    for v in s.query(Bookmark).options(eagerload(Bookmark.place)):
+    for v in s.query(Bookmark).options(joinedload(Bookmark.place)):
         yield v
 
 
 if __name__ == "__main__":
     import sys
 
-    print "# =========== Hist "
+    print("# =========== Hist")
     for x in parse_firefox_history(sys.argv[1]):
-        print x
+        print(x)
 
-    print "# =========== Bookmarks "
+    print("# =========== Bookmarks")
     for x in parse_firefox_bookmarks(sys.argv[1]):
-        print x
+        print(x)

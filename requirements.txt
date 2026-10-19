@@ -36,6 +36,9 @@ pyramid_restler
 celery
 pyramid_celery
 
+# Python 3.13+ removed this stdlib module; marrow.mailer still imports it.
+standard-imghdr
+
 # debugging
 pyramid_debugtoolbar
 pyparsing

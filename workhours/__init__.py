@@ -169,7 +169,40 @@ def config_debugtoolber(config):
 
 
 def config_mailer(config):
-    config.include("pyramid_marrowmailer")
+    import atexit
+    import cgi
+    from urllib.parse import parse_qsl
+    import transaction
+    from pyramid.settings import asbool
+
+    if not hasattr(cgi, "parse_qsl"):
+        cgi.parse_qsl = parse_qsl
+
+    from marrow.mailer import Mailer
+    from pyramid_marrowmailer import IMarrowMailer, TransactionMailer, get_mailer
+
+    settings = config.registry.settings
+    prefix = settings.get("pyramid_marrowmailer.prefix", "mail.").rstrip(".")
+    mailer_config = {
+        key: value for key, value in settings.items() if key.startswith(prefix)
+    }
+    for key, value in list(mailer_config.items()):
+        if key.endswith(".on"):
+            mailer_config[key[:-3]] = asbool(value)
+        if key.endswith(".int"):
+            mailer_config[key[:-4]] = int(value)
+
+    manager = f"{prefix}.manager.use"
+    mailer_config.setdefault(manager, "immediate")
+    mode = f"{prefix}.mode"
+    mailer_class = (
+        Mailer if mailer_config.get(mode) == "direct" else TransactionMailer
+    )
+    mailer = mailer_class(mailer_config, prefix)
+    mailer.start()
+    config.registry.registerUtility(mailer, IMarrowMailer)
+    config.add_request_method(get_mailer, "mailer", reify=True)
+    atexit.register(mailer.stop)
     config.include("pyramid_tm")
 
 
@@ -208,7 +241,18 @@ def config_routes(config):
     config.add_route("favicon", "/favicon.ico")
     config.add_view("workhours.favicon_view", name="favicon")
 
-    config.include("deform_jinja2")
+    import deform
+    from deform_jinja2 import jinja2_renderer_factory
+    from deform_jinja2.translator import PyramidTranslator
+
+    settings = config.registry.settings
+    renderer = jinja2_renderer_factory(
+        search_paths=settings.get("deform_jinja2.template_search_path", "").split(),
+        translator=PyramidTranslator(
+            domain=settings.get("deform_jinja2.i18n.domain", "deform")
+        ),
+    )
+    deform.Form.set_default_renderer(renderer)
 
     ## Security Routes
     # config.add_route('register', '/register')
@@ -262,7 +306,10 @@ def config_routes(config):
     # config.add_route('deniz', '/browse')
 
     config.add_route("api", "/api/*traverse", factory=APIRoot)
-    config.scan()
+    config.add_subscriber(db_session_subscriber, NewRequest)
+    config.scan("workhours.views")
+    config.scan("workhours.forms.demo")
+    config.scan("workhours.site.views")
 
 
 def config_error_pages(config):
@@ -289,15 +336,39 @@ DEFAULT_AUTH_SECRET = "supersecret"
 DEFAULT_COOKIE_SECRET = "crazysecret"
 
 
+class AuthTicketSecurityPolicy:
+    def __init__(self, authentication_policy, authorization_policy):
+        self.authentication_policy = authentication_policy
+        self.authorization_policy = authorization_policy
+
+    def identity(self, request):
+        return self.authentication_policy.authenticated_userid(request)
+
+    def authenticated_userid(self, request):
+        return self.authentication_policy.authenticated_userid(request)
+
+    def permits(self, request, context, permission):
+        principals = self.authentication_policy.effective_principals(request)
+        return self.authorization_policy.permits(context, principals, permission)
+
+    def remember(self, request, principal, **kwargs):
+        return self.authentication_policy.remember(request, principal, **kwargs)
+
+    def forget(self, request, **kwargs):
+        return self.authentication_policy.forget(request, **kwargs)
+
+
 def config_auth_policy(config, settings):
-    policy = authentication.AuthTktAuthenticationPolicy(
+    authentication_policy = authentication.AuthTktAuthenticationPolicy(
         settings.get("auth_secret", DEFAULT_AUTH_SECRET),
         get_principals,
         cookie_name="workhours_auth",
         hashalg="sha512",
     )
-    config.set_authorization_policy(authorization.ACLAuthorizationPolicy())
-    config.set_authentication_policy(policy)
+    authorization_policy = authorization.ACLAuthorizationPolicy()
+    config.set_security_policy(
+        AuthTicketSecurityPolicy(authentication_policy, authorization_policy)
+    )
 
     my_session_factory = SignedCookieSessionFactory(
         settings.get("auth_secret", DEFAULT_COOKIE_SECRET)

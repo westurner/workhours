@@ -4,7 +4,7 @@ WebKit History
 """
 
 from sqlalchemy import MetaData, Table, Column, Integer, ForeignKey
-from sqlalchemy.orm import mapper, relationship, eagerload
+from sqlalchemy.orm import joinedload, registry, relationship
 
 from workhours.webkit import longdate_to_datetime
 from workhours.models import open_db
@@ -24,7 +24,7 @@ class URL(object):
     """
 
     def __repr__(self):
-        return unicode(self)
+        return str(self)
 
     def __unicode__(self):
         return str(self.__dict__)
@@ -64,6 +64,7 @@ def setup_mappers(meta=None, engine=None):
     :returns: SQLAlchemy meta
     """
     meta = meta or MetaData()
+    mapper_registry = registry(metadata=meta)
     # reflect all tables into meta.tables[]
 
     with warnings.catch_warnings():
@@ -77,15 +78,17 @@ def setup_mappers(meta=None, engine=None):
         "visits",
         meta,
         Column("url", Integer, ForeignKey("urls.id")),
-        useexisting=True,
+        extend_existing=True,
     )
 
-    mapper(URL, urls)
-    mapper(Visit, visits, properties={"_url": relationship(URL)})
+    mapper_registry.map_imperatively(URL, urls)
+    mapper_registry.map_imperatively(
+        Visit, visits, properties={"_url": relationship(URL)}
+    )
     return meta
 
 
-MAPPED_CLASSES = ["Mapper|URL|urls", "Mapper|Visit|visits"]
+MAPPED_CLASSES = (URL, Visit)
 
 
 def _Session(uri):
@@ -115,9 +118,9 @@ def parse_webkit_history(uri=None):
         destructive_recover=True,  # TODO: pragma-journal[...]
         munge_mappers=MAPPED_CLASSES,
     )
-    meta = setup_mappers(meta, meta.bind)
+    meta = setup_mappers(meta, meta.engine)
     s = meta.Session
-    for v in s.query(Visit).options(eagerload(Visit._url)):
+    for v in s.query(Visit).options(joinedload(Visit._url)):
         yield v._to_event_row()
 
 
@@ -125,6 +128,6 @@ if __name__ == "__main__":
     import sys
 
     path_ = sys.argv[1]
-    print "# =========== Hist ", path_
+    print("# =========== Hist ", path_)
     for x in parse_webkit_history(path_):
-        print str(x[0]), "||", x[1], "||", x[2]
+        print(str(x[0]), "||", x[1], "||", x[2])

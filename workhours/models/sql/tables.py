@@ -19,8 +19,8 @@ from sqlalchemy import (
     UnicodeText,
 )
 from sqlalchemy.orm import (
-    mapper,
-    relation,
+    registry,
+    relationship,
     object_session,
     column_property,
     synonym,
@@ -65,8 +65,7 @@ def setup_mappers(meta=None, engine=None):
 
     if meta is None:
         meta = MetaData()
-    if engine:
-        meta.bind = engine
+    mapper_registry = registry(metadata=meta)
 
     users_tbl = Table(
         "users",
@@ -82,7 +81,7 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(
+    mapper_registry.map_imperatively(
         User,
         users_tbl,
         properties={
@@ -107,7 +106,7 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(Command, commands_tbl, properties={})
+    mapper_registry.map_imperatively(Command, commands_tbl, properties={})
 
     queues_tbl = Table(
         "queues",
@@ -122,7 +121,7 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(TaskQueue, queues_tbl)
+    mapper_registry.map_imperatively(TaskQueue, queues_tbl)
 
     tasksources_tbl = Table(
         "tasksources",
@@ -140,10 +139,10 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(
+    mapper_registry.map_imperatively(
         TaskSource,
         tasksources_tbl,
-        properties={"queue": relation(TaskQueue, backref="sources")},
+        properties={"queue": relationship(TaskQueue, backref="sources")},
     )
 
     tasks_tbl = Table(
@@ -165,10 +164,10 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(
+    mapper_registry.map_imperatively(
         Task,
         tasks_tbl,
-        properties={"source": relation(TaskSource, backref="tasks"),},
+        properties={"source": relationship(TaskSource, backref="tasks"),},
     )
 
     places_tbl = Table(
@@ -187,7 +186,7 @@ def setup_mappers(meta=None, engine=None):
         Column("created_on", DateTime, default=datetime.datetime.now),
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
-    mapper(Place, places_tbl)
+    mapper_registry.map_imperatively(Place, places_tbl)
 
     # TODO: tags
 
@@ -219,13 +218,13 @@ def setup_mappers(meta=None, engine=None):
         # UniqueConstraint('source','date','url', 'task_id',
         #   name='uix_event_source_task_id'),
     )
-    mapper(
+    mapper_registry.map_imperatively(
         Event,
         events_tbl,
         properties={
-            "task": relation(Task, backref="events"),
-            "place": relation(Place, backref="events"),
-            #'queue': relation(TaskQueue, backref='events'),
+            "task": relationship(Task, backref="events"),
+            "place": relationship(Place, backref="events"),
+            #'queue': relationship(TaskQueue, backref='events'),
         },
     )
 
@@ -239,7 +238,7 @@ def setup_mappers(meta=None, engine=None):
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
 
-    mapper(ReportType, report_types_tbl)
+    mapper_registry.map_imperatively(ReportType, report_types_tbl)
 
     reports_tbl = Table(
         "reports",
@@ -257,10 +256,10 @@ def setup_mappers(meta=None, engine=None):
         Column("updated_on", DateTime, onupdate=datetime.datetime.now),
     )
 
-    mapper(
+    mapper_registry.map_imperatively(
         Report,
         reports_tbl,
-        properties={"report_type": relation(ReportType, backref="reports"),},
+        properties={"report_type": relationship(ReportType, backref="reports"),},
     )
 
     return meta

@@ -92,4 +92,4 @@ if __name__ == "__main__":
     else:
         fileglob = sys.argv[1]
     for u in parse_auth_log(fileglob):
-        print u
+        print(u)

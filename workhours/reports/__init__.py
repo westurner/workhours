@@ -1,6 +1,7 @@
 import csv
 import datetime
 import codecs
+import os
 
 
 def _write_csv(output, iterable, attrs, unicode_mangle=False):
@@ -18,21 +19,21 @@ def _write_csv(output, iterable, attrs, unicode_mangle=False):
             row[2] = row[2].decode("utf8", "replace")  # ...
             # Retry
             cw.writerow(row)
-        except UnicodeEncodeError, error:
+        except UnicodeEncodeError as error:
             if not unicode_mangle:
                 raise
-            print type(error.object), error.encoding
-            print error.object.encode("utf8", "replace")
+            print(type(error.object), error.encoding)
+            print(error.object.encode("utf8", "replace"))
 
             row = list(row)
-            row[2] = unicode(row[2]).encode("utf8", "replace")
-            row[3] = unicode(row[3]).encode("utf8", "replace")
-            print row
+            row[2] = str(row[2]).encode("utf8", "replace")
+            row[3] = str(row[3]).encode("utf8", "replace")
+            print(row)
             cw.writerow(row)
 
 
 def write_csv(output, iterable, attrs, **kwargs):
-    if isinstance(output, "basestring"):
+    if isinstance(output, (str, bytes, os.PathLike)):
         with codecs.open(output, "w+", encoding="utf-8") as _file:
             _write_csv(_file, iterable, attrs, **kwargs)
     elif hasattr(output, "write"):
@@ -65,16 +66,16 @@ def _write_html(output, iterable, attrs, unicode_mangle=False):
             row[2] = row[2].decode("utf8", "replace")  # ...
             # Retry
             cw.writerow(row)
-        except UnicodeEncodeError, error:
+        except UnicodeEncodeError as error:
             if not unicode_mangle:
                 raise
-            print type(error.object), error.encoding
-            print error.object.encode("utf8", "replace")
+            print(type(error.object), error.encoding)
+            print(error.object.encode("utf8", "replace"))
 
             row = list(row)
-            row[2] = unicode(row[2]).encode("utf8", "replace")
-            row[3] = unicode(row[3]).encode("utf8", "replace")
-            print row
+            row[2] = str(row[2]).encode("utf8", "replace")
+            row[3] = str(row[3]).encode("utf8", "replace")
+            print(row)
             [cw.write(col) for col in format_row(row)]
 
             # TODO..

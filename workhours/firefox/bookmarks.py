@@ -2,20 +2,21 @@
 
 
 def main():
-    from BeautifulSoup import BeautifulSoup as BS
+    from bs4 import BeautifulSoup
+    from urllib.parse import unquote_plus
 
-    b = BS(file("bookmarks.html").read())
+    with open("bookmarks.html", encoding="utf-8") as bookmarks_file:
+        bookmarks = BeautifulSoup(bookmarks_file.read(), "html.parser")
 
-    print "\n".join(
-        map(
-            lambda x: "== %s ==\n%s\n"
-            % (
-                urllib.unquote_plus(x.string),
-                urllib.unquote_plus(x.get("href")),
-            ),
-            filter(lambda x: x.string.startswith("&quot"), b.findAll("a")),
-        )
-    )
+    for link in bookmarks.find_all("a"):
+        title = link.get_text()
+        if title.startswith('"'):
+            print(
+                "== {} ==\n{}\n".format(
+                    unquote_plus(title),
+                    unquote_plus(link.get("href", "")),
+                )
+            )
 
 
 if __name__ == "__main__":

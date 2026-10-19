@@ -3,9 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from zope.sqlalchemy import ZopeTransactionExtension
+from sqlalchemy.orm import declarative_base
 
 
 from workhours.models.sqla_utils import clear_mappers as _clear_mappers
@@ -43,7 +41,6 @@ def open_db(
     try:
         engine = create_engine(dburi)
         meta = initialize_sql(engine, setup_mappers)
-        meta.bind = engine
     except Exception:
         if dburi.startswith("sqlite") and destructive_recover:
             from workhours.models.sqlite_utils import (
@@ -52,7 +49,7 @@ def open_db(
 
             commit_uncommitted_transactions(dburi)
             engine = create_engine(dburi)
-            meta.bind = engine
+            meta = initialize_sql(engine, setup_mappers)
         else:
             raise
 
@@ -80,7 +77,7 @@ def initialize_sql(
         # and explicit mappings
 
         meta = MetaData()
-        meta.bind = engine
+        meta.engine = engine
 
         meta = setup_mappers(meta=meta, engine=engine)
         if create_tables_on_init:
@@ -111,7 +108,7 @@ def create_tables(meta):
     # Create tables
     try:
         log.debug("CREATE all (%r)" % meta)
-        meta.create_all()
+        meta.create_all(bind=meta.engine)
     except Exception as e:
         log.error(meta)
         log.exception(e)
@@ -134,7 +131,7 @@ def create_tables(meta):
 def drop_tables(meta):
     try:
         log.debug("DROP all (%r)" % meta)  # FIXME:
-        return meta.drop_all()
+        return meta.drop_all(bind=meta.engine)
     except Exception as e:
         log.error(meta)
         log.exception(e)
@@ -147,7 +144,10 @@ import os
 
 
 def get_test_engine():
-    conf = get_appsettings(os.environ.get("_CFG") + "#workhours_test")
+    config_path = os.environ.get("_CFG") or os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "development.ini")
+    )
+    conf = get_appsettings(config_path + "#workhours_test")
     engine = sqlalchemy.engine_from_config(conf, "db_main.")
     return engine
 

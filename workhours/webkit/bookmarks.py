@@ -27,7 +27,7 @@ def wbkt_trav(nodes, depth=0, path=None):
             "title": node.get(
                 "name"
             ),  # u'%s' % node.get('name','').encode('utf-8','replace'),
-            "date": longdate_to_datetime(long(node.get("date_added"))),
+            "date": longdate_to_datetime(int(node.get("date_added"))),
         }
         if node.get("type") == NODETYPE:
             _p = path + [node.get("name")]
@@ -60,7 +60,7 @@ def print_bookmarks(file_, outp, flatten, dated):
         fmtstr = "{date}\t{url}\t{title}"
 
     for node in parse_webkit_bookmarks(file_):
-        print fmtstr.format(**node)
+        print(fmtstr.format(**node))
 
 
 def main():

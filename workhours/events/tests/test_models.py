@@ -1,8 +1,8 @@
 import transaction
 import unittest
 from pyramid import testing
-from pyramid_restler.model import SQLAlchemyORMContext
 from workhours.events.models import EventsContextFactory
+from workhours.models.context import SQLAlchemyORMContext
 
 # import workhours.models
 from workhours.models.fixtures import data
@@ -49,13 +49,30 @@ class EventsContextTests(PyramidFixtureTestCase):
     #    self.context.update_member(-1, {})
 
     def test_delete_member(self):
-        id = data.EventData.one.id
-        obj = self.context.get_member(id)
+        from uuid import uuid4
+
+        from workhours.models import Event
+
+        event = Event(
+            id=str(uuid4()),
+            source=data.TaskSourceData.one.type,
+            date=data.EventData.one.date,
+            url="https://example.test/delete",
+            title="delete test",
+            meta={},
+            source_id=data.TaskSourceData.one.id,
+            task_id=data.TaskData.one.id,
+        )
+        self.session.add(event)
+        self.session.commit()
+
+        member_id = event.id
+        obj = self.context.get_member(member_id)
         self.assertIsNotNone(obj)
-        self.context.delete_member(id)
+        self.context.delete_member(member_id)
         self.session.flush()
 
-        obj = self.context.get_member(id)
+        obj = self.context.get_member(member_id)
         self.assertIsNone(obj)
 
     # TODO: ?
@@ -72,6 +89,13 @@ class EventsContextTests(PyramidFixtureTestCase):
         import json
 
         self.assertIsNotNone(json.loads(output))  # TODO
+
+    def test_get_member_id_as_string(self):
+        obj = self.context.get_member(data.EventData.one.id)
+
+        self.assertEqual(
+            str(data.EventData.one.id), self.context.get_member_id_as_string(obj)
+        )
 
     # def test_get_json_obj(self):
     #    self.context.get_json_obj(value, fields, wrap)

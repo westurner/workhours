@@ -7,7 +7,7 @@ delhtml2json - Delicious HTML Export to JSON Converter
 import codecs
 import datetime
 import logging
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 import workhours.models.json as json
 
@@ -36,7 +36,7 @@ test_output_expected = [
         "title": "First improvement of fundamental algorithm in 10 years",
         "tags": ["graph", "network", "algorithms", "sweet"],
         # "date":   1285972779,
-        "date": datetime.datetime(2010, 10, 1, 17, 39, 39),
+        "date": datetime.datetime.fromtimestamp(1285972779),
         "private": 0,
         "comment": None,
     },
@@ -45,10 +45,10 @@ test_output_expected = [
         "title": "ANTLR - Wikipedia, the free encyclopedia",
         "tags": ["wikipedia", "code"],
         # "date":   1276760483,
-        "date": datetime.datetime(2010, 6, 17, 2, 41, 23),
+        "date": datetime.datetime.fromtimestamp(1276760483),
         "private": 0,
-        "comment": "&quot;These actions are written in the programming "
-        "language that the recognizer is being generated in.&quot;",
+        "comment": "\"These actions are written in the programming language "
+        "that the recognizer is being generated in.\"",
     },
 ]
 
@@ -71,22 +71,21 @@ def extract_delicious_bookmarks(htmlstr):
     export_datestr = footer_comment.split(" uncompressed/chunked ")[1].strip()
     log.info("Exported date: %s" % export_datestr)
 
-    bs = BeautifulSoup(htmlstr, fromEncoding="utf-8")
+    bs = BeautifulSoup(htmlstr, "html.parser")
 
-    link_tag_count = len(bs.findAll("a"))
+    link_tag_count = len(bs.find_all("a"))
     log.info("Found %r <a> tags" % link_tag_count)
 
     link_count = 0
     comment_count = 0
 
-    for dt in bs.findAll("dt"):
+    for linknode in bs.find_all("a"):
         comment = None
         link_count = link_count + 1
-        linknode = dt.findChild("a")
-        nextnode = dt.findNextSibling()
+        nextnode = linknode.find_next_sibling("dd")
 
-        if nextnode and nextnode.name == "dd":
-            comment = nextnode.text
+        if nextnode:
+            comment = nextnode.decode_contents().strip()
             comment_count = comment_count + 1
 
         yield map_bookmark_node(linknode, comment=comment)
@@ -108,8 +107,8 @@ def map_bookmark_node(link_node, **kwargs):
     try:
         r = {
             "url": l["href"],
-            "title": l.encodeContents("UTF-8"),
-            "tags": "tags" in l
+            "title": l.decode_contents(),
+            "tags": "tags" in l.attrs
             and [
                 t
                 for t in l["tags"].split(",")
