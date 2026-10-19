@@ -61,7 +61,7 @@ def check_queue_set(task_queues):
             if not os.path.exists(argset.url) and os.path.isfile(argset.url):
                 errflag = True
                 print(
-                    "Queued source not found: %r %r" % (queuetype, argset.url)
+                    "Queued source not found: {!r} {!r}".format(queuetype, argset.url)
                 )
     return not errflag
 
@@ -120,7 +120,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
     Create and execute a Task for each TaskSource
 
     """
-    log.debug("parse_event_source: (%r, %r)" % (eventsdb_uri, queue_id))
+    log.debug("parse_event_source: ({!r}, {!r})".format(eventsdb_uri, queue_id))
 
     filestore = TempDir(filestore_uri or os.environ.get("$_TMP"))  # TODO
     meta = open_db(eventsdb_uri, setup_mappers, create_tables_on_init=True)
@@ -147,16 +147,16 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
             # args=argset._asdict(),
             args=source._asdict(),
         )
-        log.info("TASK: %r : %s " % (task, task._asdict()))
+        log.info("TASK: {!r} : {} ".format(task, task._asdict()))
         s.add(task)
         transaction.commit()
 
         _log = logging.getLogger(
-            "workhours.tasks.%s.%s" % (queue.type, task.id)
+            "workhours.tasks.{}.{}".format(queue.type, task.id)
         )
 
         # transaction.commit() # get task.id
-        task_dirname = "%s_%s" % (task.id, queue.type)
+        task_dirname = "{}_{}".format(task.id, queue.type)
 
         task_dir = filestore.mkdir(task_dirname)
 
@@ -169,7 +169,7 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
             uri = files_[0]
 
             for parser_event in parser_parse(uri=uri):
-                _log.log(3, "%r : %s" % (parser_event, parser_event))
+                _log.log(3, "{!r} : {}".format(parser_event, parser_event))
                 try:
                     event = Event.from_uhm(
                         parser_event,
@@ -226,10 +226,9 @@ def events_table_worker(eventsdb_uri, task_queues, filestore):
     for queue in task_queues:
         try:
             log.info("parsing event source: %r " % (queue.type))
-            for event in parse_event_source(
+            yield from parse_event_source(
                 eventsdb_uri, queue.id, filestore_uri=filestore
-            ):
-                yield event
+            )
         except Exception as e:
             raise
             pass  # TODO

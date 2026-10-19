@@ -16,7 +16,7 @@ def cleanup_rec(rec, session):
     session.delete(rec)
 
 
-class BaseResource(object):
+class BaseResource:
     __name__ = None
     __parent__ = None
 
@@ -46,7 +46,7 @@ class BaseQuery(BaseResource):
         try:
             id = int(key)
         except ValueError:
-            raise KeyError("%s(%s) not found" % (self.__model__.__name__, key))
+            raise KeyError("{}({}) not found".format(self.__model__.__name__, key))
 
         result = self.__qry__().get(id)
 
@@ -55,7 +55,7 @@ class BaseQuery(BaseResource):
         if result:
             return result
         else:
-            raise KeyError("%s(%s) not found" % (self.__model__.__name__, key))
+            raise KeyError("{}({}) not found".format(self.__model__.__name__, key))
 
 
 class UserContainer(BaseQuery):
@@ -108,7 +108,7 @@ class UserContainer(BaseQuery):
                 self._request.db.add(result)
                 return result
         else:
-            msg = "Invalid %s Command for %s, %s" % (
+            msg = "Invalid {} Command for {}, {}".format(
                 self.CMD_REGISTER,
                 command_id,
                 email,
@@ -168,7 +168,7 @@ class CommandContainer(BaseQuery):
             return result
         else:
             raise KeyError(
-                "%s(%s) not found or expired" % (self.__model__.__name__, key)
+                "{}({}) not found or expired".format(self.__model__.__name__, key)
             )
 
     def get_command(self, identity, command_type):

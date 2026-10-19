@@ -76,11 +76,11 @@ class EventsRESTfulView(RESTfulView):
         log.debug(renderer)
 
         try:
-            renderer = getattr(self, "render_{0}".format(renderer))
+            renderer = getattr(self, f"render_{renderer}")
         except AttributeError:
             name = self.__class__.__name__
             raise HTTPBadRequest(
-                '{0} view has no renderer "{1}".'.format(name, renderer)
+                f'{name} view has no renderer "{renderer}".'
             )
         return Response(**renderer(value))
 

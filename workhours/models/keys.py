@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 
 """
 genkey
@@ -27,7 +26,7 @@ def print_keychars(keychars, printf=print):
     row2 = []
     for i, c in enumerate(keychars):
         row2.append(c)
-        row1.append(not (i % 10) and str((i / 10)) or " ")
+        row1.append(not (i % 10) and str(i / 10) or " ")
 
     printf("KEYCHARS:")
     printf(" ".join(row1))

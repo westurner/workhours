@@ -29,7 +29,7 @@ class IDataSource(Interface):
         """
 
 
-class DataSource(object):
+class DataSource:
     implements(IDataSource)
 
     def __init__(self, name, *args, **kwargs):
@@ -47,8 +47,7 @@ class DataSource(object):
         """ setup_mappers(self.uri) """
 
     def parse(self):
-        for x in self.parse____:
-            yield x
+        yield from self.parse____
 
 
 def test_data_source():

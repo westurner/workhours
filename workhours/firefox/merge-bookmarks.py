@@ -29,7 +29,7 @@ def usage(reason=""):
 
 
 def syserror(type, name, reason):
-    sys.stderr.write('Can\'t %s "%s" - %s\n' % (type, name, reason))
+    sys.stderr.write('Can\'t {} "{}" - {}\n'.format(type, name, reason))
     sys.exit(2)
 
 
@@ -191,7 +191,7 @@ class BookMarksMerge:
         self.bookmarkfiles = []
 
     def addfile(self, file):
-        fd = open(file, "r")
+        fd = open(file)
         data = fd.read()
         fd.close()
         formatter = BookMarksFormatter()
@@ -330,7 +330,7 @@ class BookMarksMerge:
                         % (indent, attrs2str(attrs), name)
                     )
                     if desc:
-                        write2fd("%s<DD>%s\n" % (indent, desc))
+                        write2fd("{}<DD>{}\n".format(indent, desc))
                 write2fd("%s<DL><p>\n" % indent)
                 self.write_list(level + 1, data)  # Recurse down one level
                 write2fd("%s</DL><p>\n" % indent)
@@ -338,9 +338,9 @@ class BookMarksMerge:
 
             # Anchor
 
-            write2fd("%s<DT><A%s>%s</A>\n" % (indent, attrs2str(attrs), name))
+            write2fd("{}<DT><A{}>{}</A>\n".format(indent, attrs2str(attrs), name))
             if data:
-                write2fd("%s<DD>%s\n" % (indent, data))
+                write2fd("{}<DD>{}\n".format(indent, data))
 
 
 def main():
@@ -376,7 +376,7 @@ def attrs2str(attrs, upper=string.upper):
         if name == value:
             a(upper(name))
         else:
-            a('%s="%s"' % (upper(name), value))
+            a('{}="{}"'.format(upper(name), value))
     return string.join(l)
 
 

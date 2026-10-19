@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import transaction
 import unittest
 from pyramid import testing
@@ -16,7 +13,7 @@ from workhours.testing import PyramidFixtureTestCase
 class EventsContextTests(PyramidFixtureTestCase):
     # fixtures = (data.EventData,)
     def setUp(self):
-        super(EventsContextTests, self).setUp()
+        super().setUp()
         # req = testing.DummyRequest()
         # self.config = testing.setUp(req)
         # self.meta = _initialize_sql_test()

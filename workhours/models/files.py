@@ -5,7 +5,7 @@ import codecs
 import glob
 
 
-class TempDir(object):
+class TempDir:
     def __init__(self, path=None, create=True, dir="tmp", prefix="whtmp-"):
         if not path:
             if create:
@@ -28,7 +28,7 @@ class TempDir(object):
 
         with self.get_log() as f:
             f.writelines(
-                (self.format_path(filename, dest_path).replace(self.path, ""))
+                self.format_path(filename, dest_path).replace(self.path, "")
             )
 
         if "*" in filename:
@@ -42,7 +42,7 @@ class TempDir(object):
         return dest_path
 
     def format_path(self, path, source):
-        return "%s = %s" % (path, source)
+        return "{} = {}".format(path, source)
 
     def get_log(self):
         return codecs.open(

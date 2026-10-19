@@ -28,7 +28,7 @@ def parse_wtmp(uri=None):
         type = d.pop("ut_type")
         user = d.pop("ut_user")
 
-        logstr = u"%s(%s) %s" % (
+        logstr = "%s(%s) %s" % (
             user,
             type,
             ", ".join("%s: %r" % (k, d[k]) for k in sorted(d.keys()) if d[k]),

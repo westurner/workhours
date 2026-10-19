@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 
 """
 Report writers for various formats
@@ -56,7 +55,7 @@ def sort_by(sortstr, iterable, reverse=False):
     return sorted(iterable, key=get_columns, reverse=reverse)
 
 
-class ResultWriter(object):
+class ResultWriter:
     OUTPUT_FILETYPES = {
         "csv": ",",
         "json": True,

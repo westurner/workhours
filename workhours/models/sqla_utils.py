@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 # import collections
 from sqlalchemy.ext.mutable import Mutable
 

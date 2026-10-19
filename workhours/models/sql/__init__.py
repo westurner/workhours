@@ -38,7 +38,7 @@ def open_db(
     if setup_mappers is None:
         from workhours.models.sql.tables import setup_mappers
 
-    log.info("open_db: %s %r" % (dburi, setup_mappers))
+    log.info("open_db: {} {!r}".format(dburi, setup_mappers))
 
     try:
         engine = create_engine(dburi)

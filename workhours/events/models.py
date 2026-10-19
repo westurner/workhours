@@ -83,7 +83,7 @@ class EventsContextFactory(WorkhoursORMContext):
 
         for k, v in list((filters or {}).items()):
             # v = self.convert_param(k, v)
-            filter_method = getattr(self.entity, "{0}_filter".format(k), None)
+            filter_method = getattr(self.entity, f"{k}_filter", None)
             if filter_method is not None:
                 # Prefer a method that returns something that can be passed
                 # into `Query.filter()`.
@@ -95,7 +95,7 @@ class EventsContextFactory(WorkhoursORMContext):
             q = q.distinct()
 
         search = kwargs.get("search")
-        if search is not None and search is not "":
+        if search is not None and search != "":
             if "%" not in search:
                 search = "%%%s%%" % search
             q = q.filter(
@@ -114,7 +114,7 @@ class EventsContextFactory(WorkhoursORMContext):
             if sort_dir == "desc":
                 order_by = sqlalchemy.desc(order_by)
 
-            log.debug("ordering by: %s : %s" % (order_by, sort_dir))
+            log.debug("ordering by: {} : {}".format(order_by, sort_dir))
 
             q = q.order_by(order_by)
         if offset is not None:

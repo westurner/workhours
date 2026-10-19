@@ -4,8 +4,7 @@
 # collector requirements
 #file:///srv/repos/etc/requirements-sqlalchemy.txt
 pytz
-BeautifulSoup  # 3.2
-#BeautifulSoup4 # TODO
+BeautifulSoup4
 pyutmp
 
 

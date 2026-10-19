@@ -1,5 +1,5 @@
 import workhours.models.json as json
-from collections import Iterable
+from collections.abc import Iterable
 from pyramid.decorator import reify
 from pyramid_restler.interfaces import IContext
 from zope.interface import implementer
@@ -11,7 +11,7 @@ def null(*args, **kwargs):
 
 # @component.adapter(IRequest)
 @implementer(IContext)
-class PlainContext(object):
+class PlainContext:
     """
     "Plain" Context object with stubbed attributes
 

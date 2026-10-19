@@ -10,7 +10,7 @@ from workhours.models import ReportType, Report
 from workhours.reports.models import ReportContext
 
 
-class ReportViews(object):
+class ReportViews:
     def __init__(self, request):
         self.request = request
 

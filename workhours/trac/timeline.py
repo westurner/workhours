@@ -19,7 +19,7 @@ def parse_trac_date(date, time):
     :returns: datetime.datetime
     """
 
-    fullstr = "%s %s" % (date, time)
+    fullstr = "{} {}".format(date, time)
     return datetime.datetime.strptime(fullstr, "%m/%d/%y %H:%M")
 
 

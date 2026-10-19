@@ -53,7 +53,7 @@ def parse_authlog(uri=None, year=None):
             hostname, rest = rest.split(" ", 1)
             process, rest = map(str.strip, rest.split(":", 1))
 
-            yield (dt, u"%s :: %s :: %s" % (hostname, process, rest))
+            yield (dt, "%s :: %s :: %s" % (hostname, process, rest))
 
 
 def parse_authlog_glob(uri=None):

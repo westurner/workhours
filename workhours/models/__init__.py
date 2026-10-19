@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 workhours core models
 """
@@ -27,7 +26,7 @@ __ALL__ = [
 ]
 
 
-class _Base(object):
+class _Base:
     _fields = ("id",)
     _key_fields = ("id",)
 
@@ -321,7 +320,7 @@ class Event(_Base):
         Create a new event with a new _id attribute
         """
         self.id = id
-        log.debug("new event: (%r, %r, %r, %r)" % (self.id, source, date, url))
+        log.debug("new event: ({!r}, {!r}, {!r}, {!r})".format(self.id, source, date, url))
         self.source = source
         self.date = date
         self.url = url
@@ -366,14 +365,14 @@ class Event(_Base):
         return (self.date, self.source, self.url)
 
     def _to_txt_row(self):
-        return "%s\t%s\t%s" % (
+        return "{}\t{}\t{}".format(
             self.date,
             self.url,
             self.title and self.title or "",
         )
 
     def __verbose(self):
-        return "%s/%s/%s\t%s\t%s\t%s" % (
+        return "{}/{}/{}\t{}\t{}\t{}".format(
             self.task_id,
             "other",  # self.task.queue.type,
             self.task.date,
@@ -559,7 +558,7 @@ from workhours.models.sql.tables import setup_mappers  # ... ?
 # )
 
 
-class RootFactory(object):
+class RootFactory:
     __acl__ = [(Allow, Everyone, "view"), (Allow, Authenticated, "post")]
 
     def __init__(self, request):

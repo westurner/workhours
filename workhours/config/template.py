@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 workhours_config_template
@@ -10,7 +9,7 @@ import logging
 log = logging.getLogger()
 
 
-class ConfigTemplate(object):
+class ConfigTemplate:
     def generate(self, source_types=None, exclude=None):
         """
         run shell commands for source types

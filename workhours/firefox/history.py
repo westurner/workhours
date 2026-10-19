@@ -54,8 +54,8 @@ class Bookmark(object):
         return _epoch_to_datetime(self.dateAdded)
 
     def __str__(self):
-        return u"%s||%s||%s" % (self.to_event_row())
-        return u"||".join(
+        return "%s||%s||%s" % (self.to_event_row())
+        return "||".join(
             unicode(x).decode("utf-8", errors="xmlcharref")
             for x in self.to_event_row()
         )
@@ -94,7 +94,7 @@ class Visit(object):
         return self.place.url
 
     def __str__(self):
-        return u"%s || %s || %s" % (
+        return "%s || %s || %s" % (
             self._visit_date.ctime(),
             self.place.url,
             self.place.title,

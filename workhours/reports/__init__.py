@@ -47,10 +47,10 @@ def _write_html(output, iterable, attrs, unicode_mangle=False):
     # cw = csv.writer(output)a
     cw.write("<table>")
     cw.write("<tr>")
-    [cw.write(u"<th>%s</th>" % col) for col in attrs]
+    [cw.write("<th>%s</th>" % col) for col in attrs]
     cw.write("</tr>")
 
-    format_row = lambda row: ((u"<td>%s</td>" % col) for col in row)
+    format_row = lambda row: (("<td>%s</td>" % col) for col in row)
 
     for row in iterable:
 

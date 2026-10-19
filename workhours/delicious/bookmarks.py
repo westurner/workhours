@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf_8 -*-
 
 """
 delhtml2json - Delicious HTML Export to JSON Converter
@@ -58,7 +57,7 @@ import unittest
 
 class TestIt(unittest.TestCase):
     def test_it(self):
-        output = [x for x in extract_delicious_bookmarks(test_input_html)]
+        output = [*extract_delicious_bookmarks(test_input_html)]
         self.assertEqual(output, test_output_expected)
 
 
@@ -139,18 +138,17 @@ def convert_bookmarks_html_to_json(sourcefile_path, output_path):
     dest_file = codecs.open(output_path, "w")
 
     json.dump(
-        [x for x in extract_delicious_bookmarks(htmlstr)], dest_file, indent=4
+        [*extract_delicious_bookmarks(htmlstr)], dest_file, indent=4
     )
 
-    log.info("Converted %s -> %s." % (sourcefile_path, output_path))
+    log.info("Converted {} -> {}.".format(sourcefile_path, output_path))
 
 
 def parse_delicious_bookmarks(uri=None):
     with codecs.open(uri, "rb", encoding="utf-8") as f:
-        for node in extract_delicious_bookmarks(
+        yield from extract_delicious_bookmarks(
             f.read().encode("ascii", "replace")
-        ):
-            yield node
+        )
 
 
 def main():

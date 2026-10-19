@@ -22,7 +22,7 @@ def dump_events_table(dburi, session=None, _output=sys.stdout):
             yield e._to_txt_row()
             # print( e._to_txt_row() , file=_output)
         except UnicodeEncodeError as e:
-            log.error("%s%s" % (type(e.object), e.encoding), file=_output)
+            log.error("{}{}".format(type(e.object), e.encoding), file=_output)
             log.error(e.object.encode("utf8", "replace"), file=_output)
             log.exception(e)
             raise

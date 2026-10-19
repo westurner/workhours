@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 
 """
 workhours event aggregation CLI
@@ -257,7 +256,7 @@ def main(*args):
     # else:
     #    _input_file = codecs.open(opts.file, 'r', encoding='utf8')
 
-    if opts.output is "-":
+    if opts.output == "-":
         opts._output = sys.stdout
     else:
         opts._output = opts._output or codecs.open(
@@ -299,7 +298,7 @@ def main(*args):
 
         # append queues from config to opts
         for source in read_queues_from_config(_config):
-            log.debug("Adding queue %r %r" % (source.type, source))
+            log.debug("Adding queue {!r} {!r}".format(source.type, source))
             if source.type not in opts._queues:
                 opts._queues[source.type] = []
             opts._queues[source.type].append(source)
@@ -318,7 +317,7 @@ def main(*args):
         for (_type, _path) in opts.src_queues:
             if _type not in QUEUES:
                 raise Exception(
-                    "queue type %r not supported: %r" % (_type, _path)
+                    "queue type {!r} not supported: {!r}".format(_type, _path)
                 )
             if _type not in opts._queues:
                 opts._queues[_type] = []
@@ -394,7 +393,7 @@ def main(*args):
 
     if opts.list_report_types:
         for k, v in REPORTS.items():
-            print("%s := %r" % (k, v))
+            print("{} := {!r}".format(k, v))
         # exit(0)
 
     if opts.reports:

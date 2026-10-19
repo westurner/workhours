@@ -16,7 +16,7 @@ import sys
 
 
 def initialize_esdb(url, *args, **kwargs):
-    log.debug("initialize_esdb:(%r, %r , %r)" % (url, args, kwargs))
+    log.debug("initialize_esdb:({!r}, {!r} , {!r})".format(url, args, kwargs))
     return ESSession(
         url,
         encoder=json.DefaultJSONEncoder,
@@ -30,7 +30,7 @@ class ESSession(pyes.es.ES):
     mappings = []
 
     def __init__(self, *args, **kwargs):
-        super(ESSession, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.indexes, self.mappings = self.get_indexes_from_models()
         self.setup_indexes()
@@ -83,10 +83,10 @@ class ESSession(pyes.es.ES):
         logging.error("Should be creating an index")
 
     def put_mapping(*args, **kwargs):
-        logging.error("put_mapping: *args **kwargs: %r %r" % (args, kwargs))
+        logging.error("put_mapping: *args **kwargs: {!r} {!r}".format(args, kwargs))
 
     def index_stats(*args, **kwargs):
-        logging.error("index_stats: *args **kwargs: %r %r" % (args, kwargs))
+        logging.error("index_stats: *args **kwargs: {!r} {!r}".format(args, kwargs))
         return {"_all": {"indices": {"_TESTINGTODO": "xyz"}}}
 
     def put(self, obj, index=None, type=None, version=None, **kwargs):

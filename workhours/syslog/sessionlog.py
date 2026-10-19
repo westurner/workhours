@@ -32,7 +32,7 @@ def parse_date_field(datestr):
         try:
             dt = datetime.strptime(datestr, "%y-%m-%d %H:%M:%S")
         except ValueError as e:
-            logging.error("failed to parse: {}".format(datestr))
+            logging.error(f"failed to parse: {datestr}")
             pass
     return dt
 
@@ -54,10 +54,10 @@ def parse_sessionlog_line_original(line, session_prefix=""):
         line continuation
         EOF
 
-        (\w*): (%d%d/%d%d/%d%d %d%d:%d.%d) ::: (\w*)  (.*)
+        (\\w*): (%d%d/%d%d/%d%d %d%d:%d.%d) ::: (\\w*)  (.*)
         (.*)
 
-        keyvalue\tMM/DD/YY\t\s*\d+ command
+        keyvalue\tMM/DD/YY\t\\s*\\d+ command
 
     """
     terms = [w.strip() for w in line.split(":", 1)]
@@ -74,7 +74,7 @@ def parse_sessionlog_line_original(line, session_prefix=""):
             ),
         )
         dt = parse_date_field(date)
-        cmdstr = "%s ::: %s" % (session, cmd)
+        cmdstr = "{} ::: {}".format(session, cmd)
     return (dt, cmdstr, session)
 
 
@@ -104,7 +104,7 @@ def build_pyparsing_pattern():
     triplecolon = Literal(":::")
     tab_or_triple_colon = White() + Or(tab, triplecolon) + White()
 
-    date = Word(nums + "-_/\.T")
+    date = Word(nums + r"-_/\.T")
 
     digit_or_other = White() + Or(Word(nums), Word(alphanums + "#"))
 
@@ -164,7 +164,7 @@ def parse_sessionlog(uri=None, session_prefix="", **kwargs):
             except Exception as e:
                 # log and drop unparsable (with this parser) lines
                 logging.exception(e)
-                logging.error("Failed to parse: %r (%s)" % (line, e))
+                logging.error("Failed to parse: {!r} ({})".format(line, e))
                 continue
 
 

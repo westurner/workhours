@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 Grep WebKit bookmarks JSON
 """
@@ -12,8 +11,8 @@ log = logging.getLogger("webkit.bookmarks")
 
 import workhours.models.json as json
 
-NODETYPE = u"folder"
-NODEKEY = u"children"
+NODETYPE = "folder"
+NODEKEY = "children"
 
 
 def wbkt_trav(nodes, depth=0, path=None):
@@ -22,7 +21,7 @@ def wbkt_trav(nodes, depth=0, path=None):
 
     for node in nodes:
         yield {
-            "path": u"/".join(path),
+            "path": "/".join(path),
             # node.get('type'), # folder || url
             "url": node.get("url", "").encode("utf-8", "replace"),
             "title": node.get(

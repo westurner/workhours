@@ -22,10 +22,10 @@ class DomainsContext(ReportContext):
 
 class ProjectsContext(ReportContext):
     _report_type = "projects"
-    RESERVED_WORDS = dict(
-        (x, 1)
+    RESERVED_WORDS = {
+        x: 1
         for x in ("settings", "session", "account", "login", "users", "repo")
-    )
+    }
 
     def generate_report(self):
         query = (
