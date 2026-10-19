@@ -87,6 +87,7 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
             queue = TaskQueue.get_or_create(
                 TaskQueue.type,
                 queue_type,
+                session=s,
                 id=TaskQueue._new_id(),
                 type=queue_type,
                 # uri=sources[0].url, # TODO)

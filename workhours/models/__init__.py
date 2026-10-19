@@ -59,9 +59,10 @@ class _Base:
     #        return unicode(self._asdict())
 
     @classmethod
-    def get_or_create(cls, attr, value, **kwargs):
+    def get_or_create(cls, attr, value, session=None, **kwargs):
+        session = session if session is not None else DBSession
         try:
-            obj = DBSession.query(cls).filter(attr == value).one()
+            obj = session.query(cls).filter(attr == value).one()
             return obj
         except sqlalchemy.orm.exc.NoResultFound as e:
             kwargs[attr.property.key] = value  #

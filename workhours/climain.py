@@ -5,6 +5,7 @@ workhours event aggregation CLI
 """
 
 import logging
+import logging.config
 
 log = logging.getLogger("workhours.cli")  #'workhours')
 
