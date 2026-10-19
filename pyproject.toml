@@ -19,6 +19,11 @@ classifiers = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "jsonschema",
+]
+
+[project.optional-dependencies]
+app = [
     "alembic",
     "beautifulsoup4",
     "celery",
@@ -45,14 +50,21 @@ dependencies = [
     "pyramid-tm",
     "pytz",
     "pyutmp",
+    "jsonschema",
     "sqlalchemy",
     "sqlalchemy-utils",
     "standard-imghdr",
     "waitress",
     "webhelpers",
 ]
-
-[project.optional-dependencies]
+sqlite = [
+    "beautifulsoup4",
+    "pyutmp",
+    "pytz",
+    "sqlalchemy",
+    "sqlalchemy-utils",
+    "sqlite-utils>=3.37",
+]
 test = [
     "WebTest",
     "coverage",
@@ -75,6 +87,9 @@ workhours = "workhours.climain:main"
 [project.entry-points."paste.app_factory"]
 main = "workhours:main"
 
+[project.entry-points.sqlite_utils]
+workhours = "workhours_parser.sqlite_utils_plugin"
+
 [tool.setuptools]
 include-package-data = true
 zip-safe = false
@@ -84,7 +99,7 @@ readme = {file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst"}
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["workhours*"]
+include = ["workhours*", "workhours_parser*"]
 exclude = ["ez_setup*", "examples*", "tests*", "src*"]
 
 [tool.setuptools.package-data]
@@ -93,9 +108,10 @@ workhours = [
     "CHANGES.rst",
     "scripts/*.sh",
 ]
+workhours_parser = ["schemas/*.json"]
 
 [tool.pytest.ini_options]
-testpaths = ["workhours"]
+testpaths = ["workhours", "workhours_parser"]
 filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",

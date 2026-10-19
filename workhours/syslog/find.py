@@ -68,7 +68,7 @@ import logging
 log = logging.getLogger("parse_find_printf")  # TODO
 
 
-def _parse_find_printf(printf_iter, output, log=log):
+def _parse_find_printf(printf_iter, output=None, log=log):
     """
     mainfunc
 
@@ -77,7 +77,10 @@ def _parse_find_printf(printf_iter, output, log=log):
 
     """
     for record in printf_iter:
-        date, size, user, type_, name = record[:-1].split("\t", 4)
+        record = record.rstrip("\r\n")
+        if not record:
+            continue
+        date, size, user, type_, name = record.split("\t", 4)
         try:
             date = float(date)
             date = datetime.fromtimestamp(date)
@@ -87,8 +90,14 @@ def _parse_find_printf(printf_iter, output, log=log):
 
 
 def parse_find_printf(uri, *args, **kwargs):
-    with open(args[0]) as f:
-        return _parse_find_printf(f, *args, **kwargs)
+    if hasattr(uri, "read"):
+        yield from _parse_find_printf(uri, *args, **kwargs)
+        return
+    if isinstance(uri, (tuple, list)):
+        yield from _parse_find_printf(uri, *args, **kwargs)
+        return
+    with open(uri, encoding="utf-8", errors="replace") as source:
+        yield from _parse_find_printf(source, *args, **kwargs)
 
 
 import unittest
@@ -96,16 +105,18 @@ import unittest
 
 class Test_parse_find_printf(unittest.TestCase):
     TEST_INPUT = """
-1352793657.5742202430	s	d user /tmp
-1319767478.3939859440	s	d user /tmp/path
-1282865184.4291842300	s	f user ~/tildepath
-1282865184.4211835980	s	d user ./relpath
-1282865184.4211835981	s	f user ./relpath/1
+1352793657.5742202430	1024	user	d	/tmp
+1319767478.3939859440	2048	user	d	/tmp/path
+1282865184.4291842300	512	user	f	~/tildepath
+1282865184.4211835980	4096	user	d	./relpath
+1282865184.4211835981	128	user	f	./relpath/1
 """
 
     def test_parse_find_printf(self):
-        for event in parse_find_printf(TEST_INPUT.split("\n")):
-            log.debug(event)
+        events = list(parse_find_printf(self.TEST_INPUT.splitlines()))
+        self.assertEqual(len(events), 5)
+        self.assertEqual(events[0].size, "1024")
+        self.assertEqual(events[0].url, "/tmp")
 
 
 def main():

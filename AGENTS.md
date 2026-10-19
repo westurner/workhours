@@ -62,7 +62,7 @@ Build and install the bundled `pyutmp` Cython extension first, then install `wor
 
 ```bash
 pip install --no-build-isolation -e src/pyutmp
-pip install -e ".[test,docs]"
+pip install -e ".[app,sqlite,test,docs]"
 ```
 
 ### Running Tests

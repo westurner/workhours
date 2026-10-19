@@ -6,6 +6,7 @@ import datetime
 import urllib.parse
 from workhours.models.sqla_utils import MutationDict, JSONEncodedDict
 from workhours.models.sql.guid import GUID
+from workhours_parser import SourceRecord
 from sqlalchemy.orm import object_session
 from sqlalchemy.ext.hybrid import hybrid_property
 import sqlalchemy.orm.exc
@@ -286,6 +287,24 @@ class Event(_Base):
             "store": "yes",
             "type": "string",
         },
+        "source_key": {
+            "boost": 1.0,
+            "index": "analyzed",
+            "store": "yes",
+            "type": "string",
+        },
+        "end_date": {
+            "boost": 1.0,
+            "index": "analyzed",
+            "store": "yes",
+            "type": "date",
+        },
+        "duration": {
+            "boost": 1.0,
+            "index": "analyzed",
+            "store": "yes",
+            "type": "string",
+        },
     }
     _fields = (
         "id",
@@ -315,6 +334,9 @@ class Event(_Base):
         source_id=None,
         task_id=None,
         id=None,
+        end_date=None,
+        duration=None,
+        source_key=None,
         **kwargs
     ):
         """
@@ -334,18 +356,32 @@ class Event(_Base):
         self.place_id = place_id
         self.source_id = source_id
         self.task_id = task_id
+        self.end_date = end_date
+        self.duration = duration
+        self.source_key = source_key
 
     @classmethod
     def from_uhm(cls, obj, **kwargs):
         # TODO
         _kwargs = {}
         _kwargs["task_id"] = kwargs.get("task_id")
-        _kwargs["id"] = cls._new_id()
+        _kwargs["id"] = kwargs.get("id") or cls._new_id()
         _kwargs["source"] = kwargs.get("source")
         _kwargs["source_id"] = kwargs["source_id"]
 
         try:
-            if isinstance(obj, dict):
+            if isinstance(obj, SourceRecord):
+                _obj = cls(
+                    date=obj.startDate,
+                    end_date=obj.endDate,
+                    duration=obj.duration,
+                    url=obj.url,
+                    title=obj.name,
+                    meta=obj.meta,
+                    source_key=obj.source_key,
+                    **_kwargs
+                )
+            elif isinstance(obj, dict):
                 _kwargs.update(obj)
                 _obj = cls(**_kwargs)
             elif hasattr(obj, "to_event_row"):
@@ -546,8 +582,6 @@ from workhours.models.sql import Base
 from workhours.models.sql import DBSession  # primary database session
 from workhours.models.sql import initialize_sql
 
-from pyramid.authorization import Allow, Authenticated, Everyone
-
 from workhours.models.sql.tables import setup_mappers  # ... ?
 
 # __ALL__ = ("Base", "DBSession", "initialize_sql",
@@ -558,7 +592,12 @@ from workhours.models.sql.tables import setup_mappers  # ... ?
 
 
 class RootFactory:
-    __acl__ = [(Allow, Everyone, "view"), (Allow, Authenticated, "post")]
+
+    @property
+    def __acl__(self):
+        from pyramid.authorization import Allow, Authenticated, Everyone
+
+        return [(Allow, Everyone, "view"), (Allow, Authenticated, "post")]
 
     def __init__(self, request):
         self.request = request

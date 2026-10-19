@@ -2,3 +2,4 @@ nose
 #nose-progressive
 pyramid_debugtoolbar
 fixture
+sqlite-utils>=3.37

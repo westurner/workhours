@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://workhours.readthedocs.io/schemas/source-record-v1.json",
+  "title": "workhours source record and metadata schema v1",
+  "$defs": {
+    "metaBase": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Registered parser identifier that produced this record."
+        },
+        "record_position": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Zero-based position in deterministic parser output order."
+        },
+        "source_record_id": {
+          "oneOf": [{"type": "string"}, {"type": "integer"}],
+          "description": "Stable identifier from the source database row, when available."
+        }
+      },
+      "required": ["source"]
+    },
+    "meta": {
+      "oneOf": [
+        {"$ref": "#/$defs/firefoxBookmarksMeta"},
+        {"$ref": "#/$defs/firefoxHistoryMeta"},
+        {"$ref": "#/$defs/webkitBookmarksMeta"},
+        {"$ref": "#/$defs/webkitHistoryMeta"},
+        {"$ref": "#/$defs/deliciousBookmarksMeta"},
+        {"$ref": "#/$defs/tracTimelinesMeta"},
+        {"$ref": "#/$defs/sessionLogMeta"},
+        {"$ref": "#/$defs/findMeta"},
+        {"$ref": "#/$defs/wtmpMeta"},
+        {"$ref": "#/$defs/authLogMeta"},
+        {"$ref": "#/$defs/bookmarksJsonMeta"},
+        {"$ref": "#/$defs/bookmarksHtmlMeta"}
+      ]
+    },
+    "firefoxBookmarksMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {"source": {"const": "firefox.bookmarks"}},
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "firefoxHistoryMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {"source": {"const": "firefox.history"}},
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "webkitBookmarksMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "webkit.bookmarks"},
+            "path": {"type": "string"}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "webkitHistoryMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {"source": {"const": "webkit.history"}},
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "deliciousBookmarksMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "delicious.bookmarks"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+            "private": {"type": "boolean"},
+            "comment": {"type": ["string", "null"]}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "tracTimelinesMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "trac.timelines"},
+            "author": {"type": "string"}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "sessionLogMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "log.shell"},
+            "session": {"type": "string"}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "findMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "find"},
+            "size": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "File size in bytes from find's %s field."
+            },
+            "user": {"type": "string"},
+            "type": {"type": "string"}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "wtmpMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {"source": {"const": "log.wtmp"}},
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "authLogMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "log.auth"},
+            "hostname": {"type": "string"},
+            "process": {"type": "string"}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "bookmarksJsonMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "bookmarks.json"},
+            "path": {"type": "string"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+            "private": {"type": "boolean"},
+            "comment": {"type": ["string", "null"]}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "bookmarksHtmlMeta": {
+      "allOf": [
+        {"$ref": "#/$defs/metaBase"},
+        {
+          "type": "object",
+          "properties": {
+            "source": {"const": "bookmarks.html"},
+            "path": {"type": "string"},
+            "tags": {"type": "array", "items": {"type": "string"}},
+            "private": {"type": "boolean"},
+            "comment": {"type": ["string", "null"]}
+          },
+          "required": ["source"]
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  },
+  "type": "object",
+  "properties": {
+    "startDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Required event start timestamp; timezone is preserved when known."
+    },
+    "endDate": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Optional end timestamp for source events that represent intervals."
+    },
+    "duration": {
+      "type": ["string", "null"],
+      "description": "Optional fixed-unit ISO 8601 duration; must agree with endDate when both are present."
+    },
+    "url": {
+      "type": ["string", "null"],
+      "description": "Optional URL or source location."
+    },
+    "name": {
+      "type": ["string", "null"],
+      "description": "Optional short event description (schema.org/Event name)."
+    },
+    "meta": {
+      "$ref": "#/$defs/meta",
+      "description": "Versioned, source-specific metadata; unknown properties are rejected."
+    },
+    "source_key": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identity from source type, source identity, and source row ID or parser position."
+    }
+  },
+  "required": ["startDate", "meta", "source_key"],
+  "additionalProperties": false
+}

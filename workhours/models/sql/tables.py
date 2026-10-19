@@ -43,6 +43,7 @@ from workhours.models import Place
 from workhours.models import Event
 from workhours.models import ReportType
 from workhours.models import Report
+from workhours.models.sql.types import ISODateTime
 
 
 _MAPPED = False
@@ -195,9 +196,12 @@ def setup_mappers(meta=None, engine=None):
         meta,
         Column("id", GUID(), primary_key=True),  # TODO, nullable=False),
         Column("source", Unicode(), index=True),
-        Column("date", DateTime(), index=True),
+        Column("date", ISODateTime(), index=True),
+        Column("end_date", ISODateTime(), nullable=True),
+        Column("duration", Unicode(128), nullable=True),
         Column("url", UnicodeText()),
         Column("title", UnicodeText()),
+        Column("source_key", UnicodeText(), index=True),
         Column("meta", MutationDict.as_mutable(JSONEncodedDict)),
         Column("host", UnicodeText()),
         Column("user", UnicodeText()),

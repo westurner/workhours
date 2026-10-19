@@ -120,8 +120,13 @@ def parse_webkit_history(uri=None):
     )
     meta = setup_mappers(meta, meta.engine)
     s = meta.Session
-    for v in s.query(Visit).options(joinedload(Visit._url)):
-        yield v._to_event_row()
+    for v in s.query(Visit).options(joinedload(Visit._url)).order_by(Visit.id):
+        yield {
+            "date": v._visit_date,
+            "url": v._url.url,
+            "title": v._url.title,
+            "source_record_id": v.id,
+        }
 
 
 if __name__ == "__main__":

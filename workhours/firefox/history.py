@@ -188,7 +188,7 @@ def parse_firefox_history(uri=None):
     )
     meta = setup_mappers(meta, meta.engine)
     s = meta.Session
-    for v in s.query(Visit).options(joinedload(Visit.place)):
+    for v in s.query(Visit).options(joinedload(Visit.place)).order_by(Visit.id):
         yield v
 
 
@@ -211,7 +211,7 @@ def parse_firefox_bookmarks(uri=None):
     meta = setup_mappers(meta, meta.engine)
     s = meta.Session
 
-    for v in s.query(Bookmark).options(joinedload(Bookmark.place)):
+    for v in s.query(Bookmark).options(joinedload(Bookmark.place)).order_by(Bookmark.id):
         yield v
 
 

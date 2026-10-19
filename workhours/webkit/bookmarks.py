@@ -22,6 +22,7 @@ def wbkt_trav(nodes, depth=0, path=None):
     for node in nodes:
         yield {
             "path": "/".join(path),
+            "source_record_id": node.get("id"),
             # node.get('type'), # folder || url
             "url": node.get("url", "").encode("utf-8", "replace"),
             "title": node.get(

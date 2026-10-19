@@ -22,7 +22,7 @@ def parse_trac_date(date, time):
     return datetime.datetime.strptime(fullstr, "%m/%d/%y %H:%M")
 
 
-def parse_trac_timeline(timeline_file, users):
+def parse_trac_timeline(timeline_file=None, users=None, uri=None):
     """
     Parse a trac timeline HTML file for timeline events
 
@@ -34,6 +34,7 @@ def parse_trac_timeline(timeline_file, users):
     :returns: Generator of event tuples (datetime, url)
     """
 
+    timeline_file = uri if uri is not None else timeline_file
     with open(timeline_file, encoding="UTF-8") as source:
 
         b = BS(source, "html.parser")
@@ -46,7 +47,7 @@ def parse_trac_timeline(timeline_file, users):
             date = day.text.split(":")[0]
             for event in day.find_next("dl").find_all("dt"):
                 authornode = event.find("span", class_="author")
-                if authornode and authornode.text in users:
+                if authornode and (users is None or authornode.text in users):
                     time = event.find("span", class_="time").text
                     link = event.find("a").get("href")
                     yield (

@@ -114,6 +114,7 @@ def update_task_queues(eventsdb_uri, task_queues, filestore):
 
 
 from workhours.models.files import TempDir  # TODO
+from workhours_parser import normalize_records
 
 
 def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
@@ -169,7 +170,10 @@ def parse_event_source(eventsdb_uri, queue_id, filestore_uri=None):
             files_ = [task_dir.copy_here(f) for f in get_fileset(task.args)]
             uri = files_[0]
 
-            for parser_event in parser_parse(uri=uri):
+            parser_events = parser_parse(uri=uri)
+            for parser_event in normalize_records(
+                queue_type, parser_events, source_identity=source.url
+            ):
                 _log.log(3, "{!r} : {}".format(parser_event, parser_event))
                 try:
                     event = Event.from_uhm(

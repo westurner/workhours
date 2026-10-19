@@ -139,11 +139,12 @@ def drop_tables(meta):
     return meta
 
 
-from pyramid.paster import get_appsettings
 import os
 
 
 def get_test_engine():
+    from pyramid.paster import get_appsettings
+
     config_path = os.environ.get("_CFG") or os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..", "development.ini")
     )

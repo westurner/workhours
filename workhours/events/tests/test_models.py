@@ -1,11 +1,13 @@
 import transaction
 import unittest
 from unittest import mock
+from datetime import datetime, timedelta, timezone
 from pyramid import testing
 from workhours.events import models as event_models
 from workhours.events.models import EventsContextFactory
 from workhours.models.context import SQLAlchemyORMContext
 from workhours.models import Event
+from workhours_parser import SourceRecord
 
 # import workhours.models
 from workhours.models.fixtures import data
@@ -180,6 +182,46 @@ class EventsContextTests(PyramidFixtureTestCase):
         obj = self.context.get_member(ID)
         self.assertIsNotNone(obj)
         self.assertEqual(obj._asdict(), self.context.member_to_dict(obj))
+
+    def test_source_record_persists_with_legacy_event_fields(self):
+        source_timezone = timezone(timedelta(hours=5, minutes=30))
+        record = SourceRecord(
+            startDate=datetime(2024, 1, 2, tzinfo=source_timezone),
+            endDate=datetime(2024, 1, 2, 1, tzinfo=source_timezone),
+            duration="PT1H",
+            source_key="test-source:record:1",
+            url="https://example.test/event",
+            name="A named event",
+            meta={"source": "log.shell", "session": "session-1"},
+        )
+        event = Event.from_uhm(
+            record,
+            id=Event._new_id(),
+            task_id=data.TaskData.one.id,
+            source_id=data.TaskSourceData.one.id,
+            source=data.TaskSourceData.one.type,
+        )
+
+        self.assertEqual(event.date, record.startDate)
+        self.assertEqual(event.title, record.name)
+        self.assertEqual(event.end_date, record.endDate)
+        self.assertEqual(event.duration, record.duration)
+        self.assertEqual(event.source_key, record.source_key)
+        self.assertEqual(event.task_id, data.TaskData.one.id)
+        self.session.add(event)
+        self.session.flush()
+        self.session.commit()
+        self.session.expire(event)
+        saved = self.session.query(Event).filter_by(id=event.id).one()
+        self.assertEqual(saved.date, record.startDate)
+        self.assertEqual(saved.date.isoformat(), record.startDate.isoformat())
+        self.assertEqual(saved.title, record.name)
+        self.assertEqual(saved.end_date, record.endDate)
+        self.assertEqual(saved.end_date.isoformat(), record.endDate.isoformat())
+        self.assertEqual(saved.duration, record.duration)
+        self.assertEqual(saved.source_key, record.source_key)
+        self.session.delete(saved)
+        self.session.commit()
         # TODO
         # self.context.member_to_dict(member, fields=['one'])
 

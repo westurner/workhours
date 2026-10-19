@@ -7,26 +7,6 @@ workhours
 
 """
 
-from pyramid.config import Configurator
-from pyramid import authentication, authorization
-from pyramid.renderers import JSONP
-from pyramid.events import subscriber
-from pyramid.events import NewRequest, ApplicationCreated
-
-from sqlalchemy import engine_from_config
-from sqlalchemy.orm import sessionmaker
-from .resource import APIRoot
-from .security import get_principals
-from .models import User
-from configparser import ConfigParser
-
-
-from .models.sql import initialize_sql
-from .models.es import initialize_esdb
-from .models.files import initialize_fs
-
-# from .models.rdf import initialize_rdflib
-
 import logging
 
 log = logging.getLogger(__name__)
@@ -53,6 +33,8 @@ def db(request):
 
 
 def authenticated_user(request):
+    from .models import User
+
     def x():
         return (
             request.db.query(User)
@@ -68,6 +50,10 @@ def config_static(config):
 
 
 def _connect_sqldb(request):
+    from sqlalchemy import engine_from_config
+
+    from .models.sql import initialize_sql
+
     # conn = request.registry.dbsession() #
     sql_url = request.registry.settings.get("db_main.url").strip()
 
@@ -96,6 +82,8 @@ def _connect_sqldb(request):
 
 
 def _connect_esdb(request):
+    from .models.es import initialize_esdb
+
     esdb_url = request.registry.settings.get("esdb.url").strip()
     if esdb_url:
         conn = initialize_esdb(esdb_url)
@@ -110,6 +98,8 @@ def _connect_esdb(request):
 
 
 def _connect_fs(request):
+    from .models.files import initialize_fs
+
     fs_url = request.registry.settings.get("fs.url").strip()
     if fs_url:
         fs = initialize_fs(fs_url)
@@ -136,7 +126,6 @@ def _connect_rdflib(request):
 #   pass
 
 
-@subscriber(NewRequest)
 def db_session_subscriber(event):
     request = event.request
     request.set_property(_connect_sqldb, "db_session", reify=True)
@@ -145,6 +134,8 @@ def db_session_subscriber(event):
 
 
 def string_response_adapter(s):
+    from pyramid.response import Response
+
     response = Response(s)
     response.content_type = "text/html"
     return response
@@ -207,6 +198,9 @@ def config_mailer(config):
 
 
 def config_db(config, settings, prefix="sqlalchemy."):
+    from sqlalchemy import engine_from_config
+    from sqlalchemy.orm import sessionmaker
+
     # configure database with variables sqlalchemy.*
     engine = engine_from_config(settings, prefix=prefix)
     config.registry.dbmaker = sessionmaker(bind=engine)
@@ -224,16 +218,21 @@ def config_db(config, settings, prefix="sqlalchemy."):
 
 
 import os
-from pyramid.response import FileResponse
 
 
 def favicon_view(request):
+    from pyramid.response import FileResponse
+
     here = os.path.dirname(__file__)
     icon = os.path.join(here, "static", "favicon.ico")
     return FileResponse(icon, request=request)
 
 
 def config_routes(config):
+    from pyramid.events import NewRequest
+
+    from .resource import APIRoot
+
     ## Site Routes
     config.add_route("about", "/about")
     config.add_route("home", "/home")
@@ -327,10 +326,10 @@ def config_error_pages(config):
 
 
 def config_renderers(config):
+    from pyramid.renderers import JSONP
+
     config.add_renderer("jsonp", JSONP(param_name="callback"))
 
-
-from pyramid.session import SignedCookieSessionFactory
 
 DEFAULT_AUTH_SECRET = "supersecret"
 DEFAULT_COOKIE_SECRET = "crazysecret"
@@ -359,6 +358,11 @@ class AuthTicketSecurityPolicy:
 
 
 def config_auth_policy(config, settings):
+    from pyramid import authentication, authorization
+    from pyramid.session import SignedCookieSessionFactory
+
+    from .security import get_principals
+
     authentication_policy = authentication.AuthTktAuthenticationPolicy(
         settings.get("auth_secret", DEFAULT_AUTH_SECRET),
         get_principals,
@@ -379,6 +383,8 @@ def config_auth_policy(config, settings):
 def config_secrets(settings):
     if "secrets" in settings:
         try:
+            from configparser import ConfigParser
+
             config = ConfigParser()
             config.read(settings["secrets"])
             settings.update(config.items("secrets"))
@@ -427,6 +433,8 @@ def configure_test_app(config, settings=None, debug=True):
 
 
 def main(global_config, **settings):
+    from pyramid.config import Configurator
+
     config_secrets(settings)
     config = Configurator(settings=settings)
     config_app(config, settings=settings, debug=True)
