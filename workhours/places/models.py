@@ -88,7 +88,10 @@ class PlacesContextFactory(WorkhoursORMContext):
             )
         if order_by is not None:
             if isinstance(order_by, int):  # numeric?
-                order_by = getattr(self.entity, self.default_fields[order_by])
+                field = self.default_fields[order_by]
+                order_by = getattr(
+                    self.entity, "id" if field == "_id" else field
+                )
             else:
                 raise AttributeError()
 
@@ -121,7 +124,7 @@ class PlacesContextFactory(WorkhoursORMContext):
 
     def count(self):
         # TODO: ...
-        return self.request.db_session.query(func.count(self.entity._id)).one()
+        return self.request.db_session.query(func.count(self.entity.id)).one()
 
     def wrap_json_obj(self, obj):
         result_count = len(obj)

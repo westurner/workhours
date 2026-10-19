@@ -2,42 +2,65 @@
 {% block datatable_columns %}
 [
 { 
-    "mDataProp": "_id",
-    "sWidth": "1px",
-    "aTargets": [0],
-    "fnRender": function (obj) {
-        return ("<a href=\"/api/places/" + obj.aData._id + "\">" +
-            obj.aData._id + "</a>"); /* TODO: escape */
-
-        }
+    "data": "_id",
+    "width": "1px",
+    "render": function (data, type) {
+        if (type !== "display") return data;
+        const link = document.createElement("a");
+        link.href = "/api/places/" + encodeURIComponent(data);
+        link.textContent = data ?? "";
+        return link;
+    }
 },
 {
-    "mDataProp": "url",
-    "aTargets": [1],
-    "sWidth": "70%",
-    "fnRender": function (obj) {
-        return ((obj.aData.title ? ("<b>" + obj.aData.title +
-            "</b><br/>") : "") + "<a href=\"" + obj.aData.url + "\">" + obj.aData.url + "</a><br/><span>"+obj.aData.netloc+"</span>"); /* TODO: escape */
+    "data": "url",
+    "width": "70%",
+    "render": function (data, type, row) {
+        if (type !== "display") return data;
+        const content = document.createElement("span");
+        if (row.title) {
+            const title = document.createElement("strong");
+            title.textContent = row.title;
+            content.append(title, document.createElement("br"));
+        }
+
+        const urlText = data ?? "";
+        let url;
+        try {
+            url = new URL(urlText, window.location.href);
+        } catch (error) {
+            content.append(document.createTextNode(urlText));
+            return content;
+        }
+        if (url.protocol === "http:" || url.protocol === "https:") {
+            const link = document.createElement("a");
+            link.href = url.href;
+            link.textContent = urlText;
+            content.append(link);
+        } else {
+            content.append(document.createTextNode(urlText));
+        }
+        content.append(document.createElement("br"));
+        const netloc = document.createElement("span");
+        netloc.textContent = row.netloc ?? "";
+        content.append(netloc);
+        return content;
     }
 },
 { 
-    "mDataProp": "netloc",
-    "bVisible": false, 
-    "sWidth": "200px",
-    "aTargets": [2]
+    "data": "netloc",
+    "visible": false,
+    "width": "200px"
 },
 {
-    "mDataProp": "eventcount",
-    "bVisible": true, 
-    "sWidth": "50px",
-    "sWidth": "30%",
-    "aTargets": [3]
+    "data": "eventcount",
+    "visible": true,
+    "width": "30%"
 },
 {
-    "mDataProp": "title",
-    "bVisible": false, 
-    "sWidth": "200px",
-    "aTargets": [4]
+    "data": "title",
+    "visible": false,
+    "width": "200px"
 },
 ]
 {% endblock datatable_columns %}

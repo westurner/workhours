@@ -123,9 +123,7 @@ class PlacesRESTfulView(RESTfulView):
                     js_links=(
                         "workhours:static/datatable/js/jquery.dataTables.min.js",
                     ),
-                    fields_json=(
-                        Markup(json.dumps([dict(mDataProp=f) for f in fields]))
-                    ),
+                    fields_json=Markup(json.dumps([dict(data=f) for f in fields])),
                 ),
                 self.request,
             ),

@@ -1,8 +1,11 @@
 import transaction
 import unittest
+from unittest import mock
 from pyramid import testing
+from workhours.events import models as event_models
 from workhours.events.models import EventsContextFactory
 from workhours.models.context import SQLAlchemyORMContext
+from workhours.models import Event
 
 # import workhours.models
 from workhours.models.fixtures import data
@@ -29,6 +32,64 @@ class EventsContextTests(PyramidFixtureTestCase):
     def test_get_collection(self):
         results = self.context.get_collection()
         self.assertNotEqual(results, None)
+
+    def test_get_collection_with_all_query_options(self):
+        query = mock.Mock()
+        query.filter.return_value = query
+        query.filter_by.return_value = query
+        query.options.return_value = query
+        query.distinct.return_value = query
+        query.order_by.return_value = query
+        query.offset.return_value = query
+        query.limit.return_value = query
+        query.all.return_value = ["row"]
+        self.context.filters = ("global filter",)
+
+        with (
+            mock.patch.object(self.session, "query", return_value=query),
+            mock.patch.object(Event, "custom_filter", return_value="custom filter", create=True),
+            mock.patch.object(
+                event_models.orm,
+                "joinedload_all",
+                return_value="eager option",
+                create=True,
+            ) as joinedload_all,
+        ):
+            results = self.context.get_collection(
+                eagerload=True,
+                filters={"custom": "value", "id": data.EventData.one.id},
+                distinct=True,
+                search="needle",
+                order_by=1,
+                sort_dir="desc",
+                offset=2,
+                limit=5,
+            )
+
+        self.assertEqual(results, ["row"])
+        joinedload_all.assert_called_once_with(*EventsContextFactory.eagerload)
+        query.options.assert_called_once_with("eager option")
+        self.assertEqual(query.filter.call_count, 3)
+        query.filter_by.assert_called_once_with(id=data.EventData.one.id)
+        query.distinct.assert_called_once_with()
+        query.order_by.assert_called_once()
+        query.offset.assert_called_once_with(2)
+        query.limit.assert_called_once_with(5)
+
+    def test_get_collection_wildcard_and_invalid_ordering(self):
+        query = mock.Mock()
+        query.filter.return_value = query
+        query.order_by.return_value = query
+        query.all.return_value = []
+        with mock.patch.object(self.session, "query", return_value=query):
+            self.assertEqual(
+                self.context.get_collection(
+                    search="%needle%", order_by=0, sort_dir="asc"
+                ),
+                [],
+            )
+            with self.assertRaises(AttributeError):
+                self.context.get_collection(order_by="date")
 
     def test_get_member(self):
         obj = self.context.get_member(data.EventData.one.id)

@@ -1,6 +1,7 @@
 # TODO: XXX
 import colander
-import jinja2
+import deform
+from markupsafe import Markup
 
 
 def render_form(
@@ -41,7 +42,7 @@ def render_form(
 
     # values passed to template for rendering
     return {
-        "form": jinja2.Markup(html),
+        "form": Markup(html),
         "field": form,
         "captured": repr(captured),
         #'code': code,

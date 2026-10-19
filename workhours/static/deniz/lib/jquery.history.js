@@ -33,7 +33,7 @@
         get: function(win) {
             var hash = ((win || window).location.hash).replace(/^#/, '');
             try {
-                return $.browser.mozilla ? hash : decodeURIComponent(hash);
+                return decodeURIComponent(hash);
             }
             catch (error) {
                 return hash;
@@ -169,7 +169,7 @@
     implementations.hashchangeEvent = {
         _init: function() {
             self.callback(locationWrapper.get());
-            $(window).bind('hashchange', self.check);
+            window.addEventListener('hashchange', self.check);
         },
         check: function() {
             self.callback(locationWrapper.get());
@@ -181,9 +181,7 @@
 
     var self = $.extend({}, implementations.base);
 
-    if($.browser.msie && ($.browser.version < 8 || document.documentMode < 8)) {
-        self.type = 'iframeTimer';
-    } else if("onhashchange" in window) {
+    if("onhashchange" in window) {
         self.type = 'hashchangeEvent';
     } else {
         self.type = 'timer';

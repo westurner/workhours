@@ -26,20 +26,32 @@ def _get_param(request, param, _type=str):
         return None
 
 
+def _get_first_param(request, params, _type=str):
+    for param in params:
+        value = _get_param(request, param, _type)
+        if value is not None:
+            return value
+    return None
+
+
 from workhours.future import OrderedDict
 
 
 def read_datatables_params(request):
     r = OrderedDict()
 
-    r["offset"] = _get_param(request, "iDisplayStart", int)
-    r["limit"] = _get_param(request, "iDisplayLength", int)
-    r["order_by"] = _get_param(request, "iSortCol_0", int)
+    r["offset"] = _get_first_param(request, ("start", "iDisplayStart"), int)
+    r["limit"] = _get_first_param(request, ("length", "iDisplayLength"), int)
+    r["order_by"] = _get_first_param(
+        request, ("order[0][column]", "iSortCol_0"), int
+    )
     # if r['order_by']:
     #    r['order_by'] = self.context.default_fields[r['order_by']]
-    r["sort_dir"] = _get_param(request, "sSortDir_0", str)
+    r["sort_dir"] = _get_first_param(
+        request, ("order[0][dir]", "sSortDir_0"), str
+    )
 
-    r["search"] = _get_param(request, "sSearch", str)  # TODO
+    r["search"] = _get_first_param(request, ("search[value]", "sSearch"), str)
     return OrderedDict((k, v) for (k, v) in r.items() if v is not None)
 
 

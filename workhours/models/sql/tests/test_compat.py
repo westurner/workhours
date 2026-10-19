@@ -1,6 +1,10 @@
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import clear_mappers
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
+
+import pytest
 
 
 def test_cli_loads_registered_sources_and_reports(capsys):
@@ -168,3 +172,80 @@ def test_firefox_history_maps_reflected_tables():
             session.close()
         clear_registry((Bookmark, Place, Visit))
         engine.dispose()
+
+
+def test_open_db_uses_default_mapper_and_recovers_sqlite():
+    from workhours.models import sql
+    from workhours.models.sql import tables
+
+    engine = object()
+    meta = mock.Mock()
+    setup_mappers = mock.Mock()
+    with (
+        mock.patch.object(sql, "create_engine", side_effect=[RuntimeError(), engine]),
+        mock.patch.object(sql, "initialize_sql", return_value=meta) as initialize,
+        mock.patch.object(sql, "_clear_mappers") as clear_mappers,
+        mock.patch.object(sql, "create_tables", return_value=meta) as create_tables,
+        mock.patch("workhours.models.sqlite_utils.commit_uncommitted_transactions") as recover,
+        mock.patch.object(tables, "setup_mappers", setup_mappers),
+    ):
+        result = sql.open_db(
+            "sqlite:///events.db",
+            destructive_recover=True,
+            munge_mappers=[object()],
+            create_tables_on_init=True,
+        )
+
+    assert result is meta
+    recover.assert_called_once_with("sqlite:///events.db")
+    initialize.assert_called_once_with(engine, setup_mappers)
+    clear_mappers.assert_called_once()
+    create_tables.assert_called_once_with(meta)
+
+
+def test_open_db_propagates_nonrecoverable_errors():
+    from workhours.models import sql
+
+    with mock.patch.object(sql, "create_engine", side_effect=RuntimeError("bad database")):
+        with pytest.raises(RuntimeError, match="bad database"):
+            sql.open_db(
+                "postgresql://example.test/database", destructive_recover=True
+            )
+
+
+def test_initialize_sql_creates_tables_and_binds_metadata():
+    from workhours.models import sql
+
+    engine = object()
+    base = SimpleNamespace()
+    with mock.patch.object(
+        sql, "create_tables", side_effect=lambda metadata: metadata
+    ) as create_tables:
+        meta = sql.initialize_sql(
+            engine,
+            lambda **kwargs: kwargs["meta"],
+            create_tables_on_init=True,
+            Base=base,
+        )
+
+    create_tables.assert_called_once_with(meta)
+    assert base.metadata is meta
+    assert meta.engine is engine
+
+
+def test_initialize_sql_test_sets_optional_base_metadata():
+    from workhours.models import sql
+    from workhours.models.sql import tables
+
+    meta = mock.Mock()
+    base = SimpleNamespace()
+    with (
+        mock.patch.object(sql, "initialize_sql", side_effect=[meta, meta]),
+        mock.patch.object(sql, "drop_tables"),
+        mock.patch.object(sql, "clear_mappers"),
+        mock.patch.object(tables, "_MAPPED", True),
+    ):
+        result = sql._initialize_sql_test(engine=object(), Base=base)
+
+    assert result is meta
+    assert base.metadata is base

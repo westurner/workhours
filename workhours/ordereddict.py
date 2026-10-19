@@ -1,3 +1,6 @@
+from threading import get_ident as _get_ident
+
+
 class OrderedDict(dict):
     "Dictionary that remembers insertion order"
     # An inherited dict maps keys to values.

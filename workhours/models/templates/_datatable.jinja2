@@ -2,63 +2,40 @@
 {% extends "base.jinja2" %}
 {% endif %}
 {% block extracss %}
-    <link rel="stylesheet"
-        href="{{ request.static_url("workhours:static/datatable/css/demo_table.css") }}"
-        media="screen,projection"
-        type="text/css"
-        />
+<link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-3.1.4/datatables.min.css" integrity="sha384-vj+oeQOya41RCCkuDHsW3E5i5fEHhKBSF4R/6D4fOACzhlFXfoDv5V/IBuCr0VZZ" crossorigin="anonymous">
 {% endblock extracss %}
 {% block extrajs %}
-<!--
-<script type="text/javascript" language="javascript" 
-    src="{{ request.static_url("workhours:static/datatable/js/jquery.js")}}"></script>
-<script type="text/javascript" language="javascript" 
-    src="{{ request.static_url("workhours:static/datatable/js/jquery.dataTables.js")}}"></script>
--->
-<script type="text/javascript" language="javascript"
-    src="https://code.jquery.com/jquery-1.12.4.min.js">
-</script>
-
-<script type="text/javascript" language="javascript"
-    src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.js"></script>
-
+<script src="https://cdn.datatables.net/v/dt/dt-3.1.4/datatables.min.js" integrity="sha384-xlyM0nIE4duzZdmWdeEmvc9HGr7nterdFl+X+9ADR3gSNfdfQFG85gsPQ02DKxM9" crossorigin="anonymous"></script>
 <script type="text/javascript">
- $(document).ready(function() {
-    $('#{{ table_id }}').DataTable({
-             "bSort": true,
-             "bPaginate": true,
-             "bLengthChange": true,
-             /*"sPaginationType": "full_numbers",*/
-             "bFilter": true,
-             "bAutoWidth": false,
-             "bAutoCss": false,
-             "iDisplayLength": 20, 
-             "aLengthMenu": [[20, 50, 100, 1000, 2000, -1], [20, 50, 100, 1000, 2000, "All"]],
+document.addEventListener("DOMContentLoaded", function () {
+    const table = document.getElementById("{{ table_id }}");
+    if (!table) {
+        return;
+    }
 
-             {% if not no_json %}
-             "bProcessing": true,
-             "bServerSide": true,
-             "sAjaxSource": "/api/{{ table_id }}.json",
-             "sAjaxDataProp": "results",
-             /* "aoColumns": , */
-
-
-             "bScrollInfinite": true,
-             "bScrollCollapse": true,
-             /* "sScrollY": "000px", /* window.height-300px */
-             "sScrollY": "400px", /* $(window).height()-300 + "px", */
-             "sScrollX": $(window).width()-100,
-
-            {% endif %}
-
-             "bStateSave": true,
-             "aoColumns": {%- block datatable_columns -%}
-                {{ fields_json|skipautoescape }}
-{%- endblock datatable_columns -%}
-
-             /*"sDom": '<"top"iflp<"clear">>rt<"bottom"iflp<"clear">>',*/
-
-             /*"bJQueryUI": true,*/
+    new DataTable(table, {
+        ordering: true,
+        paging: true,
+        lengthChange: true,
+        searching: true,
+        autoWidth: false,
+        pageLength: 20,
+        lengthMenu: [20, 50, 100, 1000, 2000, -1],
+        {% if not no_json %}
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: "/api/{{ table_id }}.json",
+            dataSrc: "results"
+        },
+        scrollCollapse: true,
+        scrollY: "400px",
+        scrollX: true,
+        {% endif %}
+        stateSave: true,
+        columns: {%- block datatable_columns -%}
+            {{ fields_json|skipautoescape }}
+        {%- endblock datatable_columns -%}
     });
 }); 
 </script>
