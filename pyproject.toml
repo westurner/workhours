@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77.0.0"]
+requires = ["setuptools>=77.0.0,<80"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -47,6 +47,7 @@ dependencies = [
     "pyutmp",
     "sqlalchemy",
     "sqlalchemy-utils",
+    "standard-imghdr",
     "waitress",
     "webhelpers",
 ]
@@ -95,3 +96,8 @@ workhours = [
 
 [tool.pytest.ini_options]
 testpaths = ["workhours"]
+filterwarnings = [
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
+    "ignore:imghdr was removed in Python 3.13:DeprecationWarning",
+]
