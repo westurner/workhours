@@ -1,0 +1,1 @@
+-e git+https://github.com/westurner/pyutmp@python3ify#egg=pyutmp

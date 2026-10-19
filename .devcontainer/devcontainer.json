@@ -1,0 +1,33 @@
+{
+    "name": "workhours (Python 3.14)",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "context": ".."
+    },
+    "remoteUser": "vscode",
+    "forwardPorts": [
+        6543
+    ],
+    "portsAttributes": {
+        "6543": {
+            "label": "workhours Pyramid Webapp",
+            "onAutoForward": "notify"
+        }
+    },
+    "postCreateCommand": "pip install --no-build-isolation -e src/pyutmp && pip install -e '.[test]'",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "tamasfe.even-better-toml"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.testing.pytestEnabled": true,
+                "python.testing.unittestEnabled": false
+            }
+        }
+    }
+}

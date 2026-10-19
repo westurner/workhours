@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=77.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workhours"
+version = "0.5.01"
+description = "Aggregates events from various sources"
+dynamic = ["readme"]
+license = "BSD-3-Clause"
+authors = [
+    {name = "Wes Turner", email = "wes@wrd.nu"},
+]
+keywords = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Framework :: Pyramid",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "alembic",
+    "beautifulsoup4",
+    "celery",
+    "colander",
+    "deform",
+    "deform-jinja2",
+    "fixture",
+    "formencode",
+    "html2text",
+    "iso8601",
+    "passlib",
+    "peppercorn",
+    "pyes",
+    "pyparsing",
+    "pyramid",
+    "pyramid-celery",
+    "pyramid-debugtoolbar",
+    "pyramid-deform",
+    "pyramid-jinja2",
+    "pyramid-marrowmailer",
+    "pyramid-restler",
+    "pyramid-simpleform",
+    "pyramid-sqlalchemy",
+    "pyramid-tm",
+    "pytz",
+    "pyutmp",
+    "sqlalchemy",
+    "sqlalchemy-utils",
+    "waitress",
+    "webhelpers",
+]
+
+[project.optional-dependencies]
+test = [
+    "WebTest",
+    "coverage",
+    "fixture",
+    "pyramid-debugtoolbar",
+    "pytest",
+    "pytest-cov",
+    "venusian",
+    "virtualenv",
+    "zope.component",
+]
+docs = [
+    "Sphinx",
+    "repoze.sphinx.autointerface",
+]
+
+[project.scripts]
+workhours = "workhours.climain:main"
+
+[project.entry-points."paste.app_factory"]
+main = "workhours:main"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CHANGES.rst"], content-type = "text/x-rst"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["workhours*"]
+exclude = ["ez_setup*", "examples*", "tests*", "src*"]
+
+[tool.setuptools.package-data]
+workhours = [
+    "README.rst",
+    "CHANGES.rst",
+    "scripts/*.sh",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["workhours"]
